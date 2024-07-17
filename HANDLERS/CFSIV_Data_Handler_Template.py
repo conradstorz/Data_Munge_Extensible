@@ -1,5 +1,7 @@
 # Each handler module should follow a common interface. For example, a handler for PDF files might look like this:
 import os
+from pathlib import Path
+from whenever import Instant
 from PyPDF2 import PdfFileReader
 import csv
 from datetime import datetime

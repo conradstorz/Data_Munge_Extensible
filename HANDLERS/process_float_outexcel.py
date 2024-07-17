@@ -5,12 +5,18 @@ Takes and input file Path obj, and output file Path obj,
 and a rundate string and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
 """
-
+from pathlib import Path
+from whenever import Instant
 from loguru import logger
 import pandas as panda
 import json
 # from customize_dataframe_for_excel import set_custom_excel_formatting
 
+@logger.catch
+def process(file_path): # This is the standardized functioncall for the Data_Handler_Template
+    out_file_path = Path('.')
+    now_date = Instant.now()
+    process_floatReport_csv(out_file_path, file_path, now_date)
 
 @logger.catch
 def process_floatReport_csv(out_f, in_f, RUNDATE):
@@ -39,8 +45,10 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
         return False
 
     try:
-        df["Today's Float"].replace("[\$,)]", "", regex=True, inplace=True)
-        df["Today's Float"] = df["Today's Float"].astype(float)
+        df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
+        # (old version) df["Today's Float"].replace("[\$,)]", "", regex=True, inplace=True)
+        df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors='coerce')
+        # (old version) df["Today's Float"] = df["Today's Float"].astype(float)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
         return False
