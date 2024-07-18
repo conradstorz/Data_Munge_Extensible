@@ -1,43 +1,102 @@
-import os
 import time
+import importlib
+from pathlib import Path
+from loguru import logger
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
 
+
+# This is our main loop class
 class Watcher:
-    DIRECTORY_TO_WATCH = os.path.expanduser("~/Downloads")
+    DIRECTORY_TO_WATCH = Path("D:/Users/Conrad/Downloads/")
 
     def __init__(self):
         self.observer = Observer()
 
     def run(self):
-        event_handler = Handler()
+        event_handler = MyHandler()
         self.observer.schedule(event_handler, self.DIRECTORY_TO_WATCH, recursive=False)
         self.observer.start()
+        print(f'Monitoring of: {self.DIRECTORY_TO_WATCH} begun')
         try:
             while True:
                 time.sleep(5)
         except KeyboardInterrupt:
+            print('Interrupt detected')
             self.observer.stop()
         self.observer.join()
 
-class Handler(FileSystemEventHandler):
+
+# This is how we recognize data when it arrives
+class MyHandler(FileSystemEventHandler):
     @staticmethod
-    def on_created(event):
+    def on_modified(event):
         if event.is_directory:
             return None
         else:
-            print(f"New file detected: {event.src_path}")
-            process_new_file(event.src_path)
+            # assume this is a file
+            file = Path(event.src_path)
+            if file.is_file():
+                print(f"New file detected: {file.name}")
+                process_new_file(file, HANDLERS)
+            else:
+                print(f'Unknown event detected {event}')
+            return None
 
-def process_new_file(file_path):
-    # Determine the file type and process using the appropriate handler
-    file_extension = os.path.splitext(file_path)[1].lower()
-    handler = HANDLERS.get(file_extension)
+
+# Here we manipulate data when it arrives
+@logger.catch()
+def process_new_file(file_path, HANDLERS):
+    """This process will be called when the watcher has detected a file event.
+    These events are very raw and can happen before the file is completely formed.
+    This script will pause for five seconds to allow for the file to settle."""
+    time.sleep(5)
+    handler = None
+    # Determine the file name and process using the appropriate handler
+    filename = file_path.name
+    names = HANDLERS.keys()  # keys are the unique portion of the name of the data file
+    for name in names:
+        if name in filename:
+            handler = HANDLERS.get(name)
     if handler:
-        handler.process(file_path)
+        handler.process(file_path)  # call the standardized function called 'process' to handle the file
     else:
-        print(f"No handler found for {file_extension} files")
+        print(f'No handler found for {file_path}')
+
+
+@logger.catch()
+def load_handlers():
+    """Handler processes will define the unique substring within the filename that identifies them.
+    Those strings are placed into a dictionary along with the module that processes that file.
+    """
+    HANDLERS = {}
+    root = Path('.')  # Gather python files in current working directory
+    for file in root.glob('*.py'):
+        print(file)
+        name = str(file.stem)  # excludes the extension
+        # look for files that self identify as 'Handlers'
+        if 'Handler' in name:
+            # use the importlib package to capture this code
+            module = importlib.import_module(name)
+            # place the code into a dictionary
+            HANDLERS[module.NAME_UNIQUE] = module
+            if module.NAME_AKA:
+                HANDLERS[module.NAME_AKA] = module
+    print(HANDLERS)
+    return HANDLERS
+
+
+
+@logger.catch()
+def main():
+    print('Starting')
+    w = Watcher()  # initiate watcher
+    try:
+        w.run()  # run watcher
+    except OSError as e:
+        print(f"Error scheduling observer: {e}")    
+    print('Ended nominally')
 
 if __name__ == "__main__":
-    w = Watcher()
-    w.run()
+    HANDLERS = load_handlers()
+    main()
