@@ -10,5 +10,4 @@ def load_handlers():
             module_name = filename[:-3]
             module = importlib.import_module(f'handlers.{module_name}')
             HANDLERS[module.FILE_EXTENSION] = module
-
-load_handlers()
+    return HANDLERS
