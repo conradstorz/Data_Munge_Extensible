@@ -18,6 +18,7 @@ FILE_EXTENSION = '.csv'
 NAME_UNIQUE = "Terminal Status(w_FLOAT)automated"
 NAME_AKA = 'TerminalStatuswFLOATautomated'
 
+
 @logger.catch
 def process(file_path): # This is the standardized functioncall for the Data_Handler_Template
     out_file_path = Path('.')
@@ -29,6 +30,53 @@ def process(file_path): # This is the standardized functioncall for the Data_Han
     logger.debug(f"Found Date: {filedate}")
     output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
     Send_dataframes_to_file(output_dict, output_file)
+    # work finished remove original file from download directory
+    # Original path to the file
+    old_file_path = file_path
+    # New path where to move the file
+    new_file_path = old_file_path.parent / "PAI_float_history" / old_file_path.name
+    # move the file
+    move_file(old_file_path, new_file_path, exist_ok=True)
+    # all work complete
+    return True
+
+
+@logger.catch()
+def move_file(source_path, destination_path, exist_ok=False):
+    """Example usage:
+    move_file('old_file.txt', 'new_location/new_file.txt')
+    """
+    # Ensure that these are Path objects
+    source = Path(source_path)
+    destination = Path(destination_path)    
+
+    try:
+        destination_dir = destination.parent
+        # Ensure the destination directory exists
+        if exist_ok:
+            # create directory if doesn't exist
+            destination_dir.mkdir(parents=True, exist_ok=True)
+        else:
+            # check but do not create
+            destination_dir.mkdir(parents=False, exist_ok=False)
+
+        # Ensure the destination directory exists
+        destination.parent.mkdir(parents=True, exist_ok=True)
+
+        # Attempt to move the file
+        source.rename(destination)
+        print(f"Successfully moved {source} to {destination}")
+
+    except FileNotFoundError:
+        print(f"Error: The source file {source} does not exist.")
+    except PermissionError:
+        print(f"Error: Permission denied. Unable to move {source} to {destination}.")
+    except IsADirectoryError:
+        print(f"Error: {source} is a directory, not a file.")
+    except OSError as e:
+        print(f"Error: An OS error occurred: {e}")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
 
 
 @logger.catch
