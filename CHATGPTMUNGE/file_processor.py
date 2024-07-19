@@ -5,10 +5,9 @@ class FileProcessor:
         self.script_manager = script_manager
 
     def process(self, file_path):
-        script_name = self.script_manager.get_script_for_file(file_path)
-        if script_name:
-            script_module = importlib.import_module(f'scripts.{script_name}')
-            script_module.process(file_path)
+        process_func = self.script_manager.get_script_for_file(file_path)
+        if process_func:
+            process_func(file_path)
         else:
             print(f"No matching script found for file: {file_path}")
 

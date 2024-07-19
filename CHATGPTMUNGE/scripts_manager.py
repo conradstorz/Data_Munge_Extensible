@@ -12,13 +12,16 @@ class ScriptManager:
             if filename.endswith('.py'):
                 script_name = filename[:-3]
                 module = importlib.import_module(f'scripts.{script_name}')
-                if hasattr(module, 'declaration'):
-                    self.scripts[script_name] = module.declaration
+                if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                    self.scripts[script_name] = {
+                        'declaration': module.declaration,
+                        'process': module.process
+                    }
 
     def get_script_for_file(self, filename):
-        for script_name, declaration in self.scripts.items():
-            if declaration.matches(filename):
-                return script_name
+        for script_name, script in self.scripts.items():
+            if script['declaration'].matches(filename):
+                return script['process']
         return None
 
 # Example usage:
