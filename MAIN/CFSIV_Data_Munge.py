@@ -1,3 +1,5 @@
+
+import sys
 import time
 import importlib
 from pathlib import Path
@@ -73,6 +75,7 @@ def load_handlers():
     """
     HANDLERS = {}
     root = Path.cwd() / "MAIN"  # Gather python files in current working directory
+    logger.info(f'Loading data handlers from: {root}')
     for file in root.glob("*.py"):
         name = str(file.stem)  # excludes the extension
         # look for files that self identify as 'Handlers'
@@ -84,6 +87,9 @@ def load_handlers():
             if module.NAME_AKA:
                 HANDLERS[module.NAME_AKA] = module
     logger.info(f"Load handlers function found {len(HANDLERS)} handlers.")
+    if len(HANDLERS) < 1:
+        logger.error(f'Insufficient handlers found to proceede. Exiting.')
+        sys.exit(0)
     return HANDLERS
 
 
