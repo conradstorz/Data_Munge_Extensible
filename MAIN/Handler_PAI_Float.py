@@ -12,7 +12,7 @@ from loguru import logger
 import pandas as panda
 import numpy as np
 
-
+# standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 NAME_UNIQUE = "Terminal Status(w_FLOAT)automated"
 NAME_AKA = "TerminalStatuswFLOATautomated"
