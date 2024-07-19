@@ -1,22 +1,21 @@
 import importlib
-import os
+from pathlib import Path
 
 class ScriptManager:
     def __init__(self, scripts_directory):
-        self.scripts_directory = scripts_directory
+        self.scripts_directory = Path(scripts_directory)
         self.scripts = {}
         self.load_scripts()
 
     def load_scripts(self):
-        for filename in os.listdir(self.scripts_directory):
-            if filename.endswith('.py'):
-                script_name = filename[:-3]
-                module = importlib.import_module(f'scripts.{script_name}')
-                if hasattr(module, 'declaration') and hasattr(module, 'process'):
-                    self.scripts[script_name] = {
-                        'declaration': module.declaration,
-                        'process': module.process
-                    }
+        for script_file in self.scripts_directory.glob('*.py'):
+            script_name = script_file.stem
+            module = importlib.import_module(f'scripts.{script_name}')
+            if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                self.scripts[script_name] = {
+                    'declaration': module.declaration,
+                    'process': module.process
+                }
 
     def get_script_for_file(self, filename):
         for script_name, script in self.scripts.items():

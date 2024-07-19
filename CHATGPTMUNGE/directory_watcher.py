@@ -1,15 +1,16 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from pathlib import Path
 import time
 
 class DirectoryWatcher(FileSystemEventHandler):
     def __init__(self, directory_to_watch, file_processor):
-        self.directory_to_watch = directory_to_watch
+        self.directory_to_watch = Path(directory_to_watch)
         self.file_processor = file_processor
         self.observer = Observer()
 
     def run(self):
-        self.observer.schedule(self, self.directory_to_watch, recursive=False)
+        self.observer.schedule(self, str(self.directory_to_watch), recursive=False)
         self.observer.start()
         try:
             while True:

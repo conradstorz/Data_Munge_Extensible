@@ -1,11 +1,12 @@
-import importlib
+from pathlib import Path
 
 class FileProcessor:
     def __init__(self, script_manager):
         self.script_manager = script_manager
 
     def process(self, file_path):
-        process_func = self.script_manager.get_script_for_file(file_path)
+        file_path = Path(file_path)
+        process_func = self.script_manager.get_script_for_file(file_path.name)
         if process_func:
             process_func(file_path)
         else:
