@@ -41,16 +41,22 @@ class DirectoryWatcher(FileSystemEventHandler):
             logger.info("Directory watcher stopped")
         self.observer.join()
 
-    def on_created(self, event):
+    def on_modified(self, event):
         """
         Event handler for newly created files.
 
         :param event: File system event
         :type event: watchdog.events.FileSystemEvent
         """
+        delay = 5
         if not event.is_directory:
-            logger.info(f"New file detected: {event.src_path}")
-            self.file_processor.process(event.src_path)
+            if Path(event.src_path).suffix not in ['.ini', '.tmp']:
+                logger.info(f"New file detected: {event.src_path}")
+                logger.debug(f'Pausing for {delay} seconds to allow file processes to complete.')
+                time.sleep(delay)
+                self.file_processor.process(event.src_path)
+            else:
+                logger.debug(f'Ignoring file {event.src_path}')
 
 # Example usage:
 # file_processor = FileProcessor(script_manager)
