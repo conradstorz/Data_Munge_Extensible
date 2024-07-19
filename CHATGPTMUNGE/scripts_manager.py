@@ -60,5 +60,5 @@ class ScriptManager:
         return None
 
 # Example usage:
-# script_manager = ScriptManager("/path/to/scripts")
-# script_manager.load_scripts()
+# scripts_manager = ScriptManager("/path/to/scripts")
+# scripts_manager.load_scripts()
