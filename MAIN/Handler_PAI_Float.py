@@ -19,9 +19,8 @@ NAME_AKA = "TerminalStatuswFLOATautomated"
 
 
 @logger.catch
-def process(
-    file_path,
-):  # This is the standardized functioncall for the Data_Handler_Template
+def process(file_path):
+    # This is the standardized functioncall for the Data_Handler_Template
     out_file_path = Path(".")
     output_ext = "xlsx"
     basename = ""
