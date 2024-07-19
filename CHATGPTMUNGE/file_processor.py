@@ -2,10 +2,28 @@ from pathlib import Path
 from loguru import logger
 
 class FileProcessor:
+    """
+    Processes files using the appropriate scripts managed by ScriptManager.
+
+    :param script_manager: Instance of ScriptManager
+    :type script_manager: ScriptManager
+    """
     def __init__(self, script_manager):
+        """
+        Initializes the FileProcessor with the provided ScriptManager.
+
+        :param script_manager: Instance of ScriptManager
+        :type script_manager: ScriptManager
+        """
         self.script_manager = script_manager
 
     def process(self, file_path):
+        """
+        Processes the specified file using the appropriate script.
+
+        :param file_path: Path to the file to be processed
+        :type file_path: str or Path
+        """
         file_path = Path(file_path)
         logger.info(f"Processing file: {file_path}")
         process_func = self.script_manager.get_script_for_file(file_path.name)
