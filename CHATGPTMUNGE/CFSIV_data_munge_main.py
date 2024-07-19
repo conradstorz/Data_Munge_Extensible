@@ -25,8 +25,8 @@ if __name__ == "__main__":
     scripts_directory = Path.cwd()
     directory_to_watch = Path("D:/Users/Conrad/Downloads/")
 
-    script_manager = ScriptManager(scripts_directory)
-    file_processor = FileProcessor(script_manager)
+    scripts_manager = ScriptManager(scripts_directory)
+    file_processor = FileProcessor(scripts_manager)
     directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
 
     directory_watcher.run()
