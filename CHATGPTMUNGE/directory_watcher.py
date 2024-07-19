@@ -1,6 +1,9 @@
 from watchdog.observers import Observer
 from watchdog.events import FileSystemEventHandler
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
 from pathlib import Path
+from loguru import logger
 import time
 
 class DirectoryWatcher(FileSystemEventHandler):
@@ -10,6 +13,7 @@ class DirectoryWatcher(FileSystemEventHandler):
         self.observer = Observer()
 
     def run(self):
+        logger.info(f"Starting directory watcher on {self.directory_to_watch}")
         self.observer.schedule(self, str(self.directory_to_watch), recursive=False)
         self.observer.start()
         try:
@@ -17,10 +21,12 @@ class DirectoryWatcher(FileSystemEventHandler):
                 time.sleep(1)
         except KeyboardInterrupt:
             self.observer.stop()
+            logger.info("Directory watcher stopped")
         self.observer.join()
 
     def on_created(self, event):
         if not event.is_directory:
+            logger.info(f"New file detected: {event.src_path}")
             self.file_processor.process(event.src_path)
 
 # Example usage:
