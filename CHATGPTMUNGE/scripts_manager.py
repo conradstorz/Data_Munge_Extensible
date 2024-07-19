@@ -27,18 +27,20 @@ class ScriptManager:
         logger.info(f"Loading scripts from {self.scripts_directory}")
         for script_file in self.scripts_directory.glob('*.py'):
             script_name = script_file.stem
-            try:
-                module = importlib.import_module(f'scripts.{script_name}')
-                if hasattr(module, 'declaration') and hasattr(module, 'process'):
-                    self.scripts[script_name] = {
-                        'declaration': module.declaration,
-                        'process': module.process
-                    }
-                    logger.info(f"Loaded script: {script_name}")
-                else:
-                    logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes")
-            except Exception as e:
-                logger.error(f"Failed to load script {script_name}: {e}")
+            if 'handler' in script_name.lower():
+                try:
+                    module = importlib.import_module(f'{script_name}')
+                    if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                        self.scripts[script_name] = {
+                            'declaration': module.declaration,
+                            'process': module.process
+                        }
+                        logger.info(f"Loaded script: {script_name}")
+                    else:
+                        logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes")
+                except Exception as e:
+                    logger.error(f"Failed to load script {script_name}: {e}")
+        logger.info(f'{len(self.scripts)} data handling scripts loaded.')
 
     def get_script_for_file(self, filename):
         """
