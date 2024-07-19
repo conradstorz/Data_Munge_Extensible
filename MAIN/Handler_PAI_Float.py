@@ -13,19 +13,23 @@ import pandas as panda
 import numpy as np
 
 
-FILE_EXTENSION = '.csv'
+FILE_EXTENSION = ".csv"
 NAME_UNIQUE = "Terminal Status(w_FLOAT)automated"
-NAME_AKA = 'TerminalStatuswFLOATautomated'
+NAME_AKA = "TerminalStatuswFLOATautomated"
 
 
 @logger.catch
-def process(file_path): # This is the standardized functioncall for the Data_Handler_Template
-    out_file_path = Path('.')
-    output_ext = 'xlsx'
-    basename = ''
-    logger.info(f'Looking for date string in: {file_path.stem}')
+def process(
+    file_path,
+):  # This is the standardized functioncall for the Data_Handler_Template
+    out_file_path = Path(".")
+    output_ext = "xlsx"
+    basename = ""
+    logger.info(f"Looking for date string in: {file_path.stem}")
     filedate = extract_date(file_path.stem)  # filename without extension
-    output_file = determine_output_filename(filedate, basename, output_ext, out_file_path)
+    output_file = determine_output_filename(
+        filedate, basename, output_ext, out_file_path
+    )
     logger.debug(f"Found Date: {filedate}")
     # launch the processing function
     output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
@@ -40,6 +44,7 @@ def process(file_path): # This is the standardized functioncall for the Data_Han
     move_file(old_file_path, new_file_path, exist_ok=True)
     # all work complete
     return True
+
 
 @logger.catch()
 def delete_file_if_exists(file_name: str) -> bool:
@@ -56,7 +61,7 @@ def delete_file_if_exists(file_name: str) -> bool:
         return True
     else:
         return False
-    
+
 
 @logger.catch()
 def move_file(source_path, destination_path, exist_ok=False):
@@ -65,7 +70,7 @@ def move_file(source_path, destination_path, exist_ok=False):
     """
     # Ensure that these are Path objects
     source = Path(source_path)
-    destination = Path(destination_path)    
+    destination = Path(destination_path)
 
     try:
         destination_dir = destination.parent
@@ -82,7 +87,7 @@ def move_file(source_path, destination_path, exist_ok=False):
 
         # Attempt to move the file
         if destination.exists():
-            logger.error(f'Destination file with same name exists. Deleting instead')
+            logger.error(f"Destination file with same name exists. Deleting instead")
             delete_file_if_exists(source)
         else:
             source.rename(destination)
@@ -91,7 +96,9 @@ def move_file(source_path, destination_path, exist_ok=False):
     except FileNotFoundError:
         logger.error(f"Error The source file {source} does not exist.")
     except PermissionError:
-        logger.error(f"Error Permission denied. Unable to move {source} to {destination}.")
+        logger.error(
+            f"Error Permission denied. Unable to move {source} to {destination}."
+        )
     except IsADirectoryError:
         logger.error(f"Error {source} is a directory, not a file.")
     except OSError as e:
@@ -124,7 +131,7 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
     # Process "Today's Float" column
     try:
         df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
-        df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors='coerce')
+        df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
         return False
@@ -198,13 +205,49 @@ def Send_dataframes_to_file(frames, out_f):
     output file path is modified to create a unique filename for each dataframe.
     """
     # define the various labels as $ or % or a plain number
-    column_details = {"Device Number": "A","Bill to Biz Code": "A","Location": "A","SurWD Trxs": "#","Non-Sur WD#": "#",
-    "Inq Trxs": "#","Denial Trxs": "#","Reversal Trxs": "#","Total Trxs": "#","Total Surcharge": "$","Total Dispn": "$",
-    "Biz Surch": "$","Biz Intchng": "$","Biz Addl Rev": "$","Biz Cred/Debt": "$","Business Total Income": "$","Surch": "$",
-    "Avg WD": "$","Surch amt": "$","Settled": "$","DayVaultAVG": "$","Comm Due": "$","An_Net_Incm": "$","An_SurWDs": "#",
-    "surch": "$","Surch%": "%","Daily_Disp": "$","Curr_Assets": "$","Assets": "$","A_T_O": "%","Earn_BIT": "$","p_Margin": "%",
-    "R_O_I": "%","Annual_Net_Income": "$","Annual_SurWDs": "#","Daily_Dispense": "$","Current_Assets": "$","Earnings_BIT": "$",
-    "Comm_Due": "$","_surch": "$","_Surch%": "%","_Assets": "$"
+    column_details = {
+        "Device Number": "A",
+        "Bill to Biz Code": "A",
+        "Location": "A",
+        "SurWD Trxs": "#",
+        "Non-Sur WD#": "#",
+        "Inq Trxs": "#",
+        "Denial Trxs": "#",
+        "Reversal Trxs": "#",
+        "Total Trxs": "#",
+        "Total Surcharge": "$",
+        "Total Dispn": "$",
+        "Biz Surch": "$",
+        "Biz Intchng": "$",
+        "Biz Addl Rev": "$",
+        "Biz Cred/Debt": "$",
+        "Business Total Income": "$",
+        "Surch": "$",
+        "Avg WD": "$",
+        "Surch amt": "$",
+        "Settled": "$",
+        "DayVaultAVG": "$",
+        "Comm Due": "$",
+        "An_Net_Incm": "$",
+        "An_SurWDs": "#",
+        "surch": "$",
+        "Surch%": "%",
+        "Daily_Disp": "$",
+        "Curr_Assets": "$",
+        "Assets": "$",
+        "A_T_O": "%",
+        "Earn_BIT": "$",
+        "p_Margin": "%",
+        "R_O_I": "%",
+        "Annual_Net_Income": "$",
+        "Annual_SurWDs": "#",
+        "Daily_Dispense": "$",
+        "Current_Assets": "$",
+        "Earnings_BIT": "$",
+        "Comm_Due": "$",
+        "_surch": "$",
+        "_Surch%": "%",
+        "_Assets": "$",
     }
 
     for filename, frame in frames.items():
@@ -231,13 +274,14 @@ def Send_dataframes_to_file(frames, out_f):
                 logger.error(f"File not found: {e}")
         except Exception as e:
             logger.error(f"An error occurred: {e}")
+
+
 # deleting output file before spreadsheet loads and prints will break printing.
 """        # print appears successful, delete output spreadsheet
         if delete_file_if_exists(filename):
             logger.info(f'Output file removed successfully.')
         else:
-            logger.info(f'Output file could not be removed.')  """  
-
+            logger.info(f'Output file could not be removed.')  """
 
 
 @logger.catch

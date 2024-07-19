@@ -17,12 +17,12 @@ class Watcher:
         event_handler = MyHandler()
         self.observer.schedule(event_handler, self.DIRECTORY_TO_WATCH, recursive=False)
         self.observer.start()
-        logger.info(f'Monitoring of: {self.DIRECTORY_TO_WATCH} begun')
+        logger.info(f"Monitoring of: {self.DIRECTORY_TO_WATCH} begun")
         try:
             while True:
                 time.sleep(5)
         except KeyboardInterrupt:
-            logger.info('Interrupt detected')
+            logger.info("Interrupt detected")
             self.observer.stop()
         self.observer.join()
 
@@ -40,7 +40,7 @@ class MyHandler(FileSystemEventHandler):
                 logger.info(f"New file detected: {file.name}")
                 process_new_file(file, HANDLERS)
             else:
-                logger.info(f'Unknown event detected {event}')
+                logger.info(f"Unknown event detected {event}")
             return None
 
 
@@ -59,9 +59,11 @@ def process_new_file(file_path, handlers):
         if name in filename:
             handler = handlers.get(name)
     if handler:
-        handler.process(file_path)  # call the standardized function called 'process' to handle the file
+        handler.process(
+            file_path
+        )  # call the standardized function called 'process' to handle the file
     else:
-        logger.info(f'No handler found for {file_path}')
+        logger.info(f"No handler found for {file_path}")
 
 
 @logger.catch()
@@ -70,31 +72,31 @@ def load_handlers():
     Those strings are placed into a dictionary along with the module that processes that file.
     """
     HANDLERS = {}
-    root = Path.cwd() / 'MAIN'  # Gather python files in current working directory
-    for file in root.glob('*.py'):
+    root = Path.cwd() / "MAIN"  # Gather python files in current working directory
+    for file in root.glob("*.py"):
         name = str(file.stem)  # excludes the extension
         # look for files that self identify as 'Handlers'
-        if 'Handler' in name:
+        if "Handler" in name:
             # use the importlib package to capture this code
             module = importlib.import_module(name)
             # place the code into a dictionary
             HANDLERS[module.NAME_UNIQUE] = module
             if module.NAME_AKA:
                 HANDLERS[module.NAME_AKA] = module
-    logger.info(f'Load handlers function found {len(HANDLERS)} handlers.')
+    logger.info(f"Load handlers function found {len(HANDLERS)} handlers.")
     return HANDLERS
-
 
 
 @logger.catch()
 def main():
-    logger.info('Starting watcher service')
+    logger.info("Starting watcher service")
     w = Watcher()  # initiate watcher
     try:
         w.run()  # run watcher
     except OSError as e:
-        logger.info(f"Error scheduling observer: {e}")    
-    logger.info('Ended nominally')
+        logger.info(f"Error scheduling observer: {e}")
+    logger.info("Ended nominally")
+
 
 if __name__ == "__main__":
     HANDLERS = load_handlers()
