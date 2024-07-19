@@ -5,14 +5,13 @@ Takes and input file Path obj, and output file Path obj,
 and a rundate string and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
 """
+import os
 from pathlib import Path
-from whenever import Instant
 from dateutil.parser import parse, ParserError
 from loguru import logger
 import pandas as panda
 import numpy as np
-import json
-# from customize_dataframe_for_excel import set_custom_excel_formatting
+
 
 FILE_EXTENSION = '.csv'
 NAME_UNIQUE = "Terminal Status(w_FLOAT)automated"
@@ -24,11 +23,13 @@ def process(file_path): # This is the standardized functioncall for the Data_Han
     out_file_path = Path('.')
     output_ext = 'xlsx'
     basename = ''
-    # now_date = Instant.now()
+    logger.info(f'Looking for date string in: {file_path.stem}')
     filedate = extract_date(file_path.stem)  # filename without extension
     output_file = determine_output_filename(filedate, basename, output_ext, out_file_path)
     logger.debug(f"Found Date: {filedate}")
+    # launch the processing function
     output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
+    # processing done, send result to printer
     Send_dataframes_to_file(output_dict, output_file)
     # work finished remove original file from download directory
     # Original path to the file
@@ -40,6 +41,22 @@ def process(file_path): # This is the standardized functioncall for the Data_Han
     # all work complete
     return True
 
+@logger.catch()
+def delete_file_if_exists(file_name: str) -> bool:
+    """
+    Deletes a file if it exists in the current working directory or given path.
+    Parameters:
+        file_name (str): The name of the file to be deleted.
+    Returns:
+        bool: True if the file was deleted, False if the file did not exist.
+    """
+    path = Path(file_name)
+    if path.is_file():
+        path.unlink()
+        return True
+    else:
+        return False
+    
 
 @logger.catch()
 def move_file(source_path, destination_path, exist_ok=False):
@@ -64,33 +81,39 @@ def move_file(source_path, destination_path, exist_ok=False):
         destination.parent.mkdir(parents=True, exist_ok=True)
 
         # Attempt to move the file
-        source.rename(destination)
-        print(f"Successfully moved {source} to {destination}")
+        if destination.exists():
+            logger.error(f'Destination file with same name exists. Deleting instead')
+            delete_file_if_exists(source)
+        else:
+            source.rename(destination)
+            logger.info(f"Successfully moved {source} to {destination}")
 
     except FileNotFoundError:
-        print(f"Error: The source file {source} does not exist.")
+        logger.error(f"Error The source file {source} does not exist.")
     except PermissionError:
-        print(f"Error: Permission denied. Unable to move {source} to {destination}.")
+        logger.error(f"Error Permission denied. Unable to move {source} to {destination}.")
     except IsADirectoryError:
-        print(f"Error: {source} is a directory, not a file.")
+        logger.error(f"Error {source} is a directory, not a file.")
     except OSError as e:
-        print(f"Error: An OS error occurred: {e}")
+        logger.error(f"Error An OS error occurred: {e}")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.info(f"An unexpected error occurred: {e}")
 
 
 @logger.catch
 def process_floatReport_csv(out_f, in_f, RUNDATE):
     """Scan file and compute sums for 2 columns"""
+    # load csv file into dataframe
     df = panda.read_csv(in_f)
+
     DF_LAST_ROW = len(df)
     logger.info(f"Excel file imported into dataframe with {DF_LAST_ROW} rows.")
-    # Fields: "Location","Reject Balance","Balance","Today's Float","Route"
+    # expected Fields: "Location","Reject Balance","Balance","Today's Float","Route"
 
-    # Add some information to dataframe
-    # df.at[DF_LAST_ROW, "Reject Balance"] = str(RUNDATE)
+    # tack on the date of this report extracted from the filename
     df.at[DF_LAST_ROW, "Location"] = f"Report ran: {RUNDATE}"
 
+    # Strip out undesirable characters from "Balance" column
     try:
         df["Balance"] = df["Balance"].replace("[\$,)]", "", regex=True)
         df["Balance"] = df["Balance"].astype(float)
@@ -98,15 +121,15 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
         logger.error(f"KeyError in dataframe: {e}")
         return False
 
+    # Process "Today's Float" column
     try:
         df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
-        # (old version) df["Today's Float"].replace("[\$,)]", "", regex=True, inplace=True)
         df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors='coerce')
-        # (old version) df["Today's Float"] = df["Today's Float"].astype(float)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
         return False
 
+    # Process "Reject Balance" column
     try:
         df["Reject Balance"] = df["Reject Balance"].astype(float)
     except KeyError as e:
@@ -118,14 +141,55 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
     df.at["Totals", "Location"] = "               Route Totals"
 
     # work is finished. Drop unneeded columns from output
-    # TODO expand this to drop all columns except those desired in the report
     df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
 
-    # sort the data
+    # sort the data so the totals are listed at the top of the report
     df = df.sort_values("Balance", ascending=False)
 
-    indx = 0
-    return {f"Outputfile{indx}.xlsx": df}
+    return {f"Outputfile0.xlsx": df}
+
+
+@logger.catch()
+def set_custom_excel_formatting(df, writer, details):
+    """By default this will expand column widths to display all content.
+    Optionally a list of strings defining formats for alpha, numeric, currency or percentage
+    may be specified per column. example: ['A','#','$','%'] would set the first 4 columns.
+    """
+    logger.info("formatting column widths and styles...")
+
+    logger.info("Trying to create a formatted worksheet...")
+    # Indicate workbook and worksheet for formatting
+    workbook = writer.book
+    worksheet = writer.sheets["Sheet1"]
+
+    # Add some cell formats.
+    currency_format = workbook.add_format({"num_format": "$#,##0.00"})
+    nmbrfrmt = workbook.add_format({"num_format": "#,##0"})
+    percntg = workbook.add_format({"num_format": "0%"})
+
+    # Reduce the zoom a little
+    worksheet.set_zoom(90)  # does not seem to have any effect
+
+    # Iterate through each column and set the width == the max length in that column. A padding length of 2 is also added.
+    for i, col in enumerate(df.columns):
+        # find length of column i
+        column_width = df[col].astype(str).str.len().max()
+        # Setting the length if the column header is larger
+        # than the max column value length
+        column_width = max(column_width, len(col)) + 2
+        if col in details.keys():
+            # set the column length and format
+            if details[col] == "A":
+                worksheet.set_column(i, i, column_width)
+            if details[col] == "#":
+                worksheet.set_column(i, i, column_width, nmbrfrmt)
+            if details[col] == "$":
+                worksheet.set_column(i, i, column_width, currency_format)
+            if details[col] == "%":
+                worksheet.set_column(i, i, column_width, percntg)
+        else:  # just set the width of the column
+            worksheet.set_column(i, i, column_width)
+    return True
 
 
 @logger.catch()
@@ -133,32 +197,46 @@ def Send_dataframes_to_file(frames, out_f):
     """Takes a dict of dataframes and outputs them to excel files them sends them to default printer.
     output file path is modified to create a unique filename for each dataframe.
     """
-    with open(FORMATTING_FILE) as json_data:
-        column_details = json.load(json_data)
-    # this dictionary will contain information about individual column data type
+    # define the various labels as $ or % or a plain number
+    column_details = {"Device Number": "A","Bill to Biz Code": "A","Location": "A","SurWD Trxs": "#","Non-Sur WD#": "#",
+    "Inq Trxs": "#","Denial Trxs": "#","Reversal Trxs": "#","Total Trxs": "#","Total Surcharge": "$","Total Dispn": "$",
+    "Biz Surch": "$","Biz Intchng": "$","Biz Addl Rev": "$","Biz Cred/Debt": "$","Business Total Income": "$","Surch": "$",
+    "Avg WD": "$","Surch amt": "$","Settled": "$","DayVaultAVG": "$","Comm Due": "$","An_Net_Incm": "$","An_SurWDs": "#",
+    "surch": "$","Surch%": "%","Daily_Disp": "$","Curr_Assets": "$","Assets": "$","A_T_O": "%","Earn_BIT": "$","p_Margin": "%",
+    "R_O_I": "%","Annual_Net_Income": "$","Annual_SurWDs": "#","Daily_Dispense": "$","Current_Assets": "$","Earnings_BIT": "$",
+    "Comm_Due": "$","_surch": "$","_Surch%": "%","_Assets": "$"
+    }
 
-    args = sys.argv
     for filename, frame in frames.items():
         # extract column names from dataframe
         columns = frame.columns
         # establish excel output object and define column formats
-        writer = panda.ExcelWriter(filename, engine="xlsxwriter")
-        frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
-        # set output formatting
-        set_custom_excel_formatting(frame, writer, column_details)
-        logger.info("All work done. Saving worksheet...")
-        writer.save()
-        # now we print
-        if len(args) > 1 and args[1] == "-np":
-            logger.info("bypassing print option due to '-np' option.")
-            logger.info("bypassing file removal option due to '-np' option.")
-            logger.info("exiting program due to '-np' option.")
-        else:
+        try:
+            # Create a pandas ExcelWriter object
+            with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
+                # Write the DataFrame to the Excel file
+                frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
+                # Apply custom formatting
+                set_custom_excel_formatting(frame, writer, column_details)
+                logger.info("All work done. Saving worksheet...")
+            # Now we print
             logger.info("Send processed file to printer...")
             try:
+                # this should launch the system spreadsheet program and trigger the print function.
+                # A possible failure mode here is that the output goes to the same destination as the last
+                # destination used while working with the windows system print dialog which could be the wrong
+                # printer or even the print to file option.
                 os.startfile(filename, "print")
             except FileNotFoundError as e:
                 logger.error(f"File not found: {e}")
+        except Exception as e:
+            logger.error(f"An error occurred: {e}")
+# deleting output file before spreadsheet loads and prints will break printing.
+"""        # print appears successful, delete output spreadsheet
+        if delete_file_if_exists(filename):
+            logger.info(f'Output file removed successfully.')
+        else:
+            logger.info(f'Output file could not be removed.')  """  
 
 
 
