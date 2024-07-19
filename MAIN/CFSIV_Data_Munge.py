@@ -73,6 +73,8 @@ def load_handlers():
     """Handler processes will define the unique substring within the filename that identifies them.
     Those strings are placed into a dictionary along with the module that processes that file.
     """
+    # TODO find a way to allow some handlers to process ALL files regardless of filename
+    #       like when a file extension is .qbo 
     HANDLERS = {}
     root = Path.cwd() / "MAIN"  # Gather python files in current working directory
     logger.info(f'Loading data handlers from: {root}')
