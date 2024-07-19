@@ -1,0 +1,239 @@
+Sure, let's add detailed comments compatible with Sphinx for generating documentation. 
+Sphinx uses reStructuredText (reST) and special comment formats to generate documentation. 
+Here is the code with appropriate Sphinx-style comments:
+
+### Script Manager with Logging and Sphinx Comments
+
+```python
+import importlib
+from pathlib import Path
+from loguru import logger
+
+class ScriptManager:
+    """
+    Manages loading and retrieving scripts for processing files.
+
+    :param scripts_directory: Directory containing the scripts
+    :type scripts_directory: str or Path
+    """
+    def __init__(self, scripts_directory):
+        """
+        Initializes the ScriptManager with the specified directory.
+
+        :param scripts_directory: Directory containing the scripts
+        :type scripts_directory: str or Path
+        """
+        self.scripts_directory = Path(scripts_directory)
+        self.scripts = {}
+        self.load_scripts()
+
+    def load_scripts(self):
+        """
+        Loads scripts from the specified directory. Scripts must have 'declaration' and 'process' attributes.
+        """
+        logger.info(f"Loading scripts from {self.scripts_directory}")
+        for script_file in self.scripts_directory.glob('*.py'):
+            script_name = script_file.stem
+            try:
+                module = importlib.import_module(f'scripts.{script_name}')
+                if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                    self.scripts[script_name] = {
+                        'declaration': module.declaration,
+                        'process': module.process
+                    }
+                    logger.info(f"Loaded script: {script_name}")
+                else:
+                    logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes")
+            except Exception as e:
+                logger.error(f"Failed to load script {script_name}: {e}")
+
+    def get_script_for_file(self, filename):
+        """
+        Retrieves the processing function for a given filename based on script declarations.
+
+        :param filename: Name of the file to match
+        :type filename: str
+        :return: Processing function if a matching script is found, None otherwise
+        :rtype: function or None
+        """
+        logger.info(f"Getting script for file: {filename}")
+        for script_name, script in self.scripts.items():
+            if script['declaration'].matches(filename):
+                logger.info(f"Match found: {script_name}")
+                return script['process']
+        logger.warning(f"No matching script found for file: {filename}")
+        return None
+```
+
+### File Processor with Logging and Sphinx Comments
+
+```python
+from pathlib import Path
+from loguru import logger
+
+class FileProcessor:
+    """
+    Processes files using the appropriate scripts managed by ScriptManager.
+
+    :param script_manager: Instance of ScriptManager
+    :type script_manager: ScriptManager
+    """
+    def __init__(self, script_manager):
+        """
+        Initializes the FileProcessor with the provided ScriptManager.
+
+        :param script_manager: Instance of ScriptManager
+        :type script_manager: ScriptManager
+        """
+        self.script_manager = script_manager
+
+    def process(self, file_path):
+        """
+        Processes the specified file using the appropriate script.
+
+        :param file_path: Path to the file to be processed
+        :type file_path: str or Path
+        """
+        file_path = Path(file_path)
+        logger.info(f"Processing file: {file_path}")
+        process_func = self.script_manager.get_script_for_file(file_path.name)
+        if process_func:
+            try:
+                process_func(file_path)
+                logger.info(f"Successfully processed file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
+        else:
+            logger.warning(f"No matching script found for file: {file_path}")
+```
+
+### Directory Watcher with Logging and Sphinx Comments
+
+```python
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from pathlib import Path
+from loguru import logger
+import time
+
+class DirectoryWatcher(FileSystemEventHandler):
+    """
+    Watches a directory for new files and processes them using FileProcessor.
+
+    :param directory_to_watch: Directory to monitor for new files
+    :type directory_to_watch: str or Path
+    :param file_processor: Instance of FileProcessor
+    :type file_processor: FileProcessor
+    """
+    def __init__(self, directory_to_watch, file_processor):
+        """
+        Initializes the DirectoryWatcher with the specified directory and FileProcessor.
+
+        :param directory_to_watch: Directory to monitor for new files
+        :type directory_to_watch: str or Path
+        :param file_processor: Instance of FileProcessor
+        :type file_processor: FileProcessor
+        """
+        self.directory_to_watch = Path(directory_to_watch)
+        self.file_processor = file_processor
+        self.observer = Observer()
+
+    def run(self):
+        """
+        Starts the directory watcher.
+        """
+        logger.info(f"Starting directory watcher on {self.directory_to_watch}")
+        self.observer.schedule(self, str(self.directory_to_watch), recursive=False)
+        self.observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.observer.stop()
+            logger.info("Directory watcher stopped")
+        self.observer.join()
+
+    def on_created(self, event):
+        """
+        Event handler for newly created files.
+
+        :param event: File system event
+        :type event: watchdog.events.FileSystemEvent
+        """
+        if not event.is_directory:
+            logger.info(f"New file detected: {event.src_path}")
+            self.file_processor.process(event.src_path)
+```
+
+### Putting It All Together with Logging and Sphinx Comments
+
+```python
+if __name__ == "__main__":
+    from script_manager import ScriptManager
+    from file_processor import FileProcessor
+    from directory_watcher import DirectoryWatcher
+    from loguru import logger
+
+    logger.add("file_processing.log", rotation="10 MB")
+
+    scripts_directory = "/path/to/scripts"
+    directory_to_watch = "/path/to/watch"
+
+    script_manager = ScriptManager(scripts_directory)
+    file_processor = FileProcessor(script_manager)
+    directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
+
+    directory_watcher.run()
+```
+
+### Script Example with Sphinx Comments
+
+Example of a script (`scripts/example_script.py`):
+
+```python
+from loguru import logger
+
+class Declaration:
+    """
+    Declaration for matching files to the script.
+
+    :param filename: Name of the file to match
+    :type filename: str
+    :return: True if the script matches the file, False otherwise
+    :rtype: bool
+    """
+    def matches(self, filename):
+        return filename.endswith('.txt') or 'example' in filename
+
+def process(file_path):
+    """
+    Processes the specified file.
+
+    :param file_path: Path to the file to be processed
+    :type file_path: Path
+    """
+    logger.info(f"Processing {file_path} with example_script")
+    print(f"Processing {file_path} with example_script")
+
+declaration = Declaration()
+```
+
+### Explanation
+
+1. **Script Manager**:
+    - Includes detailed Sphinx-style comments for methods and parameters.
+    - Logs script loading operations, including successes, warnings for missing attributes, and errors.
+
+2. **File Processor**:
+    - Includes Sphinx-style comments for the class and methods.
+    - Logs file processing operations, including successes and errors.
+
+3. **Directory Watcher**:
+    - Includes Sphinx-style comments for the class and methods.
+    - Logs the start and stop of the directory watcher and any new files detected.
+
+4. **Main Script**:
+    - Configures `loguru` to log messages to a file (`file_processing.log`) with a rotation policy.
+
+By adding Sphinx-style comments, you make your codebase more maintainable and documentable, 
+facilitating the generation of comprehensive documentation.

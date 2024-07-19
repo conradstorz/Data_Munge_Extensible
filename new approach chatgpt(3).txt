@@ -1,0 +1,150 @@
+Sure, here is the revised implementation using `pathlib` for file and directory operations.
+
+### Script Manager
+
+The Script Manager will load the scripts once and store references to the declaration and processing functions.
+
+```python
+import importlib
+from pathlib import Path
+
+class ScriptManager:
+    def __init__(self, scripts_directory):
+        self.scripts_directory = Path(scripts_directory)
+        self.scripts = {}
+        self.load_scripts()
+
+    def load_scripts(self):
+        for script_file in self.scripts_directory.glob('*.py'):
+            script_name = script_file.stem
+            module = importlib.import_module(f'scripts.{script_name}')
+            if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                self.scripts[script_name] = {
+                    'declaration': module.declaration,
+                    'process': module.process
+                }
+
+    def get_script_for_file(self, filename):
+        for script_name, script in self.scripts.items():
+            if script['declaration'].matches(filename):
+                return script['process']
+        return None
+
+# Example usage:
+# script_manager = ScriptManager("/path/to/scripts")
+# script_manager.load_scripts()
+```
+
+### File Processor
+
+The File Processor now uses the Script Manager to get the correct processing function directly.
+
+```python
+from pathlib import Path
+
+class FileProcessor:
+    def __init__(self, script_manager):
+        self.script_manager = script_manager
+
+    def process(self, file_path):
+        file_path = Path(file_path)
+        process_func = self.script_manager.get_script_for_file(file_path.name)
+        if process_func:
+            process_func(file_path)
+        else:
+            print(f"No matching script found for file: {file_path}")
+
+# Example usage:
+# file_processor = FileProcessor(script_manager)
+# file_processor.process("/path/to/file")
+```
+
+### Directory Watcher
+
+Use `pathlib` to handle directory paths and file paths.
+
+```python
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from pathlib import Path
+import time
+
+class DirectoryWatcher(FileSystemEventHandler):
+    def __init__(self, directory_to_watch, file_processor):
+        self.directory_to_watch = Path(directory_to_watch)
+        self.file_processor = file_processor
+        self.observer = Observer()
+
+    def run(self):
+        self.observer.schedule(self, str(self.directory_to_watch), recursive=False)
+        self.observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.observer.stop()
+        self.observer.join()
+
+    def on_created(self, event):
+        if not event.is_directory:
+            self.file_processor.process(event.src_path)
+
+# Example usage:
+# file_processor = FileProcessor(script_manager)
+# directory_watcher = DirectoryWatcher("/path/to/watch", file_processor)
+# directory_watcher.run()
+```
+
+### Putting It All Together
+
+Integrate all parts into a main script to run the entire process.
+
+```python
+if __name__ == "__main__":
+    from script_manager import ScriptManager
+    from file_processor import FileProcessor
+    from directory_watcher import DirectoryWatcher
+
+    scripts_directory = "/path/to/scripts"
+    directory_to_watch = "/path/to/watch"
+
+    script_manager = ScriptManager(scripts_directory)
+    file_processor = FileProcessor(script_manager)
+    directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
+
+    directory_watcher.run()
+```
+
+### Script Example
+
+Each script should declare its processing logic and the criteria it matches.
+
+Example of a script (`scripts/example_script.py`):
+
+```python
+class Declaration:
+    def matches(self, filename):
+        return filename.endswith('.txt') or 'example' in filename
+
+def process(file_path):
+    print(f"Processing {file_path} with example_script")
+
+declaration = Declaration()
+```
+
+### Explanation
+
+1. **Script Manager**:
+    - Uses `pathlib` to handle paths.
+    - Loads all scripts once using `importlib`.
+    - Stores references to the declaration and process functions in a dictionary.
+    - Provides a method to get the appropriate processing function based on the filename.
+
+2. **File Processor**:
+    - Uses the `pathlib` to handle file paths.
+    - Uses the Script Manager to get the correct processing function and execute it.
+
+3. **Directory Watcher**:
+    - Monitors the directory for new files and invokes the File Processor.
+
+By using `pathlib`, we make the code more modern and robust, especially for handling file paths and directory operations.

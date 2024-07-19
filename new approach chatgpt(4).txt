@@ -1,0 +1,164 @@
+Sure! Let's integrate `loguru` for logging into the existing code.
+
+First, you'll need to install `loguru` if you haven't already:
+
+```sh
+pip install loguru
+```
+
+Next, we'll add logging statements to each of the classes to track the operations and any potential issues.
+
+### Script Manager with Logging
+
+```python
+import importlib
+from pathlib import Path
+from loguru import logger
+
+class ScriptManager:
+    def __init__(self, scripts_directory):
+        self.scripts_directory = Path(scripts_directory)
+        self.scripts = {}
+        self.load_scripts()
+
+    def load_scripts(self):
+        logger.info(f"Loading scripts from {self.scripts_directory}")
+        for script_file in self.scripts_directory.glob('*.py'):
+            script_name = script_file.stem
+            try:
+                module = importlib.import_module(f'scripts.{script_name}')
+                if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                    self.scripts[script_name] = {
+                        'declaration': module.declaration,
+                        'process': module.process
+                    }
+                    logger.info(f"Loaded script: {script_name}")
+                else:
+                    logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes")
+            except Exception as e:
+                logger.error(f"Failed to load script {script_name}: {e}")
+
+    def get_script_for_file(self, filename):
+        logger.info(f"Getting script for file: {filename}")
+        for script_name, script in self.scripts.items():
+            if script['declaration'].matches(filename):
+                logger.info(f"Match found: {script_name}")
+                return script['process']
+        logger.warning(f"No matching script found for file: {filename}")
+        return None
+```
+
+### File Processor with Logging
+
+```python
+from pathlib import Path
+from loguru import logger
+
+class FileProcessor:
+    def __init__(self, script_manager):
+        self.script_manager = script_manager
+
+    def process(self, file_path):
+        file_path = Path(file_path)
+        logger.info(f"Processing file: {file_path}")
+        process_func = self.script_manager.get_script_for_file(file_path.name)
+        if process_func:
+            try:
+                process_func(file_path)
+                logger.info(f"Successfully processed file: {file_path}")
+            except Exception as e:
+                logger.error(f"Error processing file {file_path}: {e}")
+        else:
+            logger.warning(f"No matching script found for file: {file_path}")
+```
+
+### Directory Watcher with Logging
+
+```python
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from pathlib import Path
+from loguru import logger
+import time
+
+class DirectoryWatcher(FileSystemEventHandler):
+    def __init__(self, directory_to_watch, file_processor):
+        self.directory_to_watch = Path(directory_to_watch)
+        self.file_processor = file_processor
+        self.observer = Observer()
+
+    def run(self):
+        logger.info(f"Starting directory watcher on {self.directory_to_watch}")
+        self.observer.schedule(self, str(self.directory_to_watch), recursive=False)
+        self.observer.start()
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            self.observer.stop()
+            logger.info("Directory watcher stopped")
+        self.observer.join()
+
+    def on_created(self, event):
+        if not event.is_directory:
+            logger.info(f"New file detected: {event.src_path}")
+            self.file_processor.process(event.src_path)
+```
+
+### Putting It All Together with Logging
+
+```python
+if __name__ == "__main__":
+    from script_manager import ScriptManager
+    from file_processor import FileProcessor
+    from directory_watcher import DirectoryWatcher
+    from loguru import logger
+
+    logger.add("file_processing.log", rotation="10 MB")
+
+    scripts_directory = "/path/to/scripts"
+    directory_to_watch = "/path/to/watch"
+
+    script_manager = ScriptManager(scripts_directory)
+    file_processor = FileProcessor(script_manager)
+    directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
+
+    directory_watcher.run()
+```
+
+### Script Example
+
+Each script should declare its processing logic and the criteria it matches. You can add logging inside the scripts as well if needed.
+
+Example of a script (`scripts/example_script.py`):
+
+```python
+from loguru import logger
+
+class Declaration:
+    def matches(self, filename):
+        return filename.endswith('.txt') or 'example' in filename
+
+def process(file_path):
+    logger.info(f"Processing {file_path} with example_script")
+    print(f"Processing {file_path} with example_script")
+
+declaration = Declaration()
+```
+
+### Explanation
+
+1. **Script Manager**:
+    - Logs the loading of scripts, including success, warnings for missing attributes, and errors for loading failures.
+    - Logs the process of finding a matching script for a given filename.
+
+2. **File Processor**:
+    - Logs the start of file processing, successful processing, and errors during processing.
+
+3. **Directory Watcher**:
+    - Logs the start and stop of the directory watcher and any new files detected.
+
+4. **Main Script**:
+    - Configures `loguru` to log messages to a file (`file_processing.log`) with a rotation policy to manage log file size.
+
+By integrating `loguru`, you add detailed logging to your application, making it easier to track its behavior and debug any issues that arise.
