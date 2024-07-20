@@ -10,7 +10,7 @@ class Declaration:
     :rtype: bool
     """
     def matches(self, filename):
-        return filename.endswith('.csv') or 'example' in filename
+        return filename.endswith('.txt') or 'example' in filename
 
 def process(file_path):
     """
