@@ -6,6 +6,7 @@ and a rundate string and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
 """
 import os
+import time
 from pathlib import Path
 from dateutil.parser import parse, ParserError
 from loguru import logger
@@ -44,9 +45,12 @@ def process(file_path):
     )
     logger.debug(f"Found Date: {filedate}")
     # launch the processing function
-    output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
-    # processing done, send result to printer
-    Send_dataframes_to_file(output_dict, output_file)
+    try:
+        output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
+        # processing done, send result to printer
+        Send_dataframes_to_file(output_dict, output_file)
+    except Exception as e:
+        logger.error(f'Failure processing: {e}')
     # work finished remove original file from download directory
     # Original path to the file
     old_file_path = file_path
@@ -70,6 +74,7 @@ def delete_file_if_exists(file_name: str) -> bool:
     path = Path(file_name)
     if path.is_file():
         path.unlink()
+        time.sleep(1)  # Pause while unlink has time to process
         return True
     else:
         return False
@@ -123,47 +128,51 @@ def move_file(source_path, destination_path, exist_ok=False):
 def process_floatReport_csv(out_f, in_f, RUNDATE):
     """Scan file and compute sums for 2 columns"""
     # load csv file into dataframe
-    df = panda.read_csv(in_f)
-
-    DF_LAST_ROW = len(df)
-    logger.info(f"Excel file imported into dataframe with {DF_LAST_ROW} rows.")
-    # expected Fields: "Location","Reject Balance","Balance","Today's Float","Route"
-
-    # tack on the date of this report extracted from the filename
-    df.at[DF_LAST_ROW, "Location"] = f"Report ran: {RUNDATE}"
-
-    # Strip out undesirable characters from "Balance" column
     try:
-        df["Balance"] = df["Balance"].replace("[\$,)]", "", regex=True)
-        df["Balance"] = df["Balance"].astype(float)
-    except KeyError as e:
-        logger.error(f"KeyError in dataframe: {e}")
-        return False
+        df = panda.read_csv(in_f)
+    except Exception as e:
+        logger.error(f'Problem using pandas: {e}')
+        df = panda.DataFrame()  # empty frame
+    else:
+        DF_LAST_ROW = len(df)
+        logger.info(f"file imported into dataframe with {DF_LAST_ROW} rows.")
+        # expected Fields: "Location","Reject Balance","Balance","Today's Float","Route"
 
-    # Process "Today's Float" column
-    try:
-        df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
-        df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
-    except KeyError as e:
-        logger.error(f"KeyError in dataframe: {e}")
-        return False
+        # tack on the date of this report extracted from the filename
+        df.at[DF_LAST_ROW, "Location"] = f"Report ran: {RUNDATE}"
 
-    # Process "Reject Balance" column
-    try:
-        df["Reject Balance"] = df["Reject Balance"].astype(float)
-    except KeyError as e:
-        logger.error(f"KeyError in dataframe: {e}")
-        return False
+        # Strip out undesirable characters from "Balance" column
+        try:
+            df["Balance"] = df["Balance"].replace("[\$,)]", "", regex=True)
+            df["Balance"] = df["Balance"].astype(float)
+        except KeyError as e:
+            logger.error(f"KeyError in dataframe: {e}")
+            return False
 
-    # sum the columns
-    df.loc["Totals"] = df.select_dtypes(np.number).sum()
-    df.at["Totals", "Location"] = "               Route Totals"
+        # Process "Today's Float" column
+        try:
+            df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
+            df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
+        except KeyError as e:
+            logger.error(f"KeyError in dataframe: {e}")
+            return False
 
-    # work is finished. Drop unneeded columns from output
-    df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
+        # Process "Reject Balance" column
+        try:
+            df["Reject Balance"] = df["Reject Balance"].astype(float)
+        except KeyError as e:
+            logger.error(f"KeyError in dataframe: {e}")
+            return False
 
-    # sort the data so the totals are listed at the top of the report
-    df = df.sort_values("Balance", ascending=False)
+        # sum the columns
+        df.loc["Totals"] = df.select_dtypes(np.number).sum()
+        df.at["Totals", "Location"] = "               Route Totals"
+
+        # work is finished. Drop unneeded columns from output
+        df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
+
+        # sort the data so the totals are listed at the top of the report
+        df = df.sort_values("Balance", ascending=False)
 
     return {f"Outputfile0.xlsx": df}
 
@@ -314,7 +323,7 @@ def extract_date(fname):
     """
     datestring = "xxxxxxxx"
     logger.info("Processing: " + str(fname))
-    parts = str(fname).split()
+    parts = str(fname).split('-')
     # TODO also need to split on '-'s to catch a different type of embeded datestring.
     logger.debug(f"fname split result: {parts}")
     for part in parts:
