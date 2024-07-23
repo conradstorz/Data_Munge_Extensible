@@ -48,9 +48,14 @@ def process(file_path):
     try:
         output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
         # processing done, send result to printer
-        Send_dataframes_to_file(output_dict, output_file)
+        for filename, frame in output_dict.items():
+            if len(frame) > 0:
+                logger.info(f'Sending {filename} to file/print')
+                Send_dataframe_to_file(filename, frame)
+            else:
+                logger.error(f'Dataframe {filename} is empty.')
     except Exception as e:
-        logger.error(f'Failure processing: {e}')
+        logger.error(f'Failure processing dataframe: {e}')
     # work finished remove original file from download directory
     # Original path to the file
     old_file_path = file_path
@@ -63,21 +68,31 @@ def process(file_path):
 
 
 @logger.catch()
-def delete_file_if_exists(file_name: str) -> bool:
-    """
-    Deletes a file if it exists in the current working directory or given path.
-    Parameters:
-        file_name (str): The name of the file to be deleted.
-    Returns:
-        bool: True if the file was deleted, False if the file did not exist.
-    """
-    path = Path(file_name)
-    if path.is_file():
-        path.unlink()
-        time.sleep(1)  # Pause while unlink has time to process
-        return True
-    else:
-        return False
+def delete_file_and_verify(file_path):
+    try:
+        # Create a Path object
+        file = Path(file_path)
+
+        # Delete the file
+        file.unlink()
+        logger.info(f"Successfully deleted {file}")
+
+        # Verify deletion
+        if not file.exists():
+            logger.info(f"Verification: {file} has been deleted.")
+        else:
+            logger.info(f"Verification failed: {file} still exists.")
+
+    except FileNotFoundError:
+        logger.info(f"Error: The file {file} does not exist.")
+    except PermissionError:
+        logger.info(f"Error: Permission denied. Unable to delete {file}.")
+    except IsADirectoryError:
+        logger.info(f"Error: {file} is a directory, not a file.")
+    except OSError as e:
+        logger.info(f"Error: An OS error occurred: {e}")
+    except Exception as e:
+        logger.info(f"An unexpected error occurred: {e}")
 
 
 @logger.catch()
@@ -89,6 +104,8 @@ def move_file(source_path, destination_path, exist_ok=False):
     source = Path(source_path)
     destination = Path(destination_path)
 
+    logger.info(f'Moving {source.name} to {destination}')
+    
     try:
         destination_dir = destination.parent
         # Ensure the destination directory exists
@@ -105,17 +122,17 @@ def move_file(source_path, destination_path, exist_ok=False):
         # Attempt to move the file
         if destination.exists():
             logger.error(f"Destination file with same name exists. Deleting instead")
-            delete_file_if_exists(source)
+            delete_file_and_verify(source)
         else:
             source.rename(destination)
+            # TODO detect file operation has had time to complete
+            time.sleep(2)  # temp fix
             logger.info(f"Successfully moved {source} to {destination}")
 
     except FileNotFoundError:
         logger.error(f"Error The source file {source} does not exist.")
     except PermissionError:
-        logger.error(
-            f"Error Permission denied. Unable to move {source} to {destination}."
-        )
+        logger.error(f"Error Permission denied. Unable to move {source} to {destination}.")
     except IsADirectoryError:
         logger.error(f"Error {source} is a directory, not a file.")
     except OSError as e:
@@ -134,6 +151,7 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
         logger.error(f'Problem using pandas: {e}')
         df = panda.DataFrame()  # empty frame
     else:
+        logger.debug(f'imported file processed by pandas okay.')
         DF_LAST_ROW = len(df)
         logger.info(f"file imported into dataframe with {DF_LAST_ROW} rows.")
         # expected Fields: "Location","Reject Balance","Balance","Today's Float","Route"
@@ -146,7 +164,7 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
             df["Balance"] = df["Balance"].replace("[\$,)]", "", regex=True)
             df["Balance"] = df["Balance"].astype(float)
         except KeyError as e:
-            logger.error(f"KeyError in dataframe: {e}")
+            logger.error(f"KeyError in balance column: {e}")
             return False
 
         # Process "Today's Float" column
@@ -154,14 +172,14 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
             df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
             df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
         except KeyError as e:
-            logger.error(f"KeyError in dataframe: {e}")
+            logger.error(f"KeyError in 'Todays' Float' column: {e}")
             return False
 
         # Process "Reject Balance" column
         try:
             df["Reject Balance"] = df["Reject Balance"].astype(float)
         except KeyError as e:
-            logger.error(f"KeyError in dataframe: {e}")
+            logger.error(f"KeyError in 'Reject Balance' column: {e}")
             return False
 
         # sum the columns
@@ -173,6 +191,7 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
 
         # sort the data so the totals are listed at the top of the report
         df = df.sort_values("Balance", ascending=False)
+        logger.debug(f'Dataframe finished: {df}')
 
     return {f"Outputfile0.xlsx": df}
 
@@ -216,14 +235,14 @@ def set_custom_excel_formatting(df, writer, details):
             if details[col] == "%":
                 worksheet.set_column(i, i, column_width, percntg)
         else:  # just set the width of the column
+            logger.info(f'No detailed column formating instructions found for: {col}')
             worksheet.set_column(i, i, column_width)
     return True
 
 
 @logger.catch()
-def Send_dataframes_to_file(frames, out_f):
-    """Takes a dict of dataframes and outputs them to excel files them sends them to default printer.
-    output file path is modified to create a unique filename for each dataframe.
+def Send_dataframe_to_file(filename, frame):
+    """Takes a dataframe and outputs to excel file then sends to default printer.
     """
     # define the various labels as $ or % or a plain number
     column_details = {
@@ -270,31 +289,33 @@ def Send_dataframes_to_file(frames, out_f):
         "_Surch%": "%",
         "_Assets": "$",
     }
+    # clean up any old output file that exists
+    delete_file_and_verify(filename)
+    try:
+        # Create a pandas ExcelWriter object
+        logger.debug(f'Creating Excel object {filename} with {len(frame)} lines')
+        with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
+            # Write the DataFrame to the Excel file
+            logger.debug(f'Writing DataFrame to Excel file')
+            frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
+            logger.debug(f'Applying custom column formatting')
+            set_custom_excel_formatting(frame, writer, column_details)
+            logger.info("All work done. Saving worksheet...")
+            # File creation ends here.
 
-    for filename, frame in frames.items():
-        # extract column names from dataframe
-        columns = frame.columns
-        # establish excel output object and define column formats
+        time.sleep(1)  # Allow time for file to save
+        # Now we print
+        logger.info("Send processed file to printer...")
         try:
-            # Create a pandas ExcelWriter object
-            with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
-                # Write the DataFrame to the Excel file
-                frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
-                # Apply custom formatting
-                set_custom_excel_formatting(frame, writer, column_details)
-                logger.info("All work done. Saving worksheet...")
-            # Now we print
-            logger.info("Send processed file to printer...")
-            try:
-                # this should launch the system spreadsheet program and trigger the print function.
-                # A possible failure mode here is that the output goes to the same destination as the last
-                # destination used while working with the windows system print dialog which could be the wrong
-                # printer or even the print to file option.
-                os.startfile(filename, "print")
-            except FileNotFoundError as e:
-                logger.error(f"File not found: {e}")
-        except Exception as e:
-            logger.error(f"An error occurred: {e}")
+            # this should launch the system spreadsheet program and trigger the print function.
+            # A possible failure mode here is that the output goes to the same destination as the last
+            # destination used while working with the windows system print dialog which could be the wrong
+            # printer or even the print to file option.
+            os.startfile(filename, "print")
+        except FileNotFoundError as e:
+            logger.error(f"Output file not found: {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
 
 
 # deleting output file before spreadsheet loads and prints will break printing.
@@ -303,6 +324,7 @@ def Send_dataframes_to_file(frames, out_f):
             logger.info(f'Output file removed successfully.')
         else:
             logger.info(f'Output file could not be removed.')  """
+# current plan is to delete any old file before building new file
 
 
 @logger.catch

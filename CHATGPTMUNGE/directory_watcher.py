@@ -101,6 +101,8 @@ class DirectoryWatcher(FileSystemEventHandler, _DuplicateEventLimiter):
             if not event.is_directory:
                 if Path(event.src_path).suffix not in ['.ini', '.tmp']:
                     logger.info(f"New file detected: {event.src_path}")
+                    # give system time to settle file operations
+                    time.sleep(2)
                     self.file_processor.process(event.src_path)
                     logger.info(f'Returning to observation mode.')
                 else:
