@@ -33,36 +33,40 @@ NAME_AKA = "TerminalStatuswFLOATautomated"  # TODO drop this and simply create a
 
 
 @logger.catch
-def process(file_path):
+def process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
     out_file_path = Path(".")
     output_ext = "xlsx"
     basename = ""
-    logger.info(f"Looking for date string in: {file_path.stem}")
-    filedate = extract_date(file_path.stem)  # filename without extension
-    output_file = determine_output_filename(
-        filedate, basename, output_ext, out_file_path
-    )
-    logger.debug(f"Found Date: {filedate}")
-    # launch the processing function
-    try:
-        output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
-        # processing done, send result to printer
-        for filename, frame in output_dict.items():
-            if len(frame) > 0:
-                logger.info(f'Sending {filename} to file/print')
-                Send_dataframe_to_file(filename, frame)
-            else:
-                logger.error(f'Dataframe {filename} is empty.')
-    except Exception as e:
-        logger.error(f'Failure processing dataframe: {e}')
-    # work finished remove original file from download directory
-    # Original path to the file
-    old_file_path = file_path
-    # New path where to move the file
-    new_file_path = old_file_path.parent / "PAI_float_history" / old_file_path.name
-    # move the file
-    move_file(old_file_path, new_file_path, exist_ok=True)
+    if not file_path.exists:
+        logger.error(f'File to process does not exist.')
+        return False
+    else:
+        logger.info(f"Looking for date string in: {file_path.stem}")
+        filedate = extract_date(file_path.stem)  # filename without extension
+        output_file = determine_output_filename(
+            filedate, basename, output_ext, out_file_path
+        )
+        logger.debug(f"Found Date: {filedate}")
+        # launch the processing function
+        try:
+            output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
+            # processing done, send result to printer
+            for filename, frame in output_dict.items():
+                if len(frame) > 0:
+                    logger.info(f'Sending FLoat Report to file/print...')
+                    Send_dataframe_to_file(filename, frame)
+                else:
+                    logger.error(f'Dataframe {filename} is empty.')
+        except Exception as e:
+            logger.error(f'Failure processing dataframe: {e}')
+        # work finished remove original file from download directory
+        # Original path to the file
+        old_file_path = file_path
+        # New path where to move the file
+        new_file_path = old_file_path.parent / "PAI_float_history" / old_file_path.name
+        # move the file
+        move_file(old_file_path, new_file_path, exist_ok=True)
     # all work complete
     return True
 
@@ -95,6 +99,40 @@ def delete_file_and_verify(file_path):
         logger.info(f"An unexpected error occurred: {e}")
 
 
+def move_file_with_check(source_path, destination_path):
+
+    try:
+        # Create Path objects
+        source = Path(source_path)
+        destination = Path(destination_path)
+
+        logger.info(f'Moving {source.name} to {destination}')
+
+        # Ensure the destination directory exists
+        destination.parent.mkdir(parents=True, exist_ok=True)
+
+        # Move the file
+        source.replace(destination)
+        logger.info(f'Successfully moved {source} to {destination}')       
+
+        # Verify the move
+        if destination.exists() and not source.exists():
+            logger.info(f"Move verified: {source} is now at {destination}")
+        else:
+            logger.info("Move verification failed.")
+
+    except FileNotFoundError:
+        logger.info(f"Error: The source file {source} does not exist.")
+    except PermissionError:
+        logger.info(f"Error: Permission denied. Unable to move {source} to {destination}.")
+    except IsADirectoryError:
+        logger.info(f"Error: {source} is a directory, not a file.")
+    except OSError as e:
+        logger.info(f"Error: An OS error occurred: {e}")
+    except Exception as e:
+        logger.info(f"An unexpected error occurred: {e}")
+
+
 @logger.catch()
 def move_file(source_path, destination_path, exist_ok=False):
     """Example usage:
@@ -105,7 +143,7 @@ def move_file(source_path, destination_path, exist_ok=False):
     destination = Path(destination_path)
 
     logger.info(f'Moving {source.name} to {destination}')
-    
+
     try:
         destination_dir = destination.parent
         # Ensure the destination directory exists
@@ -290,6 +328,7 @@ def Send_dataframe_to_file(filename, frame):
         "_Assets": "$",
     }
     # clean up any old output file that exists
+    logger.info(f'Clenup any old file left over from previous runs.')
     delete_file_and_verify(filename)
     try:
         # Create a pandas ExcelWriter object

@@ -103,7 +103,13 @@ class DirectoryWatcher(FileSystemEventHandler, _DuplicateEventLimiter):
                     logger.info(f"New file detected: {event.src_path}")
                     # give system time to settle file operations
                     time.sleep(2)
-                    self.file_processor.process(event.src_path)
+                    # verify file actually exists
+                    if Path(event.src_path).exists:
+                        logger.info(f'Sending file to be processed.')
+                        self.file_processor.process(event.src_path)
+                    else:
+                        logger.error(f'File {event.src_path} does not exist.')
+                        logger.error(f'Likely this is an echo event from the watchdog module and original file was already processed.')
                     logger.info(f'Returning to observation mode.')
                 else:
                     logger.debug(f'Ignoring file {event.src_path}')
