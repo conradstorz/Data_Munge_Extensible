@@ -12,6 +12,8 @@ from dateutil.parser import parse, ParserError
 from loguru import logger
 import pandas as panda
 import numpy as np
+import pathlib_file_handling as plfh
+
 class Declaration:
     """
     Declaration for matching files to the script.
@@ -22,14 +24,16 @@ class Declaration:
     :rtype: bool
     """
     def matches(self, filename):
-        return filename.endswith('.csv') or "Terminal Status(w_FLOAT)automated" in filename
+        strings_to_match = ["Terminal Status(w_FLOAT)automated", "TerminalStatuswFLOATautomated"]
+
+        if any(s in filename for s in strings_to_match) and filename.endswith('.csv'):
+            # match found
+            return True
+        else:
+            # no match
+            return False
 
 declaration = Declaration()
-
-# standardized declaration for CFSIV_Data_Munge_Extensible project
-FILE_EXTENSION = ".csv"
-NAME_UNIQUE = "Terminal Status(w_FLOAT)automated"
-NAME_AKA = "TerminalStatuswFLOATautomated"  # TODO drop this and simply create another wrapper around the 'process()' below.
 
 
 @logger.catch
@@ -66,117 +70,10 @@ def process(file_path: Path):
         # New path where to move the file
         new_file_path = old_file_path.parent / "PAI_float_history" / old_file_path.name
         # move the file
-        move_file(old_file_path, new_file_path, exist_ok=True)
+        plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
     # all work complete
     return True
 
-
-@logger.catch()
-def delete_file_and_verify(file_path):
-    try:
-        # Create a Path object
-        file = Path(file_path)
-
-        # Delete the file
-        file.unlink()
-        logger.info(f"Successfully deleted {file}")
-
-        # Verify deletion
-        if not file.exists():
-            logger.info(f"Verification: {file} has been deleted.")
-        else:
-            logger.info(f"Verification failed: {file} still exists.")
-
-    except FileNotFoundError:
-        logger.info(f"Error: The file {file} does not exist.")
-    except PermissionError:
-        logger.info(f"Error: Permission denied. Unable to delete {file}.")
-    except IsADirectoryError:
-        logger.info(f"Error: {file} is a directory, not a file.")
-    except OSError as e:
-        logger.info(f"Error: An OS error occurred: {e}")
-    except Exception as e:
-        logger.info(f"An unexpected error occurred: {e}")
-
-
-def move_file_with_check(source_path, destination_path):
-
-    try:
-        # Create Path objects
-        source = Path(source_path)
-        destination = Path(destination_path)
-
-        logger.info(f'Moving {source.name} to {destination}')
-
-        # Ensure the destination directory exists
-        destination.parent.mkdir(parents=True, exist_ok=True)
-
-        # Move the file
-        source.replace(destination)
-        logger.info(f'Successfully moved {source} to {destination}')       
-
-        # Verify the move
-        if destination.exists() and not source.exists():
-            logger.info(f"Move verified: {source} is now at {destination}")
-        else:
-            logger.info("Move verification failed.")
-
-    except FileNotFoundError:
-        logger.info(f"Error: The source file {source} does not exist.")
-    except PermissionError:
-        logger.info(f"Error: Permission denied. Unable to move {source} to {destination}.")
-    except IsADirectoryError:
-        logger.info(f"Error: {source} is a directory, not a file.")
-    except OSError as e:
-        logger.info(f"Error: An OS error occurred: {e}")
-    except Exception as e:
-        logger.info(f"An unexpected error occurred: {e}")
-
-
-@logger.catch()
-def move_file(source_path, destination_path, exist_ok=False):
-    """Example usage:
-    move_file('old_file.txt', 'new_location/new_file.txt')
-    """
-    # Ensure that these are Path objects
-    source = Path(source_path)
-    destination = Path(destination_path)
-
-    logger.info(f'Moving {source.name} to {destination}')
-
-    try:
-        destination_dir = destination.parent
-        # Ensure the destination directory exists
-        if exist_ok:
-            # create directory if doesn't exist
-            destination_dir.mkdir(parents=True, exist_ok=True)
-        else:
-            # check but do not create
-            destination_dir.mkdir(parents=False, exist_ok=False)
-
-        # Ensure the destination directory exists
-        destination.parent.mkdir(parents=True, exist_ok=True)
-
-        # Attempt to move the file
-        if destination.exists():
-            logger.error(f"Destination file with same name exists. Deleting instead")
-            delete_file_and_verify(source)
-        else:
-            source.rename(destination)
-            # TODO detect file operation has had time to complete
-            time.sleep(2)  # temp fix
-            logger.info(f"Successfully moved {source} to {destination}")
-
-    except FileNotFoundError:
-        logger.error(f"Error The source file {source} does not exist.")
-    except PermissionError:
-        logger.error(f"Error Permission denied. Unable to move {source} to {destination}.")
-    except IsADirectoryError:
-        logger.error(f"Error {source} is a directory, not a file.")
-    except OSError as e:
-        logger.error(f"Error An OS error occurred: {e}")
-    except Exception as e:
-        logger.info(f"An unexpected error occurred: {e}")
 
 
 @logger.catch
@@ -329,7 +226,7 @@ def Send_dataframe_to_file(filename, frame):
     }
     # clean up any old output file that exists
     logger.info(f'Clenup any old file left over from previous runs.')
-    delete_file_and_verify(filename)
+    plfh.delete_file_and_verify(filename)
     try:
         # Create a pandas ExcelWriter object
         logger.debug(f'Creating Excel object {filename} with {len(frame)} lines')
