@@ -25,12 +25,18 @@ class FileProcessor:
         :type file_path: str or Path
         """
         file_path = Path(file_path)
+        if not Path(file_path).exists:
+            logger.error(f"Function 'process' called with invalid file reference {file_path}.")
+            return False
+        
         logger.info(f"Processing file: {file_path}")
         process_func = self.script_manager.get_script_for_file(file_path.name)
         if process_func:
             try:
-                process_func(file_path)
-                logger.info(f"Successfully processed file: {file_path}")
+                if process_func(file_path):
+                    logger.info(f"Successfully processed file: {file_path}")
+                else:
+                    logger.error(f'Error processing {file_path}')
             except Exception as e:
                 logger.error(f"Error processing file {file_path}: {e}")
         else:
