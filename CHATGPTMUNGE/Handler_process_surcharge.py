@@ -45,7 +45,8 @@ class Declaration:
             # no match
             return False
 
-declaration = Declaration()
+# TODO activate declaration below when script is ready
+#  declaration = Declaration()
 
 
 @logger.catch
