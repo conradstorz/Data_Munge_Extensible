@@ -36,6 +36,8 @@ class _DuplicateEventLimiter:
         Returns:
             bool: True if the event is a duplicate, False otherwise.
         """
+        # log every event
+        logger.debug(f'Checking duplicate status {event}')
         is_duplicate = (
             pc() - self._last_event["time"] < self._DUPLICATE_THRESHOLD
             and self._last_event["event"] == event
@@ -95,6 +97,8 @@ class DirectoryWatcher(FileSystemEventHandler, _DuplicateEventLimiter):
         :param event: File system event
         :type event: watchdog.events.FileSystemEvent
         """
+        # log every event
+        logger.debug(f'Event: {event}')
         if self._is_duplicate(event):
             logger.debug(f'Watchdog found duplicate event. Ignoring.')
         else:
@@ -102,8 +106,6 @@ class DirectoryWatcher(FileSystemEventHandler, _DuplicateEventLimiter):
                 if Path(event.src_path).suffix not in ['.ini', '.tmp']:
                     logger.info(f"New file detected: {event.src_path}")
                     # give system time to settle file operations
-                    time.sleep(2)
-                    # verify file actually exists
                     if Path(event.src_path).exists:
                         logger.info(f'Sending file to be processed.')
                         self.file_processor.process(event.src_path)
