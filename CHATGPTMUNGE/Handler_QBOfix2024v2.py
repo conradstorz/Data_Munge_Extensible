@@ -1,104 +1,125 @@
-# -*- coding: utf-8 -*-
-
-""" Version 2024.2 qbo_updater / Modify Quickbooks bank downloads to improve importing accuracy.
-This file is the first attempt to organize under Poetry package manager. 2/19/2024
+""" Version 2024.3 qbo_updater / Modify Quickbooks bank downloads to improve importing accuracy.
 """
 
-import os
-import sys
-from whenever import Instant
 from loguru import logger
-import datetime as dt
 from pathlib import Path
-
-from cfsiv_utils.time_strings import LOCAL_NOW_STRING
 import re
+import pathlib_file_handling as plfh
 
-# files to be updated
-QBO_FILE_EXT = ".qbo"
-DEFAULT_DOWNLOAD_FILENAME = "download.qbo"
-BASE_DIRECTORY = "D:/Users/Conrad/Downloads/"
-OUTPUT_DIRECTORY = "D:/Users/Conrad/Documents/"
-RUNTIME_NAME = Path(__file__).name
-RUNTIME_CWD = Path.cwd()
-LN = Instant.now('America/New_York')
-OS_FILENAME_SAFE_TIMESTR = "".join(i for i in LN if i not in r"\:/*?<>|")
-QBO_DOWNLOAD_DIRECTORY = Path(BASE_DIRECTORY)
-QBO_MODIFIED_DIRECTORY = Path(OUTPUT_DIRECTORY)
-BAD_TEXT = [
-    r"DEBIT +\d{4}",  # TODO should this be removed as unneccessary?
-    "CKCD ",  # the space included here ensures that this string is not part of a bigger word
-    "AC-",  # no space here allows this substring to be removed from a string
-    "POS DB ",
-    "POS ",  # 'pos' won't be removed from words like 'position'
-    "-ONLINE ",
-    "-ACH ",
-    "DEBIT ",
-    "CREDIT ",
-    "ACH ",  # possibly i need to consider how these strings are handled by the cleaning routine.
-    "MISCELLANEOUS ",  # 'ach ' would probably match 'reach ' and result in 're'
-    "PREAUTHORIZED ",
-    "PURCHASE ",
-    "TERMINAL ",
-    "ATM ",
-    "BOOK ",
-    "REF ",
-    "BillPay ",
-    "Insurance ",
-    "SEWER PMT ",
-    "FREIGHT TOOLS ",
-    "ENER ",
-    "FUNDS ",
-    "ANYWHERE ",
-    "ACHTRANS ",
-    "NAYAX REIM ",
-    "EFTRANSACT ",
-    "LOAN PAYMENT ",
-    "TECHNOL ",
-    "MERCHANT ",
-    "AUTOMATIC ",
-    "TRANSFER ",
-]
+QBO_MODIFIED_DIRECTORY = Path("D:/Users/Conrad/Documents/")
+
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".qbo"
 NAME_UNIQUE = "*"  # wildcard
 
 
-@logger.catch
-def process(file):
-    """This is the standardized function call for CFSIV_Data_Munge_Extensible"""
-    # TODO complete this function
+class Declaration:
+    """
+    Declaration for matching files to the script.
+
+    :param filename: Name of the file to match
+    :type filename: str
+    :return: True if the script matches the file, False otherwise
+    :rtype: bool
+    """
+    def matches(self, filename):
+        strings_to_match = ["Export-", "dummy place holder for more matches in future"]
+
+        if any(s in filename for s in strings_to_match) and filename.endswith(FILE_EXTENSION):
+            # match found
+            return True
+        else:
+            # no match
+            return False
+
+declaration = Declaration()
 
 
 @logger.catch
-def Main():
-    logger.info(f'Main() function start. Initializing logging.')
-    defineLoggers(f"{RUNTIME_NAME}")
-    logger.info("Program Start.")  # log the start of the program
-    process_QBO()
-    logger.info("Program End.")
-    return
-
-
-@logger.catch
-def process_QBO():
-    logger.info("...checking download directory...")
-    names = list(QBO_DOWNLOAD_DIRECTORY.glob(f"*{QBO_FILE_EXT}"))
-    while names != []:
-        # loop while something to process is found
-        file_pathobj = names.pop()
-        original_records_list = read_base_file(file_pathobj)
+def process(file_path: Path):
+    # This is the standardized functioncall for the Data_Handler_Template
+    if not file_path.exists:
+        logger.error(f'File to process does not exist.')
+        return False
+    else:
+        # process file
+        original_records_list = read_base_file(file_path)
+        if not len(original_records_list) > 0:
+            logger.error(f'File returned no records.')
+            return False
         # we have a file, try to process
-        logger.info(f"file found to process: {file_pathobj.name}")
-        modify_QBO(original_records_list, file_pathobj)
-    if names == []:
-        logger.info(f"no QBO files remain in {QBO_DOWNLOAD_DIRECTORY} directory.")
-    return
+        logger.info(f"file found to process: {file_path.name}")
+        modify_QBO(original_records_list)        
+        # work finished remove original file from download directory
+        new_file_path = file_path.parent / "QBO_file_history" / file_path.name
+        # move the file
+        plfh.move_file_with_check(file_path, new_file_path, exist_ok=True)
+    # all work complete
+    return True
+
+
+@logger.catch
+def modify_QBO(QBO_records_list):
+    """Take a list of strings from a QBO file format and improve transaction names and memos.
+    Wesbanco Bank places all useful info into the memo line. Quickbooks processes transactions based on the names.
+    Wesbanco places verbose human readable descriptions in the memo line and a simple transaction number in the name.
+    Let's swap those to help quickbooks process the transactions and categorize them.
+    Quickbooks limits names of transactions to 32 characters so let's remove the verbose language from the original memos.
+    """
+    modified_qbo, file_date, acct_number = process_qbo_lines(QBO_records_list)
+    # Attempt to write results to cleanfile
+    fname = "".join([file_date, "_", acct_number, FILE_EXTENSION])
+    logger.info(f"Attempting to output modified lines to file name: {fname}")
+    clean_output_file = Path(QBO_MODIFIED_DIRECTORY, fname)
+    try:
+        with open(clean_output_file, "w") as f:
+            f.writelines(modified_qbo)
+    except Exception as e:
+        logger.error(f"Error in writing {clean_output_file}")
+        logger.warning(str(e))
+        return False
+    
+    logger.info(f"File {clean_output_file} contents written successfully.")
+    return True
 
 
 @logger.catch
 def preprocess_memo(memo):
     # Remove specified bad text patterns
+    BAD_TEXT = [
+        r"DEBIT +\d{4}",  # TODO should this be removed as unneccessary?
+        "CKCD ",  # the space included here ensures that this string is not part of a bigger word
+        "AC-",  # no space here allows this substring to be removed from a string
+        "POS DB ",
+        "POS ",  # 'pos' won't be removed from words like 'position'
+        "-ONLINE ",
+        "-ACH ",
+        "DEBIT ",
+        "CREDIT ",
+        "ACH ",  # possibly i need to consider how these strings are handled by the cleaning routine.
+        "MISCELLANEOUS ",  # 'ach ' would probably match 'reach ' and result in 're'
+        "PREAUTHORIZED ",
+        "PURCHASE ",
+        "TERMINAL ",
+        "ATM ",
+        "BOOK ",
+        "REF ",
+        "BillPay ",
+        "Insurance ",
+        "SEWER PMT ",
+        "FREIGHT TOOLS ",
+        "ENER ",
+        "FUNDS ",
+        "ANYWHERE ",
+        "ACHTRANS ",
+        "NAYAX REIM ",
+        "EFTRANSACT ",
+        "LOAN PAYMENT ",
+        "TECHNOL ",
+        "MERCHANT ",
+        "AUTOMATIC ",
+        "TRANSFER ",
+    ]
     logger.debug(f"Original memo line:{memo}")
     for bad_text in BAD_TEXT:
         if re.match(r".*\d{4}.*", bad_text):  # Check if the bad text is a regex pattern
@@ -220,67 +241,7 @@ def read_base_file(input_file):
         logger.warning(str(e))
         file_contents = []
     if file_contents != []:
-        logger.info("File contents read successfully.")
+        logger.info(f"File contents read successfully. {len(file_contents)} lines.")
     return file_contents
 
 
-@logger.catch
-def modify_QBO(QBO_records_list, originalfile_pathobj):
-    """Take a list of strings from a QBO file format and improve transaction names and memos.
-    Wesbanco Bank places all useful info into the memo line. Quickbooks processes transactions based on the names.
-    Wesbanco places verbose human readable descriptions in the memo line and a simple transaction number in the name.
-    Let's swap those to help quickbooks process the transactions and categorize them.
-    Quickbooks limits names of transactions to 32 characters so let's remove the verbose language from the original memos.
-    """
-    modified_qbo, file_date, acct_number = process_qbo_lines(QBO_records_list)
-    # Attempt to write results to cleanfile
-    fname = "".join([file_date, "_", acct_number, QBO_FILE_EXT])
-    logger.info(f"Attempting to output to file name: {fname}")
-    clean_output_file = Path(QBO_MODIFIED_DIRECTORY, fname)
-    try:
-        with open(clean_output_file, "w") as f:
-            f.writelines(modified_qbo)
-    except Exception as e:
-        logger.error(f"Error in writing {clean_output_file}")
-        logger.warning(str(e))
-        sys.exit(1)
-    logger.info(f"File {clean_output_file} contents written successfully.")
-    logger.info(f"Attempting to remove old {originalfile_pathobj} file...")
-    if Path(originalfile_pathobj).exists():
-        try:
-            os.remove(originalfile_pathobj)
-        except OSError as e:
-            logger.warning(f"Error: {e.file_path} - {e.strerror}")
-            sys.exit(1)
-        logger.info(f"Success removing {originalfile_pathobj.name}")
-    else:
-        logger.warning(f"Sorry, I can not find {originalfile_pathobj.name} file.")
-    return
-
-def defineLoggers(filename):
-    def should_rotate(message, file):
-        # Determine if log file should rotate based on size
-        filesize_limit = 5e8  # 500 MB
-        # Rotate file if over size limit
-        file.seek(0, 2)  # Move to the end of the file to get its size
-        if file.tell() > filesize_limit:
-            return True
-        return False
-
-    # Configure loguru logger
-    logger.remove()  # Remove default handler to avoid duplicate logging
-    # Define log path with a date, ensuring all entries for a day go to the same file
-    log_directory = "./LOGS/"
-    os.makedirs(log_directory, exist_ok=True)  # Ensure log directory exists
-    daily_log_filename = f"{filename}_{dt.datetime.now():%Y%m%d}.log"
-    log_path = os.path.join(log_directory, daily_log_filename)
-    logger.add(log_path, rotation=should_rotate, level="DEBUG", encoding="utf8", retention="10 days")
-    logger.add(sys.stderr, level="INFO")  # Optional: Add a console handler if needed
-    logger.info(f"Logging to {log_path}")
-
-
-"""Check if this file is being run directly and activate main function if so.
-"""
-if __name__ == "__main__":
-    logger.info(f'Script launched.')
-    Main()
