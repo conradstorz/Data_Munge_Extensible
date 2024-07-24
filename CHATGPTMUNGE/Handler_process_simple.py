@@ -5,26 +5,66 @@ Takes and input file Path obj, and output file Path obj,
 and a rundate string and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
 """
-# download filename, download extension, output extension
-BASENAME_BANK_STATEMENT = ["BankDepositsStatement", CSV_EXT, CSV_EXT]
-EMAIL_BASENAME_FLOATREPORT = ["Terminal Status(w_FLOAT)automated", CSV_EXT, EXCEL_EXT]
-MANUAL_DL_BASENAME_FLOAT_REPORT = ["TerminalStatuswFLOATautomated3", CSV_EXT, CSV_EXT]
+"""
+# function, download filename, download extension, output extension
+BASENAME_BANK_STATEMENT = [process_bank_statement_csv,"BankDepositsStatement", CSV_EXT, CSV_EXT]
+EMAIL_BASENAME_FLOATREPORT = [process_floatReport_csv,"Terminal Status(w_FLOAT)automated", CSV_EXT, EXCEL_EXT]
+MANUAL_DL_BASENAME_FLOAT_REPORT = [process_floatReport_csv,"TerminalStatuswFLOATautomated3", CSV_EXT, CSV_EXT]
 # Report below is called "Simple Summary Report" on PAI website
-BASENAME_SIMPLE_SUMMARY = ["TerminalTrxData", CSV_EXT, EXCEL_EXT]
+BASENAME_SIMPLE_SUMMARY = [process_simple_summary_csv,"TerminalTrxData", CSV_EXT, EXCEL_EXT]
 # Report below is located in favorite reports and is called "MonthlyRevenueByDevice"
-BASENAME_SURCHARGE_MONTHLY_PER_TERMINAL = [
-    "MonthlyRevenueByDevice",
-    EXCEL_EXT,
-    EXCEL_EXT,
-]
-from loguru import logger
+BASENAME_SURCHARGE_MONTHLY_PER_TERMINAL = [process_monthly_surcharge_report_excel,"MonthlyRevenueByDevice",EXCEL_EXT,EXCEL_EXT,]
+"""
+
 import pandas as panda
 import json
 from customize_dataframe_for_excel import set_custom_excel_formatting
+from loguru import logger
+from pathlib import Path
+
+# standardized declaration for CFSIV_Data_Munge_Extensible project
+FILE_EXTENSION = ".csv"
+FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder for more matches in future"]
+
+
+class Declaration:
+    """
+    Declaration for matching files to the script.
+
+    :param filename: Name of the file to match
+    :type filename: str
+    :return: True if the script matches the file, False otherwise
+    :rtype: bool
+    """
+    @logger.catch()
+    def matches(self, filename: Path) -> bool:
+        """Define how to match data files"""
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+            # match found
+            return True
+        else:
+            # no match
+            return False
+
+declaration = Declaration()
 
 
 @logger.catch
-def process_simple_summary_csv(out_f, in_f, rundate):
+def process(file_path: Path) -> bool:
+    # This is the standardized function call for the Data_Handler_Template
+    if not file_path.exists:
+        logger.error(f'File to process does not exist.')
+        return False
+    else:
+        # process file
+        process_simple_summary_csv(file_path)
+
+    # all work complete
+    return True
+
+
+@logger.catch
+def process_simple_summary_csv(in_f: Path) -> dict:
     """Scan file and compute sums for 2 columns"""
     df = panda.read_csv(in_f)
 
@@ -151,5 +191,4 @@ dft2.astype(str).min()
     # sort the data
     df = df.sort_values("Surch", ascending=False)
 
-    indx = 0
-    return {f"Outputfile{indx}.xlsx": df}
+    return {f"Outputfile{0}.xlsx": df}
