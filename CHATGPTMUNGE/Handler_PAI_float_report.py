@@ -54,26 +54,14 @@ def process(file_path: Path):
         logger.debug(f"Found Date: {filedate}")
         # launch the processing function
         try:
-            output_dict = process_floatReport_csv(out_file_path, file_path, filedate)
+            result = process_floatReport_csv(file_path, filedate)
             # processing done, send result to printer
-            for filename, frame in output_dict.items():
-                if len(frame) > 0:
-                    logger.info(f'Sending FLoat Report to file/print...')
-                    Send_dataframe_to_file(filename, frame)
-                else:
-                    logger.error(f'Dataframe {filename} is empty.')
         except Exception as e:
             logger.error(f'Failure processing dataframe: {e}')
-        # work finished remove original file from download directory
-        # Original path to the file
-        old_file_path = file_path
-        # New path where to move the file
-        new_file_path = old_file_path.parent / "PAI_float_history" / old_file_path.name
-        # move the file
-        plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
+        else:
+            save_results_and_print(output_file, result, file_path)
     # all work complete
     return True
-
 
 
 @logger.catch
@@ -131,6 +119,59 @@ def process_floatReport_csv(out_f, in_f, RUNDATE):
     return {f"Outputfile0.xlsx": df}
 
 
+
+@logger.catch
+def determine_output_filename(datestr, matchedname, ext, output_folder):
+    """Assemble datecode and output folder with original basename into new filename."""
+    fn = ""
+    # fn = fh.check_and_validate(datestr, output_folder)  # TODO no such function?
+    newfilename = Path(f"{fn}_{matchedname}{ext}")
+    # TODO check that name does not yet exist, use cfsiv-utils-conradical to avoid filename collisions and auto-renaming.
+    return newfilename
+
+
+@logger.catch()
+def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
+    """filename and dataframe are in the output_dict
+    """
+    try:
+        if len(frame) > 0:
+            logger.info(f'Sending Float Report to file/print...')
+            Send_dataframe_to_file_and_print(outfile, frame)
+        else:
+            logger.error(f'Dataframe {input_filename} is empty.')
+    except Exception as e:
+        logger.error(f'Failure processing dataframe: {e}')
+    # work finished remove original file from download directory
+    # Original path to the file
+    old_file_path = input_filename
+    # New path where to move the file
+    new_file_path = old_file_path.parent / f"{input_filename.stem}_history" / old_file_path.name
+    # move the file
+    plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
+    return True
+
+
+@logger.catch
+def extract_date(fname):
+    """the filename contains the date the report was run
+    extract and return the date string
+    # TODO use function from cfsiv-utils-conradical to standardize code rather than reinvent it here.
+    """
+    datestring = "xxxxxxxx"
+    logger.info("Processing: " + str(fname))
+    parts = str(fname).split('-')
+    # TODO also need to split on '-'s to catch a different type of embeded datestring.
+    logger.debug(f"fname split result: {parts}")
+    for part in parts:
+        try:
+            datestring = parse(part).strftime("%Y%m%d")
+        except ParserError as e:
+            logger.debug(f"Date not found Error: {e}")
+    return datestring
+
+
+
 @logger.catch()
 def set_custom_excel_formatting(df, writer, details):
     """By default this will expand column widths to display all content.
@@ -176,7 +217,7 @@ def set_custom_excel_formatting(df, writer, details):
 
 
 @logger.catch()
-def Send_dataframe_to_file(filename, frame):
+def Send_dataframe_to_file_and_print(filename, frame):
     """Takes a dataframe and outputs to excel file then sends to default printer.
     """
     # define the various labels as $ or % or a plain number
@@ -262,31 +303,3 @@ def Send_dataframe_to_file(filename, frame):
             logger.info(f'Output file could not be removed.')  """
 # current plan is to delete any old file before building new file
 
-
-@logger.catch
-def determine_output_filename(datestr, matchedname, ext, output_folder):
-    """Assemble datecode and output folder with original basename into new filename."""
-    fn = ""
-    # fn = fh.check_and_validate(datestr, output_folder)  # TODO no such function?
-    newfilename = Path(f"{fn}_{matchedname}{ext}")
-    # TODO check that name does not yet exist, use cfsiv-utils-conradical to avoid filename collisions and auto-renaming.
-    return newfilename
-
-
-@logger.catch
-def extract_date(fname):
-    """the filename contains the date the report was run
-    extract and return the date string
-    # TODO use function from cfsiv-utils-conradical to standardize code rather than reinvent it here.
-    """
-    datestring = "xxxxxxxx"
-    logger.info("Processing: " + str(fname))
-    parts = str(fname).split('-')
-    # TODO also need to split on '-'s to catch a different type of embeded datestring.
-    logger.debug(f"fname split result: {parts}")
-    for part in parts:
-        try:
-            datestring = parse(part).strftime("%Y%m%d")
-        except ParserError as e:
-            logger.debug(f"Date not found Error: {e}")
-    return datestring
