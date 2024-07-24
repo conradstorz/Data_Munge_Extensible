@@ -30,6 +30,9 @@ class ScriptManager:
             if 'handler' in script_name.lower():
                 try:
                     module = importlib.import_module(f'{script_name}')
+                except Exception as e:
+                    logger.error(f"Failed to import script {script_name}: {e}")
+                else:  # no exception during import, continue
                     if hasattr(module, 'declaration') and hasattr(module, 'process'):
                         self.scripts[script_name] = {
                             'declaration': module.declaration,
@@ -37,9 +40,8 @@ class ScriptManager:
                         }
                         logger.info(f"Loaded script: {script_name}")
                     else:
-                        logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes")
-                except Exception as e:
-                    logger.error(f"Failed to load script {script_name}: {e}")
+                        logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes, will not implement handler.")
+
         logger.info(f'{len(self.scripts)} data handling scripts loaded.')
 
     def get_script_for_file(self, filename):
