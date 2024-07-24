@@ -17,7 +17,7 @@ class _DuplicateEventLimiter:
     is considered a duplicate.
     """
 
-    _DUPLICATE_THRESHOLD: float = 0.05
+    _DUPLICATE_THRESHOLD: float = 0.09
 
     def __init__(self) -> None:
         """Initialize a _DuplicateEventLimiter instance."""
