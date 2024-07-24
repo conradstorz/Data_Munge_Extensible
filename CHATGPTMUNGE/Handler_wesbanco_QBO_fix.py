@@ -4,7 +4,7 @@
 from loguru import logger
 from pathlib import Path
 import re
-import CHATGPTMUNGE.pathlib_file_methods as plfh
+import pathlib_file_methods as plfh
 
 QBO_MODIFIED_DIRECTORY = Path("D:/Users/Conrad/Documents/")
 
