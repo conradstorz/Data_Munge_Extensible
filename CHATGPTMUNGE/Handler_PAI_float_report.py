@@ -12,7 +12,7 @@ from dateutil.parser import parse, ParserError
 from loguru import logger
 import pandas as panda
 import numpy as np
-import pathlib_file_handling as plfh
+import CHATGPTMUNGE.pathlib_file_methods as plfh
 
 class Declaration:
     """
