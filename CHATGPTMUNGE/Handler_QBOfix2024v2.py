@@ -10,7 +10,7 @@ QBO_MODIFIED_DIRECTORY = Path("D:/Users/Conrad/Documents/")
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".qbo"
-NAME_UNIQUE = "*"  # wildcard
+FILENAME_STRINGS_TO_MATCH = ["Export-", "dummy place holder for more matches in future"]
 
 
 class Declaration:
@@ -22,10 +22,10 @@ class Declaration:
     :return: True if the script matches the file, False otherwise
     :rtype: bool
     """
-    def matches(self, filename):
-        strings_to_match = ["Export-", "dummy place holder for more matches in future"]
+    @logger.catch
+    def matches(self, filename: Path) -> bool:
 
-        if any(s in filename for s in strings_to_match) and filename.endswith(FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
             # match found
             return True
         else:
@@ -36,7 +36,7 @@ declaration = Declaration()
 
 
 @logger.catch
-def process(file_path: Path):
+def process(file_path: Path) -> bool:
     # This is the standardized functioncall for the Data_Handler_Template
     if not file_path.exists:
         logger.error(f'File to process does not exist.')
