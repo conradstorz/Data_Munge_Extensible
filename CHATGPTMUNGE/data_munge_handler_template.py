@@ -29,7 +29,7 @@ declaration = Declaration()
 
 
 @logger.catch
-def process(file_path: Path) -> bool:
+def handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
     if not file_path.exists:
         logger.error(f'File to process does not exist.')
