@@ -33,14 +33,14 @@ class ScriptManager:
                 except Exception as e:
                     logger.error(f"Failed to import script {script_name}: {e}")
                 else:  # no exception during import, continue
-                    if hasattr(module, 'declaration') and hasattr(module, 'process'):
+                    if hasattr(module, 'declaration') and hasattr(module, 'handler_process'):
                         self.scripts[script_name] = {
                             'declaration': module.declaration,
-                            'process': module.process
+                            'process': module.handler_process
                         }
                         logger.info(f"Loaded script: {script_name}")
                     else:
-                        logger.warning(f"Script {script_name} does not have required 'declaration' or 'process' attributes, will not implement handler.")
+                        logger.warning(f"Script {script_name} does not have both required 'declaration' and 'handler_process' attributes, will not implement handler.")
 
         logger.info(f'{len(self.scripts)} data handling scripts loaded.')
 
