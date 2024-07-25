@@ -19,14 +19,17 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
             logger.error(f'Dataframe {input_filename} is empty.')
     except Exception as e:
         logger.error(f'Failure processing dataframe: {e}')
-    # work finished remove original file from download directory
-    # Original path to the file
-    old_file_path = input_filename
-    # New path where to move the file
-    new_file_path = old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
-    # move the file
-    plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
-    return True
+    # work finished remove original file from download directory if filename provided.
+    if input_filename == "":
+        return True
+    else:
+        # Original path to the file
+        old_file_path = input_filename
+        # New path where to move the file
+        new_file_path = old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
+        # move the file
+        plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
+        return True
 
 
 @logger.catch

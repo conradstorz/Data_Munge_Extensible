@@ -20,11 +20,17 @@ import pandas as panda
 import json
 from loguru import logger
 from pathlib import Path
+from whenever import Instant
+from dataframe_functions import save_results_and_print
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "dummy place holder for more matches in future"]
+ARCHIVE_DIRECTORY_NAME = "MonthlyRevenue"
 
+VALUE_FILE = "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
+FORMATTING_FILE = "ColumnFormatting.json"  # data describing formatting of data such as integer, date, float, string
+REPORT_DEFINITIONS_FILE = "SurchargeReportVariations.json"  # this dictionary will contain information about individual reports layouts
 
 class Declaration:
     """
@@ -56,9 +62,26 @@ def handler_process(file_path: Path) -> bool:
         logger.error(f'File to process does not exist.')
         return False
     else:
-        # process file
-        pass
-
+        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{FILE_EXTENSION}')
+        logger.debug(f'Output filename: {output_file}')
+        # launch the processing function
+        try:
+            column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG = process_monthly_surcharge_report_excel(file_path, Instant.now())
+            # processing done, send result to printer
+        except Exception as e:
+            logger.error(f'Failure processing dataframe: {e}')
+            return False
+        else:
+            if len(Input_df) > 0:
+                logger.info(f'Send dataframe to be porcessed')
+                frames = send_dataframe_to_printer(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
+            else:
+                logger.error(f'No data found to process')
+                return False
+            if len(frames) > 0:
+                logger.info(f'Send dataframes to printer')
+                for filename, df in frames:
+                    save_results_and_print(filename, df, "")  # empty string tells function not to move input file to history
     # all work complete
     return True
 
@@ -91,7 +114,7 @@ def validate_value(value, min_value=0, max_value=float('inf')):
 
 
 @logger.catch
-def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
+def process_monthly_surcharge_report_excel(in_f, RUNDATE):
     """Uses this "Payment Alliance International (PAI) website" report to determine surcharges are correct
     and I am being paid the correct amount when splitting surcharge. If a location earns commission it is calculated.
     After reading the data extract:
@@ -102,10 +125,6 @@ def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
     LOCATION_TAG = "Location"
     DEVICE_NUMBER_TAG = "Device Number"
     SURCHARGEABLE_WITHDRAWL_TRANSACTIONS_TAG = "SurWD Trxs"
-
-    VALUE_FILE = "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
-    FORMATTING_FILE = "ColumnFormatting.json"  # data describing formatting of data such as integer, date, float, string
-    REPORT_DEFINITIONS_FILE = "SurchargeReportVariations.json"  # this dictionary will contain information about individual reports layouts
 
     DAYS = 30  # most months are 30 days and report covers a month
     # TODO not all reports are 30 days. Some are 90 days. Try to determine actual number of days.
@@ -118,8 +137,14 @@ def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
         cols = cols[-1:] + cols[:-1]
         return df[cols]
 
-    Input_df = panda.read_excel(in_f)
-
+    empty_df = panda.DataFrame() 
+    # load the data from filename provided
+    try:
+        Input_df = panda.read_excel(in_f)
+    except Exception as e:
+        logger.error(f'Problem using pandas: {e}')
+        return empty_df
+    
     INPUTDF_TOTAL_ROWS = len(Input_df)
 
     logger.info(f"Excel file imported into dataframe with {INPUTDF_TOTAL_ROWS} rows.")
@@ -130,7 +155,9 @@ def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
     Input_df = Input_df.groupby(
         [Input_df[LOCATION_TAG], Input_df[DEVICE_NUMBER_TAG]], as_index=False
     ).sum(numeric_only=True)
+
     INPUTDF_TOTAL_ROWS = len(Input_df)
+
     logger.info(
         f"{INPUTDF_TOTAL_ROWS} rows remain after combining identical locations."
     )
@@ -388,7 +415,15 @@ def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
     column_details[RTNONINV] = "%"
 
     logger.info("work is finished. Create outputs...")
+    return (column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
 
+
+
+
+
+@logger.catch()
+def send_dataframe_to_printer(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG):
+    """send ATM terminal activity dataframe to file and printer"""
     # update the column output formatting rules
     with open(FORMATTING_FILE, "w") as json_data:
         json.dump(column_details, json_data, indent=4)
@@ -403,12 +438,13 @@ def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
     pretty_json = json.dumps(output_options, default=custom_json_serializer, indent=4)
     logger.debug(f'Report Definitions File:{pretty_json}')        
 
-    # print these reports
+    # create these reports
     CURRENT_REPORTS = ["Commission", "Surcharge", "Dupont"]
 
     frames = {}
     for indx, report in enumerate(CURRENT_REPORTS):
-        # create a unique filename
+        logger.info(f'Generating report: {report}')
+        # create a unique filename for each report
         fn = f"Outputfile{indx}.xlsx"
         # Creating an empty Dataframe with column names only
         frames[fn] = panda.DataFrame(columns=output_options[report])
@@ -417,7 +453,9 @@ def process_monthly_surcharge_report_excel(_out_f, in_f, RUNDATE):
             try:
                 frames[fn][column] = Input_df[column]
             except KeyError as e:
-                logger.error(f"Key Error: {e}")
-        # ??? smoething inserted at the end ???
+                logger.error(f"Key Error: {e} column {column} not added")
+        logger.info(f'Dataframe with {len(frames[fn])} items created.')
+        # ??? something inserted at the end ???
         frames[fn].at[INPUTDF_TOTAL_ROWS + 1, LOCATION_TAG] = report
+    logger.info(f'Finished creating {len(frames)} report dataframes.')
     return frames

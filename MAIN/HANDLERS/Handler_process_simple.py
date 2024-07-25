@@ -18,14 +18,15 @@ BASENAME_SURCHARGE_MONTHLY_PER_TERMINAL = [process_monthly_surcharge_report_exce
 
 import pandas as panda
 import json
-from customize_dataframe_for_excel import set_custom_excel_formatting
 from loguru import logger
 from pathlib import Path
+from dataframe_functions import save_results_and_print
+
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder for more matches in future"]
-
+ARCHIVE_DIRECTORY_NAME = "SimpleTerminalData"
 
 class Declaration:
     """
@@ -46,26 +47,37 @@ class Declaration:
             # no match
             return False
 
-# TODO activate declaration below when script is ready
-#  declaration = Declaration()
+# activate declaration 
+declaration = Declaration()
 
 
 @logger.catch
-def process(file_path: Path) -> bool:
+def handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
     if not file_path.exists:
         logger.error(f'File to process does not exist.')
         return False
     else:
         # process file
-        process_simple_summary_csv(file_path)
-
+        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{FILE_EXTENSION}')
+        logger.debug(f'Output filename: {output_file}')        
+        try:
+            result = process_simple_summary_csv(file_path)
+        except Exception as e:
+            logger.error(f'Failure processing dataframe: {e}')
+            return False
+        else:
+            if len(result) > 0:
+                save_results_and_print(output_file, result, file_path)
+            else:
+                logger.error(f'No data found to process')
+                return False
     # all work complete
     return True
 
 
 @logger.catch
-def process_simple_summary_csv(in_f: Path) -> dict:
+def process_simple_summary_csv(in_f: Path):  # returns a dataframe
     """Scan file and compute sums for 2 columns"""
     df = panda.read_csv(in_f)
 
@@ -192,4 +204,4 @@ dft2.astype(str).min()
     # sort the data
     df = df.sort_values("Surch", ascending=False)
 
-    return {f"Outputfile{0}.xlsx": df}
+    return df
