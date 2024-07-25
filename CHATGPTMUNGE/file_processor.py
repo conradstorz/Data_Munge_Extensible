@@ -31,16 +31,21 @@ class FileProcessor:
         
         logger.info(f"Processing file: {file_path}")
         process_func = self.script_manager.get_script_for_file(file_path.name)
-        if process_func:
+        if not process_func:
+            logger.warning(f"No matching script found for file: {file_path}")
+            return False
+        else:
             try:
                 if process_func(file_path):
                     logger.info(f"Successfully processed file: {file_path}")
                 else:
                     logger.error(f'Error processing {file_path}')
+                    return False
             except Exception as e:
                 logger.error(f"Error processing file {file_path}: {e}")
-        else:
-            logger.warning(f"No matching script found for file: {file_path}")
+                return False
+        return True
+            
 
 # Example usage:
 # file_processor = FileProcessor(script_manager)
