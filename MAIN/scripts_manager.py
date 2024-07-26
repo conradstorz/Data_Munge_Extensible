@@ -1,3 +1,4 @@
+import sys
 import importlib
 from pathlib import Path
 from loguru import logger
@@ -24,10 +25,20 @@ class ScriptManager:
         """
         Loads scripts from the specified directory. Scripts must have 'declaration' and 'process' attributes.
         """
+        #original_working_directory = Path.cwd()
         logger.info(f"Loading scripts from {self.scripts_directory}")
+        # Create a Path object for the new directory
+        #new_directory = Path(self.scripts_directory)
+
+        # Change the working directory
+        #os.chdir(new_directory)
+
+        # Verify the change
+        #logger.info(f"Current working directory: {Path.cwd()}")
         for script_file in self.scripts_directory.glob('*.py'):
             script_name = script_file.stem
             if 'handler' in script_name.lower():
+                logger.info(f'Attempting to load handler {script_name}')
                 try:
                     module = importlib.import_module(f'{script_name}')
                 except Exception as e:
@@ -43,6 +54,10 @@ class ScriptManager:
                         logger.warning(f"Script {script_name} does not have both required 'declaration' and 'handler_process' attributes, will not implement handler.")
 
         logger.info(f'{len(self.scripts)} data handling scripts loaded.')
+        if len(self.scripts) < 1:
+            logger.error(f'No handlers loaded. Exiting')
+            sys.exit(0)
+
 
     def get_script_for_file(self, filename):
         """

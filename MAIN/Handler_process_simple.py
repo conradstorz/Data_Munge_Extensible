@@ -79,6 +79,9 @@ def handler_process(file_path: Path) -> bool:
 @logger.catch
 def process_simple_summary_csv(in_f: Path):  # returns a dataframe
     """Scan file and compute sums for 2 columns"""
+    empty_df = panda.DataFrame()
+
+    try:
     df = panda.read_csv(in_f)
 
     FORMATTING_FILE = "ColumnFormatting.json"
@@ -144,20 +147,20 @@ dft2.astype(str).min()
         df["Surch"] = df["Surch"].astype(float)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
-        return False
+        return empty_df
 
     try:
         df["Settlement"].replace("[\$,)]", "", regex=True, inplace=True)
         df["Settlement"] = df["Settlement"].astype(float)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
-        return False
+        return empty_df
 
     try:
         df["WD Trxs"] = df["WD Trxs"].astype(float)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
-        return False
+        return empty_df
 
     def calc(row):
         """Calculate the surcharge earned per withdrawl."""
@@ -171,7 +174,7 @@ dft2.astype(str).min()
         df["Surcharge amt"] = df.apply(lambda row: calc(row), axis=1)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
-        return False
+        return empty_df
 
     def avgWD(row):
         """Calculate the average amount of withdrawls."""
@@ -185,7 +188,7 @@ dft2.astype(str).min()
         df["Average WD amount"] = df.apply(lambda row: avgWD(row), axis=1)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
-        return False
+        return empty_df
 
     def DailyWD(row):
         """Assuming 30 days in report data calculate daily withdrawl total."""
@@ -195,7 +198,7 @@ dft2.astype(str).min()
         df["Daily Vault AVG"] = df.apply(lambda row: DailyWD(row), axis=1)
     except KeyError as e:
         logger.error(f"KeyError in dataframe: {e}")
-        return False
+        return empty_df
 
     # work is finished. Drop unneeded columns from output
     # TODO expand this to drop all columns except those desired in the report

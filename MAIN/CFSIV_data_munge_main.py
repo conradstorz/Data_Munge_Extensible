@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     logger.add("file_processing.log", rotation="10 MB")
 
-    scripts_directory = Path.cwd() / "CHATGPTMUNGE"
+    scripts_directory = Path.cwd() / "MAIN"
     directory_to_watch = Path("D:/Users/Conrad/Downloads/")
 
     scripts_manager = ScriptManager(scripts_directory)
