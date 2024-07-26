@@ -14,6 +14,7 @@ from dataframe_functions import extract_date_from_filename, save_results_and_pri
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
+OUTPUT_FILE_EXTENSION = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = ["Terminal Status(w_FLOAT)automated", "TerminalStatuswFLOATautomated"]
 ARCHIVE_DIRECTORY_NAME = "FloatReport"
 
@@ -42,7 +43,6 @@ declaration = Declaration()
 @logger.catch
 def handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
-    output_ext = ".xlsx"
     if not file_path.exists:
         logger.error(f'File to process does not exist.')
         return False
@@ -50,7 +50,7 @@ def handler_process(file_path: Path):
         logger.info(f"Looking for date string in: {file_path.stem}")
         filedate = extract_date_from_filename(file_path.stem)  # filename without extension
         logger.debug(f"Found Date: {filedate}")       
-        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{output_ext}')
+        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
         logger.debug(f'Output filename: {output_file}')
         # launch the processing function
         try:
