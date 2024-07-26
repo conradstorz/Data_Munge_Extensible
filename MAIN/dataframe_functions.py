@@ -169,6 +169,7 @@ def Send_dataframe_to_file_and_print(filename, frame):
             # destination used while working with the windows system print dialog which could be the wrong
             # printer or even the print to file option.
             os.startfile(filename, "print")
+            logger.debug(f'Call to launch spreadsheet {filename} appears to have worked.')
         except FileNotFoundError as e:
             logger.error(f"Output file not found: {e}")
     except Exception as e:
