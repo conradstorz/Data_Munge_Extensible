@@ -25,8 +25,10 @@ from dataframe_functions import save_results_and_print
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
+OUTPUT_FILE_EXTENSION = '.xlsx'
 FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder for more matches in future"]
 ARCHIVE_DIRECTORY_NAME = "SimpleTerminalData"
+FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
 
 class Declaration:
     """
@@ -54,12 +56,13 @@ declaration = Declaration()
 @logger.catch
 def handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
+    result = empty_df = panda.DataFrame()
     if not file_path.exists:
         logger.error(f'File to process does not exist.')
         return False
     else:
         # process file
-        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{FILE_EXTENSION}')
+        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
         logger.debug(f'Output filename: {output_file}')        
         try:
             result = process_simple_summary_csv(file_path)
@@ -82,9 +85,11 @@ def process_simple_summary_csv(in_f: Path):  # returns a dataframe
     empty_df = panda.DataFrame()
 
     try:
-    df = panda.read_csv(in_f)
+        df = panda.read_csv(in_f)
+    except Exception as e:
+        logger.error(f'Problem using pandas: {e}')
+        return empty_df
 
-    FORMATTING_FILE = "ColumnFormatting.json"
     with open(FORMATTING_FILE) as json_data:
         column_details = json.load(json_data)
     # this dictionary will contain information about individual column data type
