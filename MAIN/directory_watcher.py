@@ -112,7 +112,7 @@ class DirectoryWatcher(FileSystemEventHandler, _DuplicateEventLimiter):
                     else:
                         logger.error(f'File {event.src_path} does not exist.')
                         logger.error(f'Likely this is an echo event from the watchdog module and original file was already processed.')
-                    logger.info(f'Returning to observation mode.')
+                    logger.info(f'####################  Returning to observation mode. ######################')
                 else:
                     logger.debug(f'Ignoring file {event.src_path}')
 
