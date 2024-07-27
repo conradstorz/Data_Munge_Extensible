@@ -176,12 +176,6 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     # Pretty print and log the dictionary item
     pretty_json = json.dumps(terminal_details, default=custom_json_serializer, indent=4)
     logger.debug(f'Printer details report:\n{pretty_json}')
-    VF_KEY_Owned = "Owned"
-    VF_KEY_Value = "Value"
-    VF_KEY_VisitDays = "Visit Days"
-    VF_KEY_TravelCost = "Travel Cost"
-    VF_KEY_SurchargeEarned = "Surcharge Earned"
-    VF_KEY_Commission_rate = "Comm Rate paid"
 
     logger.info(f"Reading formatting file..")
     with open(FORMATTING_FILE) as json_data:
@@ -242,78 +236,108 @@ def calculate_additional_values(df, terminal_details, column_details):
         "RTNONINV": "R_O_I"
     }
 
+    LOCATION_TAG = "Location"
+    DEVICE_NUMBER_TAG = "Device Number"
+
+    VF_KEY_Owned = "Owned"
+    VF_KEY_Value = "Value"
+    VF_KEY_VisitDays = "Visit Days"
+    VF_KEY_TravelCost = "Travel Cost"
+    VF_KEY_SurchargeEarned = "Surcharge Earned"
+    VF_KEY_Commission_rate = "Comm Rate paid"
+
+    # These names must match the input dataframe columns
+    BizGrossIncome = "Business Total Income"
+    TOTSUR = "Total Surcharge"
+    TOTDISP = "Total Dispensed Amount"
+    SURCHXACTS = "SurWD Trxs"
+    TOTALXACTS = "Total Trxs"
+    TOTALINTRCHANGE ="Total Interchange"
+
+    # These names are added to the original input dataframe
+    COMM = "Comm_Due"
+    AnnualNetIncome = "Annual_Net_Income"
+    ASURWD = "Annual_SurWDs"
+    SURCH = "_surch"
+    SURCHPER = "_Surch%"
+    DAYDISP = "Daily_Dispense"
+    CURASS = "Current_Assets"
+    ASSETS = "_Assets"
+    ASSETSTO = "A_T_O"
+    ERNBIT = "Earnings_BIT"
+    PRFTMGN = "p_Margin"
+    RTNONINV = "R_O_I"
+
     # Helper functions
     def get_commission_due(row):
-        commrate = terminal_details.get(row['DEVICE_NUMBER_TAG'], {}).get('VF_KEY_Commission_rate', 0)
-        return round(row[column_names["SURCHXACTS"]] * commrate, 2)
+        device_info = terminal_details.get(row.get(DEVICE_NUMBER_TAG, {}), {})
+        commrate = device_info.get(VF_KEY_Commission_rate, 0)
+        transactions = float(row.get(SURCHXACTS, 0))
+        return round(transactions * commrate, 2)
 
     def calculate_annual_net_income(row):
-        ta = row.get(column_names["BizGrossIncome"], 0)
-        cm = row.get(column_names["COMM"], 0)
+        ta = float(row.get(BizGrossIncome, 0))
+        cm = float(row.get(COMM, 0))
         return float((ta - cm) * 12)
 
     def calculate_annual_surwds(row):
-        return int(row.get(column_names["SURCHXACTS"], 0) * 12)
+        return int(row.get(SURCHXACTS, 0) * 12)
 
     def calculate_average_surcharge(row):
-        asurwd = row.get(column_names["ASURWD"], 1)
-        return round(row[column_names["AnnualNetIncome"]] / asurwd, 2) if asurwd != 0 else 0
+        asurwd = float(row.get(ASURWD, 1))
+        return round(float(row[AnnualNetIncome]) / asurwd, 2) if asurwd != 0 else 0
 
     def calculate_surcharge_percentage(row):
-        total_surcharge = row.get(column_names["TOTSUR"], 1) * 12
-        return round(row[column_names["AnnualNetIncome"]] / total_surcharge, 2) if total_surcharge != 0 else 0
+        total_surcharge = float(row.get(TOTSUR, 1)) * 12
+        return round(float(row[AnnualNetIncome]) / total_surcharge, 2) if total_surcharge != 0 else 0
 
     def calculate_average_daily_dispense(row):
-        return round(row.get(column_names["TOTDISP"], 0) / DAYS, 2)
+        return round(float(row.get(TOTDISP, 0)) / DAYS, 2)
 
     def calculate_current_assets(row):
-        device = terminal_details.get(row['DEVICE_NUMBER_TAG'], {})
-        visits = device.get('VF_KEY_VisitDays', 0)
-        owned = device.get('VF_KEY_Owned', 'Yes')
+        device = terminal_details.get(row[DEVICE_NUMBER_TAG], {})
+        visits = device.get(VF_KEY_VisitDays, 0)
+        owned = device.get(VF_KEY_Owned, 'Yes')
         if owned == "No":
             return 0
         buffer = 1.5
-        return round(row[column_names["DAYDISP"]] * visits * buffer, 2)
+        return round(float(row[DAYDISP]) * visits * buffer, 2)
 
     def calculate_assets(row):
-        FA = terminal_details.get(row['DEVICE_NUMBER_TAG'], {}).get('VF_KEY_Value', 0)
-        return round(FA + row[column_names["CURASS"]], 2)
+        FA = terminal_details.get(row[DEVICE_NUMBER_TAG], {}).get(VF_KEY_Value, 0)
+        return round(FA + row[CURASS], 2)
 
     def calculate_asset_turnover(row):
-        assets = row.get(column_names["ASSETS"], 1)
-        return round(row[column_names["AnnualNetIncome"]] / assets, 2) if assets != 0 else 0
+        assets = float(row.get(ASSETS, 1))
+        return round(float(row[AnnualNetIncome]) / assets, 2) if assets != 0 else 0
 
     def calculate_earnings_bit(row):
-        device = terminal_details.get(row['DEVICE_NUMBER_TAG'], {})
-        visit = device.get('VF_KEY_VisitDays', 1)
-        travel_cost = device.get('VF_KEY_TravelCost', 0)
+        device = terminal_details.get(row[DEVICE_NUMBER_TAG], {})
+        visit = device.get(VF_KEY_VisitDays, 1)
+        travel_cost = device.get(VF_KEY_TravelCost, 0)
         operating_cost = (DAYS / visit) * (travel_cost + OPERATING_LABOR)
-        return round(row[column_names["AnnualNetIncome"]] - operating_cost, 2)
+        return round(float(row["AnnualNetIncome"]) - operating_cost, 2)
 
     def calculate_profit_margin(row):
-        net_income = row.get(column_names["AnnualNetIncome"], 1)
-        return round(row[column_names["ERNBIT"]] / net_income, 2) if net_income != 0 else 0
+        net_income = float(row.get(AnnualNetIncome, 1))
+        return round(float(row[ERNBIT]) / net_income, 2) if net_income != 0 else 0
 
     def calculate_roi(row):
-        return round(row[column_names["ASSETSTO"]] * row[column_names["PRFTMGN"]], 2)
+        return round(float(row[ASSETSTO]) * row[PRFTMGN], 2)
 
     # Calculations
-    df[column_names["COMM"]] = df.apply(get_commission_due, axis=1)
-    df[column_names["AnnualNetIncome"]] = df.apply(calculate_annual_net_income, axis=1)
-    df[column_names["ASURWD"]] = df.apply(calculate_annual_surwds, axis=1)
-    df[column_names["SURCH"]] = df.apply(calculate_average_surcharge, axis=1)
-    df[column_names["SURCHPER"]] = df.apply(calculate_surcharge_percentage, axis=1)
-    df[column_names["DAYDISP"]] = df.apply(calculate_average_daily_dispense, axis=1)
-    df[column_names["CURASS"]] = df.apply(calculate_current_assets, axis=1)
-    df[column_names["ASSETS"]] = df.apply(calculate_assets, axis=1)
-    df[column_names["ASSETSTO"]] = df.apply(calculate_asset_turnover, axis=1)
-    df[column_names["ERNBIT"]] = df.apply(calculate_earnings_bit, axis=1)
-    df[column_names["PRFTMGN"]] = df.apply(calculate_profit_margin, axis=1)
-    df[column_names["RTNONINV"]] = df.apply(calculate_roi, axis=1)
-
-    # Add column details
-    for key in column_names.keys():
-        column_details[column_names[key]] = "$" if key not in ["ASURWD", "SURCHPER", "ASSETSTO", "PRFTMGN", "RTNONINV"] else "%"
+    df[COMM] = df.apply(get_commission_due, axis=1)
+    df[AnnualNetIncome] = df.apply(calculate_annual_net_income, axis=1)
+    df[ASURWD] = df.apply(calculate_annual_surwds, axis=1)
+    df[SURCH] = df.apply(calculate_average_surcharge, axis=1)
+    df[SURCHPER] = df.apply(calculate_surcharge_percentage, axis=1)
+    df[DAYDISP] = df.apply(calculate_average_daily_dispense, axis=1)
+    df[CURASS] = df.apply(calculate_current_assets, axis=1)
+    df[ASSETS] = df.apply(calculate_assets, axis=1)
+    df[ASSETSTO] = df.apply(calculate_asset_turnover, axis=1)
+    df[ERNBIT] = df.apply(calculate_earnings_bit, axis=1)
+    df[PRFTMGN] = df.apply(calculate_profit_margin, axis=1)
+    df[RTNONINV] = df.apply(calculate_roi, axis=1)
 
     return df
 
