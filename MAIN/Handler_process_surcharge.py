@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Munge spreadsheet data.
+"""Munge spreadsheet data. (process_surcharge)
 Takes an input file Path obj, and a rundate string 
 and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
@@ -25,12 +25,12 @@ from dataframe_functions import save_results_and_print
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
+OUTPUT_FILE_EXTENSION = '.xlsx'
 FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "dummy place holder for more matches in future"]
 ARCHIVE_DIRECTORY_NAME = "MonthlyRevenue"
-
-VALUE_FILE = "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
-FORMATTING_FILE = "ColumnFormatting.json"  # data describing formatting of data such as integer, date, float, string
-REPORT_DEFINITIONS_FILE = "SurchargeReportVariations.json"  # this dictionary will contain information about individual reports layouts
+FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
+VALUE_FILE = Path.cwd() / "MAIN" / "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
+REPORT_DEFINITIONS_FILE = Path.cwd() / "MAIN" / "SurchargeReportVariations.json"  # this dictionary will contain information about individual reports layouts
 
 class Declaration:
     """
@@ -58,13 +58,14 @@ class Declaration:
 @logger.catch
 def handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
+    result = empty_df = panda.DataFrame()
     if not file_path.exists:
         logger.error(f'File to process does not exist.')
         return False
     else:
-        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{FILE_EXTENSION}')
-        logger.debug(f'Output filename: {output_file}')
-        # launch the processing function
+        # process file
+        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
+        logger.debug(f'Output filename: {output_file}')        
         try:
             column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG = process_monthly_surcharge_report_excel(file_path, Instant.now())
             # processing done, send result to printer
