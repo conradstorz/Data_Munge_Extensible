@@ -67,15 +67,17 @@ def handler_process(file_path: Path) -> bool:
         output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
         logger.debug(f'Output filename: {output_file}')        
         try:
-            column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG = process_monthly_surcharge_report_excel(file_path, Instant.now())
+            Input_df, INPUTDF_TOTAL_ROWS, column_details, terminal_details, LOCATION_TAG = process_monthly_surcharge_report(file_path, Instant.now())
             # processing done, send result to printer
         except Exception as e:
             logger.error(f'Failure processing dataframe: {e}')
             return False
         else:
-            if len(Input_df) > 0:
+            # dataframe needs to have additional columns calculated
+            new_df = calculate_additional_values(Input_df, terminal_details, column_details)            
+            if len(new_df) > 0:
                 logger.info(f'Send dataframe to be made into various reports')
-                frames = send_dataframe_to_printer_process_surcharge_variation(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
+                frames = generate_multiple_report_dataframes(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
             else:
                 logger.error(f'No data found to process')
                 return False
@@ -117,23 +119,18 @@ def validate_value(value, min_value=0, max_value=float('inf')):
 
 
 @logger.catch
-def process_monthly_surcharge_report_excel(in_f, RUNDATE):
-    """Uses this "Payment Alliance International (PAI) website" report to determine surcharges are correct
-    and I am being paid the correct amount when splitting surcharge. If a location earns commission it is calculated.
-    After reading the data extract:
-    'Total Business Surcharge', 'SurWD Trxs', 'Total Surcharge', 'Total Dispensed Amount' and estimate the rest.
+def process_monthly_surcharge_report(input_file, RUNDATE):
+    """takes a 'csv' file and returns a dataframe
     """
-    # TODO Create list of immutable keys from imported data and mutable keys from this script.
     # pandas tags:
     LOCATION_TAG = "Location"
     DEVICE_NUMBER_TAG = "Device Number"
-    SURCHARGEABLE_WITHDRAWL_TRANSACTIONS_TAG = "SurWD Trxs"
 
     DAYS = 30  # most months are 30 days and report covers a month
     # TODO not all reports are 30 days. Some are 90 days. Try to determine actual number of days.
     OPERATING_LABOR = 25  # estimated labor per visit in dollars.
     logger.info("Beginning process of monthly report.")
-    logger.info(f"File: {in_f}")
+    logger.info(f"File: {input_file}")
 
     def moveLast2first(df):
         cols = df.columns.tolist()
@@ -143,14 +140,14 @@ def process_monthly_surcharge_report_excel(in_f, RUNDATE):
     empty_df = panda.DataFrame() 
     # load the data from filename provided
     try:
-        Input_df = panda.read_csv(in_f)
+        Input_df = panda.read_csv(input_file)
     except Exception as e:
         logger.error(f'Problem using pandas: {e}')
-        return empty_df
+        return (empty_df, 0, "")
     
     INPUTDF_TOTAL_ROWS = len(Input_df)
 
-    logger.info(f"Excel file imported into dataframe with {INPUTDF_TOTAL_ROWS} rows.")
+    logger.info(f"csv file imported into dataframe with {INPUTDF_TOTAL_ROWS} rows.")
     logger.debug(Input_df.columns)
 
     # TODO combine entries that reference the same terminal in different months.
@@ -178,7 +175,7 @@ def process_monthly_surcharge_report_excel(in_f, RUNDATE):
     # this dictionary will contain information about individual terminals
     # Pretty print and log the dictionary item
     pretty_json = json.dumps(terminal_details, default=custom_json_serializer, indent=4)
-    logger.debug(f'Printer details report:{pretty_json}')
+    logger.debug(f'Printer details report:\n{pretty_json}')
     VF_KEY_Owned = "Owned"
     VF_KEY_Value = "Value"
     VF_KEY_VisitDays = "Visit Days"
@@ -192,272 +189,170 @@ def process_monthly_surcharge_report_excel(in_f, RUNDATE):
     # this dictionary will contain information about formating output values.
     # Pretty print and log the dictionary item
     pretty_json = json.dumps(column_details, default=custom_json_serializer, indent=4)
-    logger.debug(f'Printer details report:{pretty_json}')
-    # Add some information to dataframe. rows are Zero based so this location is 1 past last row.
-    # TODO is this working???
-    Input_df.at[INPUTDF_TOTAL_ROWS, LOCATION_TAG] = str(RUNDATE)
-    Input_df.at[INPUTDF_TOTAL_ROWS, DEVICE_NUMBER_TAG] = "Report ran"
-    # TODO add disclaimer that many values are estimates for comparison between terminals only.
-    # TODO the numbers are estimated but the same assumptions are applied equally to all.
+    logger.debug(f'Printer details report:\n{pretty_json}')
 
-    """
-    Commission_due = df['SurWD Trxs'] * terminal_details[VF_KEY_Commissions]
-    ***This is a cheat sheet to values used in a dupont analysis
-    Annual_Net_Income = (df['Business Total Income'] - Commission_due) * 12       # (annualized)
-    Annual_WDs = df['SurWD Trxs'] * 12
-    Annual_Gross_Surcharge = df['Total Surcharge'] * 12
-    Period_Dispensed_Amount = df['Total Dispensed Amount']
-    Average_Surcharge = Annual_Net_Income / Annual_WDs
-    Surcharge_Percentage = Annual_Net_Income / Annual_Gross_Surcharge
-    Average_Daily_Dispense = Period_Dispensed_Amount / DAYS
-    Current_Assets = Average_Daily_Dispense * 14 # Float plus Vault
-    Assets = FIXED_ASSETS + Current_Assets
-    Asset_Turnover = Annual_Net_Income / Assets
-    Earnings_BIT = Annual_Net_Income - OPERATING_EXPENSES
-    Profit_Margin = Earnings_BIT / Annual_Net_Income
-    R_O_I = Asset_Turnover * Profit_Margin
-    """
-    # These names must match the input dataframe columns
-    BizGrossIncome = "Business Total Income"
-    TOTSUR = "Total Surcharge"
-    TOTDISP = "Total Dispensed Amount"
-    SURCHXACTS = "SurWD Trxs"
-    TOTALXACTS = "Total Trxs"
-    TOTALINTRCHANGE ="Total Interchange"
-
-    # These names are added to the original input dataframe
-    COMM = "Comm_Due"
-    AnnualNetIncome = "Annual_Net_Income"
-    ASURWD = "Annual_SurWDs"
-    SURCH = "_surch"
-    SURCHPER = "_Surch%"
-    DAYDISP = "Daily_Dispense"
-    CURASS = "Current_Assets"
-    ASSETS = "_Assets"
-    ASSETSTO = "A_T_O"
-    ERNBIT = "Earnings_BIT"
-    PRFTMGN = "p_Margin"
-    RTNONINV = "R_O_I"
-
-    def Commissions_due(row):
-        try:
-            commrate = float(
-                terminal_details[row[DEVICE_NUMBER_TAG]][VF_KEY_Commission_rate]
-            )
-        except KeyError as e:
-            logger.error(f"KeyError: {e}")
-            commrate = 0
-        logger.debug(f'Device: {row[DEVICE_NUMBER_TAG]}, Commrate: {commrate}, Xacts: {row[SURCHARGEABLE_WITHDRAWL_TRANSACTIONS_TAG]}')
-        return round(row[SURCHARGEABLE_WITHDRAWL_TRANSACTIONS_TAG] * commrate, 2)
-
-    logger.info("Calculating commission due...")
-    logger.debug(Input_df.columns)
-    Input_df[COMM] = Input_df.apply(lambda row: Commissions_due(row), axis=1)
-    column_details[COMM] = "$"
+    return (Input_df, INPUTDF_TOTAL_ROWS, column_details, terminal_details, LOCATION_TAG)
 
 
-    def Annual_Net_Income(row):
-        try:
-            ta = row[BizGrossIncome]  # Total annual income
-            cm = row[COMM]  # Commission
-        except KeyError as e:
-            logger.error(f"Column not found: {e}")
-            ta, cm = 0, 0
-        annual_net_income = float((ta - cm) * 12)
-        # Validate the annual net income here
-        if not validate_value(annual_net_income, min_value=0):  # Assuming you don't expect negative net income
-            logger.warning(f"Unexpected negative Annual Net Income for device {row[DEVICE_NUMBER_TAG]}: {annual_net_income}")
-            logger.warning(f"Gross Income: {row[BizGrossIncome]}, Commission: {row[COMM]}")
-        return annual_net_income
+""" these are the calculations used for dupont analysis
+Commission_due = df['SurWD Trxs'] * terminal_details[VF_KEY_Commissions]
+***This is a cheat sheet to values used in a dupont analysis
+Annual_Net_Income = (df['Business Total Income'] - Commission_due) * 12       # (annualized)
+Annual_WDs = df['SurWD Trxs'] * 12
+Annual_Gross_Surcharge = df['Total Surcharge'] * 12
+Period_Dispensed_Amount = df['Total Dispensed Amount']
+Average_Surcharge = Annual_Net_Income / Annual_WDs
+Surcharge_Percentage = Annual_Net_Income / Annual_Gross_Surcharge
+Average_Daily_Dispense = Period_Dispensed_Amount / DAYS
+Current_Assets = Average_Daily_Dispense * 14 # Float plus Vault
+Assets = FIXED_ASSETS + Current_Assets
+Asset_Turnover = Annual_Net_Income / Assets
+Earnings_BIT = Annual_Net_Income - OPERATING_EXPENSES
+Profit_Margin = Earnings_BIT / Annual_Net_Income
+R_O_I = Asset_Turnover * Profit_Margin
+"""
 
 
-    logger.info("Calculating annual net income...")
-    Input_df[AnnualNetIncome] = Input_df.apply(
-        lambda row: Annual_Net_Income(row), axis=1
-    )
-    Input_df = moveLast2first(Input_df)
-    column_details[AnnualNetIncome] = "$"
+def calculate_additional_values(df, terminal_details, column_details):
+    # Constants
+    DAYS = 30
+    FIXED_ASSETS = 1000
+    OPERATING_EXPENSES = 50
+    OPERATING_LABOR = 25 
 
-    def Annual_SurWDs(row):
-        try:
-            result = int(row[SURCHARGEABLE_WITHDRAWL_TRANSACTIONS_TAG] * 12)
-        except ValueError as e:
-            if row[DEVICE_NUMBER_TAG] == "Report ran":
-                pass
-            else:
-                logger.error(f"{row[DEVICE_NUMBER_TAG]}, Surchargeable Xact: {row[SURCHARGEABLE_WITHDRAWL_TRANSACTIONS_TAG]}: {e}")
+    # Column names
+    column_names = {
+        "BizGrossIncome": "Business Total Income",
+        "TOTSUR": "Total Surcharge",
+        "TOTDISP": "Total Dispensed Amount",
+        "SURCHXACTS": "SurWD Trxs",
+        "TOTALXACTS": "Total Trxs",
+        "TOTALINTRCHANGE": "Total Interchange",
+        "COMM": "Comm_Due",
+        "AnnualNetIncome": "Annual_Net_Income",
+        "ASURWD": "Annual_SurWDs",
+        "SURCH": "_surch",
+        "SURCHPER": "_Surch%",
+        "DAYDISP": "Daily_Dispense",
+        "CURASS": "Current_Assets",
+        "ASSETS": "_Assets",
+        "ASSETSTO": "A_T_O",
+        "ERNBIT": "Earnings_BIT",
+        "PRFTMGN": "p_Margin",
+        "RTNONINV": "R_O_I"
+    }
+
+    # Helper functions
+    def get_commission_due(row):
+        commrate = terminal_details.get(row['DEVICE_NUMBER_TAG'], {}).get('VF_KEY_Commission_rate', 0)
+        return round(row[column_names["SURCHXACTS"]] * commrate, 2)
+
+    def calculate_annual_net_income(row):
+        ta = row.get(column_names["BizGrossIncome"], 0)
+        cm = row.get(column_names["COMM"], 0)
+        return float((ta - cm) * 12)
+
+    def calculate_annual_surwds(row):
+        return int(row.get(column_names["SURCHXACTS"], 0) * 12)
+
+    def calculate_average_surcharge(row):
+        asurwd = row.get(column_names["ASURWD"], 1)
+        return round(row[column_names["AnnualNetIncome"]] / asurwd, 2) if asurwd != 0 else 0
+
+    def calculate_surcharge_percentage(row):
+        total_surcharge = row.get(column_names["TOTSUR"], 1) * 12
+        return round(row[column_names["AnnualNetIncome"]] / total_surcharge, 2) if total_surcharge != 0 else 0
+
+    def calculate_average_daily_dispense(row):
+        return round(row.get(column_names["TOTDISP"], 0) / DAYS, 2)
+
+    def calculate_current_assets(row):
+        device = terminal_details.get(row['DEVICE_NUMBER_TAG'], {})
+        visits = device.get('VF_KEY_VisitDays', 0)
+        owned = device.get('VF_KEY_Owned', 'Yes')
+        if owned == "No":
             return 0
-        return result
-
-    logger.info("Calculating annual surchargeable WDs...")
-    Input_df[ASURWD] = Input_df.apply(lambda row: Annual_SurWDs(row), axis=1)
-    column_details[ASURWD] = "#"
-
-    def Average_Surcharge(row):
-        try:
-            result = round(row[AnnualNetIncome] / row[ASURWD], 2)
-        except ZeroDivisionError:  # catches 'NaN' and 0
-            return 0
-        return result
-
-    logger.info("Calculating average surcharge per terminal...")
-    Input_df[SURCH] = Input_df.apply(lambda row: Average_Surcharge(row), axis=1)
-    Input_df = moveLast2first(Input_df)
-    column_details[SURCH] = "$"
-
-    def Surcharge_Percentage(row):
-        try:
-            result = round(row[AnnualNetIncome] / (row[TOTSUR] * 12), 2)
-        except ZeroDivisionError:  # catches 'NaN' and 0
-            return 0
-        return result
-
-    logger.info("Calculating surcharge percentage earned per terminal...")
-    Input_df[SURCHPER] = Input_df.apply(lambda row: Surcharge_Percentage(row), axis=1)
-    column_details[SURCHPER] = "%"
-
-    def Average_Daily_Dispense(row):
-        return round(row[TOTDISP] / DAYS, 2)
-
-    logger.info("Calculating average daily dispense per terminal...")
-    Input_df[DAYDISP] = Input_df.apply(
-        lambda row: Average_Daily_Dispense(row), axis=1
-    )
-    Input_df = moveLast2first(Input_df)
-    column_details[DAYDISP] = "$"
-
-    def Current_Assets(row):
         buffer = 1.5
-        try:
-            # TODO look for missing terminal details and create a placeholder for those.
-            # that will fix this issue of try/except need.
-            visits = float(terminal_details[row[DEVICE_NUMBER_TAG]][VF_KEY_VisitDays])
-            if terminal_details[row[DEVICE_NUMBER_TAG]][VF_KEY_Owned] == "No":
-                return 0  # there are no current assets for terminal loaded with other peoples money.
-            else:
-                return round(row[DAYDISP] * visits * buffer, 2)
-        except KeyError as e:
-            logger.error(f"Key error: {e}")
-            return 0
+        return round(row[column_names["DAYDISP"]] * visits * buffer, 2)
 
-    logger.info("Calculating estimated vault load per terminal...")
-    Input_df[CURASS] = Input_df.apply(lambda row: Current_Assets(row), axis=1)
-    column_details[CURASS] = "$"
+    def calculate_assets(row):
+        FA = terminal_details.get(row['DEVICE_NUMBER_TAG'], {}).get('VF_KEY_Value', 0)
+        return round(FA + row[column_names["CURASS"]], 2)
 
-    def Assets(row):
-        try:
-            FA = float(terminal_details[row[DEVICE_NUMBER_TAG]][VF_KEY_Value])
-        except KeyError as e:
-            logger.error(f"KeyError: {e}")
-            return 0
-        else:
-            return round(FA + row[CURASS], 2)
+    def calculate_asset_turnover(row):
+        assets = row.get(column_names["ASSETS"], 1)
+        return round(row[column_names["AnnualNetIncome"]] / assets, 2) if assets != 0 else 0
 
-    logger.info("Calculating estimated investment per terminal...")
-    Input_df[ASSETS] = Input_df.apply(lambda row: Assets(row), axis=1)
-    column_details[ASSETS] = "$"
+    def calculate_earnings_bit(row):
+        device = terminal_details.get(row['DEVICE_NUMBER_TAG'], {})
+        visit = device.get('VF_KEY_VisitDays', 1)
+        travel_cost = device.get('VF_KEY_TravelCost', 0)
+        operating_cost = (DAYS / visit) * (travel_cost + OPERATING_LABOR)
+        return round(row[column_names["AnnualNetIncome"]] - operating_cost, 2)
 
+    def calculate_profit_margin(row):
+        net_income = row.get(column_names["AnnualNetIncome"], 1)
+        return round(row[column_names["ERNBIT"]] / net_income, 2) if net_income != 0 else 0
 
-    def Asset_Turnover(row):
-        if not validate_value(row[AnnualNetIncome], min_value=0) or not validate_value(row[ASSETS], min_value=1):  # Ensure assets are > 0
-            logger.warning(f"Invalid values for Asset Turnover calculation for device {row[DEVICE_NUMBER_TAG]}")
-            logger.warning(f"Income: {row[AnnualNetIncome]}, Assets: {row[ASSETS]}")
-            return 0
-        try:
-            result = round(row[AnnualNetIncome] / row[ASSETS], 2)
-        except ZeroDivisionError as e:
-            logger.error(f"Division by Zero: {e}")
-            return 0
-        return result
+    def calculate_roi(row):
+        return round(row[column_names["ASSETSTO"]] * row[column_names["PRFTMGN"]], 2)
 
-    logger.info("Calculating estimated asset turns per terminal...")
-    Input_df[ASSETSTO] = Input_df.apply(lambda row: Asset_Turnover(row), axis=1)
-    column_details[ASSETSTO] = "%"
+    # Calculations
+    df[column_names["COMM"]] = df.apply(get_commission_due, axis=1)
+    df[column_names["AnnualNetIncome"]] = df.apply(calculate_annual_net_income, axis=1)
+    df[column_names["ASURWD"]] = df.apply(calculate_annual_surwds, axis=1)
+    df[column_names["SURCH"]] = df.apply(calculate_average_surcharge, axis=1)
+    df[column_names["SURCHPER"]] = df.apply(calculate_surcharge_percentage, axis=1)
+    df[column_names["DAYDISP"]] = df.apply(calculate_average_daily_dispense, axis=1)
+    df[column_names["CURASS"]] = df.apply(calculate_current_assets, axis=1)
+    df[column_names["ASSETS"]] = df.apply(calculate_assets, axis=1)
+    df[column_names["ASSETSTO"]] = df.apply(calculate_asset_turnover, axis=1)
+    df[column_names["ERNBIT"]] = df.apply(calculate_earnings_bit, axis=1)
+    df[column_names["PRFTMGN"]] = df.apply(calculate_profit_margin, axis=1)
+    df[column_names["RTNONINV"]] = df.apply(calculate_roi, axis=1)
 
+    # Add column details
+    for key in column_names.keys():
+        column_details[column_names[key]] = "$" if key not in ["ASURWD", "SURCHPER", "ASSETSTO", "PRFTMGN", "RTNONINV"] else "%"
 
-    def Earnings_BIT(row):
-        logger.debug(f"Row: {row}")
-        try:
-            Visit = float(terminal_details[row[DEVICE_NUMBER_TAG]][VF_KEY_VisitDays])
-            Travl = float(terminal_details[row[DEVICE_NUMBER_TAG]][VF_KEY_TravelCost])
-            # Validate Visit and Travl values
-            if not validate_value(Visit, min_value=1) or not validate_value(Travl, min_value=0):
-                logger.warning(f"Invalid Visit or Travl values for device {row[DEVICE_NUMBER_TAG]}")
-                return 0  # or handle as deemed appropriate
-            annual_operating_cost = (365 / Visit) * (Travl + OPERATING_LABOR)
-        except KeyError as e:
-            logger.error(f"KeyError: {e}")
-            annual_operating_cost = 0
-        result = round(row[AnnualNetIncome] - annual_operating_cost, 2)
-        return result
+    return df
 
+    # Example usage
+    # df = calculate_values(df, terminal_details, column_details)
 
-    logger.info("Calculating estimated EBIT per terminal...")
-    Input_df[ERNBIT] = Input_df.apply(lambda row: Earnings_BIT(row), axis=1)
-    Input_df = moveLast2first(Input_df)
-    column_details[ERNBIT] = "$"
-
-    def Profit_Margin(row):
-        try:
-            result = round(row[ERNBIT] / row[AnnualNetIncome], 2)
-        except ZeroDivisionError:  # catches 'NaN' and 0
-            return 0
-        return result
-
-    logger.info("Calculating estimated profit margin per terminal...")
-    Input_df[PRFTMGN] = Input_df.apply(lambda row: Profit_Margin(row), axis=1)
-    Input_df = moveLast2first(Input_df)
-    column_details[PRFTMGN] = "%"
-
-    def R_O_I(row):
-        return round(row[ASSETSTO] * row[PRFTMGN], 2)
-
-    logger.info("Calculating estimated ROI per terminal...")
-    Input_df[RTNONINV] = Input_df.apply(lambda row: R_O_I(row), axis=1)
-    Input_df = moveLast2first(Input_df)
-    column_details[RTNONINV] = "%"
-
-    logger.info("work is finished. Create outputs...")
-    return (column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
 
 
 
 
 @logger.catch()
-def send_dataframe_to_printer_process_surcharge_variation(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG):
+def generate_multiple_report_dataframes(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG):
     """send ATM terminal activity dataframe to file and printer"""
-    # update the column output formatting rules
-    with open(FORMATTING_FILE, "w") as json_data:
-        json.dump(column_details, json_data, indent=4)
-    # Pretty print and log the dictionary item
-    pretty_json = json.dumps(column_details, default=custom_json_serializer, indent=4)
-    logger.debug(f'Formatting file re-written:{pretty_json}')        
 
     with open(REPORT_DEFINITIONS_FILE) as json_data:
-        output_options = json.load(json_data)
+        report_definitions = json.load(json_data)
     # this dictionary will contain information about individual reports
     # Pretty print and log the dictionary item
-    pretty_json = json.dumps(output_options, default=custom_json_serializer, indent=4)
+    pretty_json = json.dumps(report_definitions, default=custom_json_serializer, indent=4)
     logger.debug(f'Report Definitions File:{pretty_json}')        
 
     # create these reports
-    CURRENT_REPORTS = ["Commission", "Surcharge", "Dupont"]
+    DESIRED_REPORTS = ["Commission", "Surcharge", "Dupont"]
 
     frames = {}
-    for indx, report in enumerate(CURRENT_REPORTS):
+    for indx, report in enumerate(DESIRED_REPORTS):
         logger.info(f'Generating report: {report}')
         # create a unique filename for each report
-        fn = f"Outputfile{indx}.xlsx"
+        fn = f"{report}_Outputfile{indx}.xlsx"
         # Creating an empty Dataframe with column names only
-        frames[fn] = panda.DataFrame(columns=output_options[report])
+        frames[fn] = panda.DataFrame(columns=report_definitions[report])
         # fill those columns with data
-        for column in output_options[report]:
+        for column in report_definitions[report]:
             try:
                 frames[fn][column] = Input_df[column]
             except KeyError as e:
                 logger.error(f"Key Error: {e} column {column} not added")
         logger.info(f'Dataframe with {len(frames[fn])} items created.')
-        # ??? something inserted at the end ???
+        # insert name of report into dataframe past the last row 
         frames[fn].at[INPUTDF_TOTAL_ROWS + 1, LOCATION_TAG] = report
-    logger.info(f'Finished creating {len(frames)} report dataframes.')
+    logger.info(f'Finished creating {len(frames)} reports as dataframes.')
     return frames
