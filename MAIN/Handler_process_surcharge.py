@@ -271,7 +271,7 @@ def calculate_additional_values(df, terminal_details, column_details):
     # Helper functions
     def get_commission_due(row):
         device_info = terminal_details.get(row.get(DEVICE_NUMBER_TAG, {}), {})
-        commrate = device_info.get(VF_KEY_Commission_rate, 0)
+        commrate = float(device_info.get(VF_KEY_Commission_rate, 0))
         transactions = float(row.get(SURCHXACTS, 0))
         return round(transactions * commrate, 2)
 
@@ -296,7 +296,7 @@ def calculate_additional_values(df, terminal_details, column_details):
 
     def calculate_current_assets(row):
         device = terminal_details.get(row[DEVICE_NUMBER_TAG], {})
-        visits = device.get(VF_KEY_VisitDays, 0)
+        visits = float(device.get(VF_KEY_VisitDays, 0))
         owned = device.get(VF_KEY_Owned, 'Yes')
         if owned == "No":
             return 0
@@ -305,7 +305,7 @@ def calculate_additional_values(df, terminal_details, column_details):
 
     def calculate_assets(row):
         FA = terminal_details.get(row[DEVICE_NUMBER_TAG], {}).get(VF_KEY_Value, 0)
-        return round(FA + row[CURASS], 2)
+        return round(FA + float(row[CURASS], 2))
 
     def calculate_asset_turnover(row):
         assets = float(row.get(ASSETS, 1))
@@ -313,8 +313,8 @@ def calculate_additional_values(df, terminal_details, column_details):
 
     def calculate_earnings_bit(row):
         device = terminal_details.get(row[DEVICE_NUMBER_TAG], {})
-        visit = device.get(VF_KEY_VisitDays, 1)
-        travel_cost = device.get(VF_KEY_TravelCost, 0)
+        visit = float(device.get(VF_KEY_VisitDays, 1))
+        travel_cost = float(device.get(VF_KEY_TravelCost, 0))
         operating_cost = (DAYS / visit) * (travel_cost + OPERATING_LABOR)
         return round(float(row["AnnualNetIncome"]) - operating_cost, 2)
 
@@ -323,7 +323,7 @@ def calculate_additional_values(df, terminal_details, column_details):
         return round(float(row[ERNBIT]) / net_income, 2) if net_income != 0 else 0
 
     def calculate_roi(row):
-        return round(float(row[ASSETSTO]) * row[PRFTMGN], 2)
+        return round(float(row[ASSETSTO]) * float(row[PRFTMGN], 2))
 
     # Calculations
     df[COMM] = df.apply(get_commission_due, axis=1)
