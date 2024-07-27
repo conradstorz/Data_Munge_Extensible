@@ -304,8 +304,8 @@ def calculate_additional_values(df, terminal_details, column_details):
         return round(float(row[DAYDISP]) * visits * buffer, 2)
 
     def calculate_assets(row):
-        FA = terminal_details.get(row[DEVICE_NUMBER_TAG], {}).get(VF_KEY_Value, 0)
-        return round(FA + float(row[CURASS], 2))
+        FA = float(terminal_details.get(row[DEVICE_NUMBER_TAG], {}).get(VF_KEY_Value, 0))
+        return round(FA + float(row[CURASS]), 2)
 
     def calculate_asset_turnover(row):
         assets = float(row.get(ASSETS, 1))
@@ -316,14 +316,14 @@ def calculate_additional_values(df, terminal_details, column_details):
         visit = float(device.get(VF_KEY_VisitDays, 1))
         travel_cost = float(device.get(VF_KEY_TravelCost, 0))
         operating_cost = (DAYS / visit) * (travel_cost + OPERATING_LABOR)
-        return round(float(row["AnnualNetIncome"]) - operating_cost, 2)
+        return round(float(row[AnnualNetIncome]) - operating_cost, 2)
 
     def calculate_profit_margin(row):
         net_income = float(row.get(AnnualNetIncome, 1))
         return round(float(row[ERNBIT]) / net_income, 2) if net_income != 0 else 0
 
     def calculate_roi(row):
-        return round(float(row[ASSETSTO]) * float(row[PRFTMGN], 2))
+        return round(float(row[ASSETSTO]) * float(row[PRFTMGN]), 2)
 
     # Calculations
     df[COMM] = df.apply(get_commission_due, axis=1)
