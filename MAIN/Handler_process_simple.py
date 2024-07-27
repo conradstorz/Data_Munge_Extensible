@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Munge spreadsheet data.
+"""Munge spreadsheet data. (process_simple)
 Takes and input file Path obj, and output file Path obj,
 and a rundate string and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
@@ -65,15 +65,17 @@ def handler_process(file_path: Path) -> bool:
         output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
         logger.debug(f'Output filename: {output_file}')        
         try:
+            logger.info(f'Sending {file_path} to be processed')
             result = process_simple_summary_csv(file_path)
         except Exception as e:
             logger.error(f'Failure processing dataframe: {e}')
             return False
         else:
             if len(result) > 0:
+                logger.info(f'saving results and printing')
                 save_results_and_print(output_file, result, file_path)
             else:
-                logger.error(f'No data found to process')
+                logger.error(f'No data found to save or print')
                 return False
     # all work complete
     return True
@@ -90,6 +92,8 @@ def process_simple_summary_csv(in_f: Path):  # returns a dataframe
         logger.error(f'Problem using pandas: {e}')
         return empty_df
 
+
+    logger.info(f"Reading formatting file..")
     with open(FORMATTING_FILE) as json_data:
         column_details = json.load(json_data)
     # this dictionary will contain information about individual column data type
