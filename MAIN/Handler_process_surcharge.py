@@ -51,8 +51,8 @@ class Declaration:
             # no match
             return False
 
-# TODO activate declaration below when script is ready
-#  declaration = Declaration()
+# activate declaration below when script is ready
+declaration = Declaration()
 
 
 @logger.catch
@@ -74,8 +74,8 @@ def handler_process(file_path: Path) -> bool:
             return False
         else:
             if len(Input_df) > 0:
-                logger.info(f'Send dataframe to be porcessed')
-                frames = send_dataframe_to_printer(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
+                logger.info(f'Send dataframe to be made into various reports')
+                frames = send_dataframe_to_printer_process_surcharge_variation(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
             else:
                 logger.error(f'No data found to process')
                 return False
@@ -83,6 +83,8 @@ def handler_process(file_path: Path) -> bool:
                 logger.info(f'Send dataframes to printer')
                 for filename, df in frames:
                     save_results_and_print(filename, df, "")  # empty string tells function not to move input file to history
+            else:
+                logger.error(f'No data frames found to print')
     # all work complete
     return True
 
@@ -141,7 +143,7 @@ def process_monthly_surcharge_report_excel(in_f, RUNDATE):
     empty_df = panda.DataFrame() 
     # load the data from filename provided
     try:
-        Input_df = panda.read_excel(in_f)
+        Input_df = panda.read_csv(in_f)
     except Exception as e:
         logger.error(f'Problem using pandas: {e}')
         return empty_df
@@ -421,9 +423,8 @@ def process_monthly_surcharge_report_excel(in_f, RUNDATE):
 
 
 
-
 @logger.catch()
-def send_dataframe_to_printer(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG):
+def send_dataframe_to_printer_process_surcharge_variation(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG):
     """send ATM terminal activity dataframe to file and printer"""
     # update the column output formatting rules
     with open(FORMATTING_FILE, "w") as json_data:
