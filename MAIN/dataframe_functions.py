@@ -1,11 +1,15 @@
+"""Defines common functions used throughout my code
+"""
+
+import re
+from dateutil.parser import parse, ParserError
 import os
 import time
-from pathlib import Path
-from dateutil.parser import parse, ParserError
 from loguru import logger
 import pandas as panda
-import numpy as np
+from pathlib import Path
 import pathlib_file_methods as plfh
+
 
 @logger.catch()
 def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
@@ -36,20 +40,59 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
 def extract_date_from_filename(fname):
     """the filename contains the date the report was run
     extract and return the date string
-    # TODO use function from cfsiv-utils-conradical to standardize code rather than reinvent it here.
+    # TODO find a new way to look for and return anything that looks like a date from a string.
     """
     datestring = "xxxxxxxx"
     logger.info("Processing: " + str(fname))
     parts = str(fname).split('-')
-    # TODO also need to split on '-'s to catch a different type of embeded datestring.
     logger.debug(f"fname split result: {parts}")
     for part in parts:
         try:
             datestring = parse(part).strftime("%Y%m%d")
         except ParserError as e:
             logger.debug(f"Date not found Error: {e}")
+    reds = extract_date_from_filename_using_regularExpressions(fname)
+    if datestring == "xxxxxxxx":
+        if reds == "xxxxxxxx":
+            logger.error(f'No datestring found.')
+        else:
+            return reds
     return datestring
 
+
+def extract_date_from_filename_using_regularExpressions(fname):
+
+    # The filename contains the date the report was run.
+    # Extract and return the date string.
+    
+    datestring = "xxxxxxxx"
+    logger.info("Processing: " + str(fname))
+    
+    # Regular expression patterns for different date formats
+    date_patterns = [
+        r'\b\d{4}-\d{2}-\d{2}\b',  # YYYY-MM-DD
+        r'\b\d{2}-\d{2}-\d{4}\b',  # DD-MM-YYYY
+        r'\b\d{4}_\d{2}_\d{2}\b',  # YYYY_MM_DD
+        r'\b\d{2}_\d{2}_\d{4}\b',  # DD_MM_YYYY
+        r'\b\d{8}\b',              # YYYYMMDD or DDMMYYYY
+    ]
+    
+    for pattern in date_patterns:
+        match = re.search(pattern, fname)
+        if match:
+            date_str = match.group()
+            logger.debug(f"Found date string: {date_str}")
+            try:
+                # Attempt to parse the date string
+                datestring = parse(date_str).strftime("%Y%m%d")
+                break
+            except ParserError as e:
+                logger.debug(f"Date parsing error: {e}")
+
+    if datestring == "xxxxxxxx":
+        logger.debug("No valid date found in filename.")
+    
+    return datestring
 
 
 @logger.catch()
