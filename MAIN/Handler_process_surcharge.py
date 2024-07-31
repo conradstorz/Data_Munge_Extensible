@@ -77,13 +77,14 @@ def handler_process(file_path: Path) -> bool:
             new_df = calculate_additional_values(Input_df, terminal_details, column_details)            
             if len(new_df) > 0:
                 logger.info(f'Send dataframe to be made into various reports')
-                frames = generate_multiple_report_dataframes(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
+                frames = generate_multiple_report_dataframes(column_details, new_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
+                logger.debug(f'Frames:\n{frames}')
             else:
                 logger.error(f'No data found to process')
                 return False
             if len(frames) > 0:
                 logger.info(f'Send dataframes to printer')
-                for filename, df in frames:
+                for filename, df in frames.items():
                     save_results_and_print(filename, df, "")  # empty string tells function not to move input file to history
             else:
                 logger.error(f'No data frames found to print')
@@ -376,6 +377,7 @@ def generate_multiple_report_dataframes(column_details, Input_df, INPUTDF_TOTAL_
             except KeyError as e:
                 logger.error(f"Key Error: {e} column {column} not added")
         logger.info(f'Dataframe with {len(frames[fn])} items created.')
+        logger.debug(f'Frame name: {fn}\nFrame data:\n{frames[fn]}')
         # insert name of report into dataframe past the last row 
         frames[fn].at[INPUTDF_TOTAL_ROWS + 1, LOCATION_TAG] = report
     logger.info(f'Finished creating {len(frames)} reports as dataframes.')
