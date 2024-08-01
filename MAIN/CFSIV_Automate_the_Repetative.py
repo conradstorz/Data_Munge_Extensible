@@ -11,6 +11,7 @@ swaps these fields and removes extraneous words like 'ckcd', 'ach', 'pos', etc..
 I have worked with ChatGPT to create a framework for these scripts that will monitor my downloads directory and launch
 the proper script for processing the data that is incoming.
 
+TODO add a function that monitors my email and auto-downloads attachments for possible processing
 """
 from pathlib import Path
 
