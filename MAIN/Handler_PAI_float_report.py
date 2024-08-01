@@ -9,8 +9,10 @@ from pathlib import Path
 from loguru import logger
 import pandas as panda
 import numpy as np
-from dataframe_functions import extract_date_from_filename, save_results_and_print
-
+from dataframe_functions import extract_date_from_filename
+from dataframe_functions import save_results_and_print
+from dataframe_functions import data_from_csv
+from dataframe_functions import dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
@@ -68,57 +70,54 @@ def handler_process(file_path: Path):
     # all work complete
     return True
 
-
 @logger.catch
 def process_floatReport_csv(in_f, RUNDATE):
     """Scan file and compute sums for 2 columns"""
-    empty_df = panda.DataFrame() 
-    # load csv file into dataframe
-    try:
-        df = panda.read_csv(in_f)
-    except Exception as e:
-        logger.error(f'Problem using pandas: {e}')
+    empty_df = panda.DataFrame()
+    df = data_from_csv(in_f)
+    
+    expected_fields_list = ["Location","Reject Balance","Balance","Today's Float","Route"]
+    actual_columns_found = dataframe_contains(df, expected_fields_list)
+    if not (actual_columns_found == expected_fields_list):
+        logger.debug(f'Data was expected to contain: {expected_fields_list}\n but only these fileds found: {actual_columns_found}')
         return empty_df
-    else:
-        logger.debug(f'imported file processed by pandas okay.')
-        DF_LAST_ROW = len(df)
-        logger.info(f"file imported into dataframe with {DF_LAST_ROW} rows.")
-        # expected Fields: "Location","Reject Balance","Balance","Today's Float","Route"
+    
+    logger.info(f'Data contained all expected fields.')
 
-        # tack on the date of this report extracted from the filename
-        df.at[DF_LAST_ROW, "Location"] = f"Report ran: {RUNDATE}"
+    # tack on the date of this report extracted from the filename
+    df.at[len(df), "Location"] = f"Report ran: {RUNDATE}"
 
-        # Strip out undesirable characters from "Balance" column
-        try:
-            df["Balance"] = df["Balance"].replace("[\$,)]", "", regex=True)
-            df["Balance"] = df["Balance"].astype(float)
-        except KeyError as e:
-            logger.error(f"KeyError in balance column: {e}")
-            return empty_df
+    # Strip out undesirable characters from "Balance" column
+    try:
+        df["Balance"] = df["Balance"].replace("[\$,)]", "", regex=True)
+        df["Balance"] = df["Balance"].astype(float)
+    except KeyError as e:
+        logger.error(f"KeyError in balance column: {e}")
+        return empty_df
 
-        # Process "Today's Float" column
-        try:
-            df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
-            df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
-        except KeyError as e:
-            logger.error(f"KeyError in 'Todays' Float' column: {e}")
-            return empty_df
+    # Process "Today's Float" column
+    try:
+        df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
+        df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
+    except KeyError as e:
+        logger.error(f"KeyError in 'Todays' Float' column: {e}")
+        return empty_df
 
-        # Process "Reject Balance" column
-        try:
-            df["Reject Balance"] = df["Reject Balance"].astype(float)
-        except KeyError as e:
-            logger.error(f"KeyError in 'Reject Balance' column: {e}")
-            return empty_df
+    # Process "Reject Balance" column
+    try:
+        df["Reject Balance"] = df["Reject Balance"].astype(float)
+    except KeyError as e:
+        logger.error(f"KeyError in 'Reject Balance' column: {e}")
+        return empty_df
 
-        # sum the columns
-        df.loc["Totals"] = df.select_dtypes(np.number).sum()
-        df.at["Totals", "Location"] = "               Route Totals"
+    # sum the columns
+    df.loc["Totals"] = df.select_dtypes(np.number).sum()
+    df.at["Totals", "Location"] = "               Route Totals"
 
-        # work is finished. Drop unneeded columns from output
-        df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
+    # work is finished. Drop unneeded columns from output
+    df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
 
-        # sort the data so the totals are listed at the top of the report
-        df = df.sort_values("Balance", ascending=False)
-        logger.debug(f'Dataframe finished: {df}')
-        return df
+    # sort the data so the totals are listed at the top of the report
+    df = df.sort_values("Balance", ascending=False)
+    logger.debug(f'Dataframe finished: {df}')
+    return df
