@@ -209,7 +209,7 @@ def Send_dataframe_to_file_and_print(filename, frame):
         "Daily_Dispense": "$",
         "Current_Assets": "$",
         "Earnings_BIT": "$",
-        "Comm_Due": "$",
+        "Commission_Due": "$",
         "_surch": "$",
         "_Surch%": "%",
         "_Assets": "$",
