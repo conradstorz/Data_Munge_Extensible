@@ -13,7 +13,12 @@ MANUAL_DL_BASENAME_FLOAT_REPORT = [process_floatReport_csv,"TerminalStatuswFLOAT
 # Report below is called "Simple Summary Report" on PAI website
 BASENAME_SIMPLE_SUMMARY = [process_simple_summary_csv,"TerminalTrxData", CSV_EXT, EXCEL_EXT]
 # Report below is located in favorite reports and is called "MonthlyRevenueByDevice"
-BASENAME_SURCHARGE_MONTHLY_PER_TERMINAL = [process_monthly_surcharge_report_excel,"MonthlyRevenueByDevice",EXCEL_EXT,EXCEL_EXT,]"""
+BASENAME_SURCHARGE_MONTHLY_PER_TERMINAL = [process_monthly_surcharge_report_excel,"MonthlyRevenueByDevice",EXCEL_EXT,EXCEL_EXT,]
+
+monthly revenue report headers
+"Bill to Business Code","Device Number","Location","SurWD Trxs","Inq Trxs","Denial Trxs","Reversal Trxs","Total Trxs","Total Surcharge","Business Surcharge","Total Interchange","Business Interchange","Business Addl Revenue","Business Credits/Debits","Business Total Income","Non-Sur WD Trxs","Total Dispensed Amount"
+
+"""
 
 
 import pandas as panda
@@ -26,7 +31,7 @@ from dataframe_functions import save_results_and_print
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = '.xlsx'
-FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "dummy place holder for more matches in future"]
+FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "ATMActivityReport"]
 ARCHIVE_DIRECTORY_NAME = "MonthlyRevenue"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
 VALUE_FILE = Path.cwd() / "MAIN" / "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
