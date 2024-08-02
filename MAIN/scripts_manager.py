@@ -50,6 +50,14 @@ class ScriptManager:
         if len(self.scripts) < 1:
             logger.error(f'No handlers loaded. Exiting')
             sys.exit(0)
+        else:
+            filename_substrings = []
+            for script_name, script in self.scripts.items():
+                try:
+                    filename_substrings.append(script['declaration'].get_filename_strings_to_match())
+                except Exception as e:
+                    print(e)
+            print(filename_substrings)
 
 
     def get_script_for_file(self, filename):
