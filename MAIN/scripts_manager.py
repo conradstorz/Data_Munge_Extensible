@@ -61,7 +61,7 @@ class ScriptManager:
                         logger.error(f"Script {script_name} does not have a valid 'declaration' attribute or method for returning strings.")
                 except Exception as e:
                     logger.error(f"Error processing script {script_name}: {e}")
-            logger.info(filename_substrings)
+            logger.info(f'These are the templates and filename sub-strings being monitored during this run:\n{filename_substrings}')
 
     def get_script_for_file(self, filename):
         """
