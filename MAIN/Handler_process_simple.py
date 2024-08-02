@@ -49,6 +49,10 @@ class Declaration:
             # no match
             return False
 
+    def get_filename_strings_to_match(self):
+        """Returns the list of filename strings to match"""
+        return FILENAME_STRINGS_TO_MATCH
+
 # activate declaration 
 declaration = Declaration()
 

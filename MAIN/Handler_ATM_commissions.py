@@ -45,7 +45,6 @@ class Declaration:
         """Returns the list of filename strings to match"""
         return FILENAME_STRINGS_TO_MATCH
 
-
 # activate declaration below when script is ready
 declaration = Declaration()
 
