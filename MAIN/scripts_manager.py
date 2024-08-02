@@ -54,13 +54,9 @@ class ScriptManager:
             filename_substrings = []
             for script_name, script in self.scripts.items():
                 try:
-                    if 'declaration' in script and callable(script['declaration'].get_filename_strings_to_match):
-                        # Use extend to add elements to the list, ensuring it's flat
-                        filename_substrings.append(f"{script_name}: {script['declaration'].get_filename_strings_to_match()}")
-                    else:
-                        logger.error(f"Script {script_name} does not have a valid 'declaration' attribute or method for returning strings.")
+                    filename_substrings.append(f"{script_name}: {script['declaration'].get_filename_strings_to_match()}")
                 except Exception as e:
-                    logger.error(f"Error processing script {script_name}: {e}")
+                    logger.error(f'SCRIPT: {script_name}\n{e}')
             logger.info(f'These are the templates and filename sub-strings being monitored during this run:\n{filename_substrings}')
 
     def get_script_for_file(self, filename):
