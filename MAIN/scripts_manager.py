@@ -25,16 +25,9 @@ class ScriptManager:
         """
         Loads scripts from the specified directory. Scripts must have 'declaration' and 'process' attributes.
         """
-        #original_working_directory = Path.cwd()
+
         logger.info(f"Loading scripts from {self.scripts_directory}")
-        # Create a Path object for the new directory
-        #new_directory = Path(self.scripts_directory)
 
-        # Change the working directory
-        #os.chdir(new_directory)
-
-        # Verify the change
-        #logger.info(f"Current working directory: {Path.cwd()}")
         for script_file in self.scripts_directory.glob('*.py'):
             script_name = script_file.stem
             if 'handler' in script_name.lower():
