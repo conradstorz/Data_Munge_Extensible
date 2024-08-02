@@ -68,10 +68,10 @@ class ScriptManager:
         :return: Processing function if a matching script is found, None otherwise
         :rtype: function or None
         """
-        logger.info(f"Getting script for file: {filename}")
+        logger.info(f"Attempting to match script to file: {filename}")
         for script_name, script in self.scripts.items():
             if script['declaration'].matches(filename):
-                logger.info(f"Match found: {script_name}")
+                logger.info(f"Script found: {script_name}")
                 return script['process']
         logger.warning(f"No matching script found for file: {filename}")
         return None
