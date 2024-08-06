@@ -64,9 +64,9 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
 
 @logger.catch
 def extract_date_from_filename(fname):
-    """the filename contains the date the report was run
+    """the filename contains the date the report was run.
     extract and return the date string
-    # TODO find a new way to look for and return anything that looks like a date from a string.
+    # TODO return a list of all dates found in filename
     """
     datestring = "xxxxxxxx"
     logger.info("Processing: " + str(fname))
