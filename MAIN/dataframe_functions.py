@@ -11,16 +11,6 @@ from pathlib import Path
 import pathlib_file_methods as plfh
 
 @logger.catch()
-def dataframe_contains(df, list):
-    """Examine dataframe for existance of columns named in list
-    and return list of columns from list that do not exist.
-    """
-    column_list = df.columns.tolist()
-    matched_columns = [col for col in list if col in column_list]
-    return matched_columns
-
-
-@logger.catch()
 def data_from_csv(in_f):
     """Import a CSV file into a datframe"""
     empty_df = panda.DataFrame() 
@@ -35,6 +25,16 @@ def data_from_csv(in_f):
         DF_LAST_ROW = len(df)
         logger.info(f"file imported into dataframe with {DF_LAST_ROW} rows.")
         return df
+
+
+@logger.catch()
+def dataframe_contains(df, list):
+    """Examine dataframe for existance of columns named in list
+    and return list of columns from list that do exist.
+    """
+    column_list = df.columns.tolist()
+    matched_columns = [col for col in list if col in column_list]
+    return matched_columns
 
 
 @logger.catch()
