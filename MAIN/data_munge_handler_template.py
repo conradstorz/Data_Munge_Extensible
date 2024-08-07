@@ -69,10 +69,11 @@ def handler_process(file_path: Path):
     return True
 
 @logger.catch
-def process_this_data(file_path: Path) -> bool:
-    # This is the customized procedures used to process this data
-
+def process_this_data(file_path: Path, date_str) -> bool:
+    # This is the customized procedures used to process this data. Should return a dataframe.
+    empty_df = panda.DataFrame()
     # *** place custom code here ***
+    print(f'{file_path} with embeded date string {date_str} readyness verified.')
 
     # all work complete
-    return True
+    return empty_df
