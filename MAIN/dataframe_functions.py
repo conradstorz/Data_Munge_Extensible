@@ -28,6 +28,37 @@ def data_from_csv(in_f):
 
 
 @logger.catch()
+def load_csv_with_optional_headers(in_f: str, headers='') -> panda.DataFrame:
+    # Set headers to empty list if it's an empty string
+    if headers == '':
+        headers = []
+    else:
+        if not isinstance(headers, list):
+            logger.error('optional headers field must be a list of strings')
+            return panda.DataFrame()  # Return empty DataFrame
+
+    empty_df = panda.DataFrame()  
+    # Load CSV file into DataFrame
+    try:
+        df = panda.read_csv(in_f, header=None if not headers else 0)
+    except Exception as e:
+        logger.error(f'Problem using pandas: {e}')
+        return empty_df
+    
+    # Handle possible header length mismatch
+    if headers:
+        num_columns = df.shape[1]
+        if len(headers) < num_columns:
+            logger.warning(f'Number of headers ({len(headers)}) is less than number of columns ({num_columns}). Numbering missing headers.')
+            headers.extend([f'Missing_Header_{i+1}' for i in range(len(headers), num_columns)])  # Number missing headers
+        elif len(headers) > num_columns:
+            logger.warning(f'Number of headers ({len(headers)}) exceeds number of columns ({num_columns}). Truncating to match.')
+            headers = headers[:num_columns]  # Truncate headers to match column count
+        df.columns = headers
+
+    return df
+
+@logger.catch()
 def dataframe_contains(df, list):
     """Examine dataframe for existance of columns named in list
     and return list of columns from list that do exist.
