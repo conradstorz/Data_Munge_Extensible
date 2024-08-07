@@ -54,16 +54,19 @@ def extract_and_order_dates(log_string):
     # Convert back to string format in the desired output format
     return [date.strftime('%Y-%m-%d') for date in sorted_dates]
 
-# Example test cases
-log_strings = [
-    'pay_at_machine_log_2024_06_19_to_2024_08_02',
-    'ATMActivityReport-20240801-053533AM',
-    'Storz_Amusements_LLC-A13212-2024-08-04-location_sales',
-    'Terminal Status(w_FLOAT)automated 3 - 20240731',
-    'Screenshot_2-8-2024_105738_www.vgtsforindiana.org',
-    'This string has no dates.',
-    'NAC2024 FINAL 4212024a5.PDF'
-]
+# Example test cases we are only dealing with dates at this point not time stamps
+log_strings = {
+    'pay_at_machine_log_2024_06_19_to_2024_08_02': ['2024jun19', '2024aug02'],
+    'ATMActivityReport-20240801-053533AM': ['2024aug01'],
+    'Storz_Amusements_LLC-A13212-2024-08-04-location_sales': ['2024aug04'],
+    'Terminal Status(w_FLOAT)automated 3 - 20240731': ['2024jul31'],
+    'Screenshot_2-8-2024_105738_www.vgtsforindiana.org': ['2024feb08'],
+    'This string has no dates.': ['1970jan01'],
+    'NAC2024 FINAL 4212024a5.PDF this string may be un-parsable': ['2024apr21'],
+    'Collection Details (A79CD) May 17, 2024 (12).csv': ['2024may17']
+}
 
-for log in log_strings:
-    print(extract_and_order_dates(log))
+for log in log_strings.keys():
+    result = extract_and_order_dates(log)
+    # TODO test for correct result
+    print(f'{result=} should be {log_strings[log]}')
