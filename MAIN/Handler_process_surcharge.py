@@ -31,7 +31,7 @@ from dataframe_functions import save_results_and_print
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = '.xlsx'
-FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "ATMActivityReport"]
+FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "ATMActivityReport"]  # TODO these may need to be different handlers because of different column headings like Terminal Number
 ARCHIVE_DIRECTORY_NAME = "MonthlyRevenue"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
 VALUE_FILE = Path.cwd() / "MAIN" / "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
@@ -134,7 +134,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     """
     # pandas tags:
     LOCATION_TAG = "Location"
-    DEVICE_NUMBER_TAG = "Device Number"
+    DEVICE_NUMBER_TAG = "Terminal"  # changed from 'Device Number' for compatability with "ATM activity report for commissions"
 
     DAYS = 30  # most months are 30 days and report covers a month
     # TODO not all reports are 30 days. Some are 90 days. Try to determine actual number of days.
@@ -180,6 +180,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     except KeyError as e:
         logger.error(f"Error {e}")
 
+    # TODO need try/except for missing file detection
     with open(VALUE_FILE) as json_data:
         terminal_details = json.load(json_data)
     # this dictionary will contain information about individual terminals
@@ -188,6 +189,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     logger.debug(f'Printer details report:\n{pretty_json}')
 
     logger.info(f"Reading formatting file..")
+    # TODO needs try/except for missing file detection
     with open(FORMATTING_FILE) as json_data:
         column_details = json.load(json_data)
     # this dictionary will contain information about formating output values.
