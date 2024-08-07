@@ -3,7 +3,7 @@ from loguru import logger
 from pathlib import Path
 from dataframe_functions import extract_date_from_filename
 from dataframe_functions import save_results_and_print
-from dataframe_functions import data_from_csv
+from dataframe_functions import load_csv_with_optional_headers
 from dataframe_functions import dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
@@ -68,12 +68,18 @@ def handler_process(file_path: Path):
     # all work complete
     return True
 
+
 @logger.catch
 def process_this_data(file_path: Path, date_str) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
     empty_df = panda.DataFrame()
-    # *** place custom code here ***
+    
     print(f'{file_path} with embeded date string {date_str} readyness verified.')
 
+    # problem with this csv file contains no headers
+
+    df = load_csv_with_optional_headers(file_path, headers=['source', 'amount'])
+    
+    print(f'{df}')
     # all work complete
     return empty_df
