@@ -4,7 +4,7 @@ from pathlib import Path
 from dataframe_functions import extract_date_from_filename
 from dataframe_functions import save_results_and_print
 from dataframe_functions import load_csv_with_optional_headers
-from dataframe_functions import dataframe_contains
+from dataframe_functions import extract_dates
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"
@@ -48,7 +48,7 @@ def handler_process(file_path: Path):
         return False
 
     logger.info(f"Looking for date string in: {file_path.stem}")
-    filedate = extract_date_from_filename(file_path.stem)  # filename without extension
+    filedate = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedate}")
     # this data has more needed details in the filename. example:   Collection Details (A79CD) May 17, 2024 (4).csv
     # the jukebox ID is contained inside the first set of parenthesis and needs to be recovered and matched to the location name.
