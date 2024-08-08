@@ -20,7 +20,8 @@ def extract_dates(strings):
         r'(\d{1,2})-(\d{1,2})-(\d{4})',      # MM-DD-YYYY
         r'(\d{4})(\d{2})(\d{2})',            # YYYYMMDD
         r'(\d{4})([a-zA-Z]{3})(\d{2})',      # YYYYmonDD
-        r'([A-Za-z]+) (\d{1,2}), (\d{4})'    # Month DD, YYYY
+        r'([A-Za-z]+) (\d{1,2}), (\d{4})',   # Month DD, YYYY
+        r'\b(\d{1,2})(\d{1,2})(\d{4})\b'     # Handle formats like '4212024'
     ]
     
     extracted_dates = {}
@@ -45,6 +46,11 @@ def extract_dates(strings):
                             date_str = f"{match[0]}{match[1].lower()}{match[2]}"
                         elif pattern == patterns[4]:  # Month DD, YYYY
                             date_str = f"{match[2]}{match[0][:3].lower()}{match[1]}"
+                        elif pattern == patterns[5]:  # MMDDYYYY
+                            month = match[0].zfill(2)
+                            day = match[1].zfill(2)
+                            year = match[2]
+                            date_str = f"{year}{datetime.strptime(month, '%m').strftime('%b').lower()}{day}"
                         
                         # Validate the date
                         if is_date_valid(date_str):
@@ -69,7 +75,8 @@ input_strings = {
     'Screenshot_2-8-2024_105738_www.vgtsforindiana.org': ['2024feb08'],
     'This string has no dates.': ['1970jan01'],
     'NAC2024 FINAL 4212024a5.PDF this string may be un-parsable': ['2024apr21'],
-    'Collection Details (A79CD) May 17, 2024 (12).csv': ['2024may17']
+    'Collection Details (A79CD) May 17, 2024 (12).csv': ['2024may17'],
+    'FINAL 4212024a5.PDF this string may be un-parsable': ['2024apr21']
 }
 
 extracted_dates = extract_dates(input_strings)
