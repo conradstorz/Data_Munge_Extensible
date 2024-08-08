@@ -30,7 +30,7 @@ def extract_dates(strings):
     extracted_dates = {}
     
     for key in strings.keys():
-        found_dates = []
+        found_dates = set()  # Use a set to avoid duplicates
         
         # Try each pattern to find dates
         for pattern in patterns:
@@ -40,15 +40,15 @@ def extract_dates(strings):
                     try:
                         # Parse and format the date
                         if pattern == patterns[0]:  # YYYY-MM-DD
-                            date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2]}"
+                            date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2].zfill(2)}"
                         elif pattern == patterns[1]:  # MM-DD-YYYY
-                            date_str = f"{match[2]}{datetime.strptime(match[0], '%m').strftime('%b').lower()}{match[1]}"
+                            date_str = f"{match[2]}{datetime.strptime(match[0], '%m').strftime('%b').lower()}{match[1].zfill(2)}"
                         elif pattern == patterns[2]:  # YYYYMMDD
-                            date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2]}"
+                            date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2].zfill(2)}"
                         elif pattern == patterns[3]:  # YYYYmonDD
-                            date_str = f"{match[0]}{match[1].lower()}{match[2]}"
+                            date_str = f"{match[0]}{match[1].lower()}{match[2].zfill(2)}"
                         elif pattern == patterns[4]:  # Month DD, YYYY
-                            date_str = f"{match[2]}{match[0][:3].lower()}{match[1]}"
+                            date_str = f"{match[2]}{match[0][:3].lower()}{match[1].zfill(2)}"
                         elif pattern == patterns[5]:  # MMDDYYYY
                             month = match[0].zfill(2)
                             day = match[1].zfill(2)
@@ -57,15 +57,15 @@ def extract_dates(strings):
                         
                         # Validate the date
                         if is_date_valid(date_str):
-                            found_dates.append(date_str)
+                            found_dates.add(date_str)
                     except ValueError:
                         continue
         
         # If no valid dates found, use the default
         if not found_dates:
-            found_dates = ['1970jan01']
+            found_dates.add('1970jan01')
         
-        extracted_dates[key] = found_dates
+        extracted_dates[key] = list(found_dates)
     
     return extracted_dates
 
