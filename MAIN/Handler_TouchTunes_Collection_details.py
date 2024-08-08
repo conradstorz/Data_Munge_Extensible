@@ -59,16 +59,18 @@ def handler_process(file_path: Path):
     # launch the processing function
     try:
         result = aquire_this_data(file_path, filedate)
+        
         # now generate the output dataframe
-        output = process_df(result
-                            )
+        output = process_df(result)
+
         # processing done, send result to printer
     except Exception as e:
         logger.error(f'Failure processing dataframe: {e}')
         return False
     else:
         if len(result) > 0:
-            save_results_and_print(output_file, result, file_path)
+            # save_results_and_print(output_file, result, file_path)
+            logger.debug(f'Not yet ready for printing.\n{output}')
         else:
             logger.error(f'No data found to process')
             return False
@@ -83,34 +85,56 @@ def aquire_this_data(file_path: Path, date_str) -> bool:
     
     print(f'{file_path} with embeded date string {date_str} readyness verified.')
     # this csv file is organized with descriptions in column 0 and values in column 1
-
-    # Read the CSV file. the structure is   descript,value
-    #                                       descript,value
-    #                                       ...
-
-    df = panda.read_csv(file_path, index_col=0)  # do not place default index numbers
-
-    # Rotate the DataFrame 90 degrees to the right.
-    rotated_df = df.T
-    # now the descriptions are the headers
-                
-    print(f'{rotated_df}')
-
-    print(f'Items: {rotated_df.columns.to_list()}')
-    """['Multi-Credit Jukebox', 'Mobile', 'Karaoke', 'Photobooth', 'Unused credits', 'Cleared credits', 
+    """The default download format includes duplicate headers after rotation
+        ['1 Credit Jukebox', 'Multi-Credit Jukebox', 'Mobile', 'Karaoke', 'Photobooth', 'Unused credits', 'Cleared credits', 
         'Total Revenue Breakdown', 'Bill', 'Coin', 'Subtotal (Bill + Coin)', 'Linked', 'CC/3rd Party', 'Mobile', 
         'Total Revenue', '1 Credit Jukebox (music)', 'Multi-Credit Jukebox (music)', 'Mobile', 
         'Karaoke service', 'Karaoke BGM', 'Karaoke plays', 'Photobooth print', 'Other fees', 
         'Total Revenues', 'Total fees', 'Total to split', 'Location split', 'Operator split']
     """
+    # Read the CSV file. the structure is   descript,value
+    #                                       descript,value
+    #                                       ...
+    # Read the CSV file with no headers
+    df = panda.read_csv(file_path, header=None)
+
+    # Set the first column as the index
+    df.set_index(0, inplace=True)
+
+    # Rotate the DataFrame 90 degrees to the right
+    rotated_df = df.T
+
+    # Reset the index if needed
+    rotated_df.reset_index(drop=True, inplace=True)
+
+    logger.debug(f'{rotated_df.columns.to_list()=}')
+
+    # Rename duplicate columns to ensure uniqueness
+    new_columns = []
+    column_count = {}
+    for col in rotated_df.columns:
+        if col in column_count:
+            column_count[col] += 1
+            new_columns.append(f"{col}_{column_count[col]}")
+        else:
+            column_count[col] = 0
+            new_columns.append(col)
+    rotated_df.columns = new_columns
+    logger.debug(f'{new_columns=}')
+
+    print(f'{rotated_df}')
+
+    print(f'Items: {rotated_df.columns.to_list()}')
+
     
     # all work complete
     return rotated_df
 
 @logger.catch()
-def ID_inside_filename(fn):
+def ID_inside_filename(fn: Path):
     # get the sub-string inside the parenthesis
-    parts = fn.split('(')
+    file_name_string = fn.name
+    parts = file_name_string.split('(')
     if len(parts) > 1:
         subparts = parts[1].split(')')
         if len(subparts) > 1:
@@ -121,5 +145,16 @@ def ID_inside_filename(fn):
 
 @logger.catch()
 def process_df(df):
+    # Remove un-needed columns
+    cols_to_drop = ['1 Credit Jukebox', 'Multi-Credit Jukebox', 'Karaoke', 'Photobooth', 'Unused credits', 'Cleared credits', 'Total Revenue Breakdown', 'Subtotal (Bill + Coin)', 'Linked', 'CC/3rd Party', 'Mobile_1', '1 Credit Jukebox (music)', 'Multi-Credit Jukebox (music)', 'Mobile_2', 'Karaoke service', 'Karaoke BGM', 'Karaoke plays', 'Photobooth print']    # Filter the columns to drop to only those that exist in the DataFrame
 
-    return df
+    # Check existing columns in the DataFrame
+    existing_cols = df.columns.tolist()
+    logger.debug(f'{existing_cols=}')
+
+    cols_to_drop_filtered = [col for col in cols_to_drop if col in existing_cols]
+
+    # Drop the filtered columns
+    df_dropped = df.drop(columns=cols_to_drop_filtered)
+    logger.debug(f'{df_dropped.columns.tolist()=}')
+    return df_dropped
