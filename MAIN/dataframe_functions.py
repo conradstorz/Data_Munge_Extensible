@@ -2,6 +2,7 @@
 """
 
 import re
+from datetime import datetime
 from dateutil.parser import parse, ParserError
 import os
 import time
@@ -91,6 +92,73 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
         # move the file
         plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
         return True
+
+
+def is_date_valid(date_str):
+    formats = ['%Y%b%d', '%Y%m%d']
+    for fmt in formats:
+        try:
+            # Parse the date string
+            date_obj = datetime.strptime(date_str, fmt)
+            # Define valid date range
+            min_date = datetime(1970, 1, 1)
+            max_date = datetime(2170, 1, 1)
+            return min_date <= date_obj <= max_date
+        except ValueError:
+            continue
+    return False
+
+
+def extract_dates(string):
+    # Define patterns to match different date formats
+    patterns = [
+        r'(\d{4})[-_]?(\d{2})[-_]?(\d{2})',  # YYYY-MM-DD or YYYY_MM_DD
+        r'(\d{1,2})-(\d{1,2})-(\d{4})',      # MM-DD-YYYY
+        r'(\d{4})(\d{2})(\d{2})',            # YYYYMMDD
+        r'(\d{4})([a-zA-Z]{3})(\d{2})',      # YYYYmonDD
+        r'([A-Za-z]+) (\d{1,2}), (\d{4})',   # Month DD, YYYY
+        r'\b(\d{1,2})(\d{1,2})(\d{4})\b'     # Handle formats like '4212024'
+    ]
+    
+    extracted_dates = {}
+    found_dates = set()  # Use a set to avoid duplicates
+    
+    # Try each pattern to find dates
+    for pattern in patterns:
+        matches = re.findall(pattern, string)
+        for match in matches:
+            if len(match) == 3:
+                try:
+                    # Parse and format the date
+                    if pattern == patterns[0]:  # YYYY-MM-DD
+                        date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2].zfill(2)}"
+                    elif pattern == patterns[1]:  # MM-DD-YYYY
+                        date_str = f"{match[2]}{datetime.strptime(match[0], '%m').strftime('%b').lower()}{match[1].zfill(2)}"
+                    elif pattern == patterns[2]:  # YYYYMMDD
+                        date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2].zfill(2)}"
+                    elif pattern == patterns[3]:  # YYYYmonDD
+                        date_str = f"{match[0]}{match[1].lower()}{match[2].zfill(2)}"
+                    elif pattern == patterns[4]:  # Month DD, YYYY
+                        date_str = f"{match[2]}{match[0][:3].lower()}{match[1].zfill(2)}"
+                    elif pattern == patterns[5]:  # MMDDYYYY
+                        month = match[0].zfill(2)
+                        day = match[1].zfill(2)
+                        year = match[2]
+                        date_str = f"{year}{datetime.strptime(month, '%m').strftime('%b').lower()}{day}"
+                    
+                    # Validate the date
+                    if is_date_valid(date_str):
+                        found_dates.add(date_str)
+                except ValueError:
+                    continue
+    
+    # If no valid dates found, use the default
+    if not found_dates:
+        found_dates.add('1970jan01')
+    
+    extracted_dates = sorted(list(found_dates))  # Ensure the dates are sorted TODO fix this so it works on dates not strings
+    
+    return extracted_dates
 
 
 @logger.catch
