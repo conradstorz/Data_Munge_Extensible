@@ -65,7 +65,7 @@ def extract_dates(strings):
         if not found_dates:
             found_dates.add('1970jan01')
         
-        extracted_dates[key] = sorted(list(found_dates))  # Ensure the dates are sorted
+        extracted_dates[key] = sorted(list(found_dates))  # Ensure the dates are sorted TODO fix this so it works on dates not strings
     
     return extracted_dates
 
