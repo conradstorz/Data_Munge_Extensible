@@ -1,6 +1,17 @@
-# date_from_str_more_improved.py
 import re
 from datetime import datetime
+
+def is_date_valid(date_str):
+    try:
+        # Parse the date string
+        date_obj = datetime.strptime(date_str, '%Y%b%d')
+        # Define valid date range
+        min_date = datetime(1970, 1, 1)
+        max_date = datetime(2170, 1, 1)
+        return min_date <= date_obj <= max_date
+    except ValueError:
+        # If parsing fails, return False
+        return False
 
 def extract_dates(strings):
     # Define patterns to match different date formats
@@ -35,11 +46,13 @@ def extract_dates(strings):
                         elif pattern == patterns[4]:  # Month DD, YYYY
                             date_str = f"{match[2]}{match[0][:3].lower()}{match[1]}"
                         
-                        found_dates.append(date_str)
+                        # Validate the date
+                        if is_date_valid(date_str):
+                            found_dates.append(date_str)
                     except ValueError:
                         continue
         
-        # If no dates found, use the default
+        # If no valid dates found, use the default
         if not found_dates:
             found_dates = ['1970jan01']
         
