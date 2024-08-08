@@ -65,6 +65,15 @@ log_strings = {
     'NAC2024 FINAL 4212024a5.PDF this string may be un-parsable': ['2024apr21'],
     'Collection Details (A79CD) May 17, 2024 (12).csv': ['2024may17']
 }
+"""
+import re
+
+string = 'Collection Details (A79CD) May 17, 2024 (4)'
+date_pattern = r'\b([A-Za-z]+ \d{1,2}, \d{4})\b'
+date_match = re.search(date_pattern, string)
+extracted_date = date_match.group(0) if date_match else None
+print(extracted_date)
+"""
 
 for log in log_strings.keys():
     result = extract_and_order_dates(log)
