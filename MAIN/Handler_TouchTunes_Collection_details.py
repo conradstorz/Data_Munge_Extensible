@@ -58,7 +58,7 @@ def handler_process(file_path: Path):
     logger.debug(f'Output filename: {output_file}')
     # launch the processing function
     try:
-        result = aquire_this_data(file_path, filedate)
+        result = aquire_this_data(file_path, filedate, touchtunes_device)
         
         # now generate the output dataframe
         output = process_df(result)
@@ -79,7 +79,7 @@ def handler_process(file_path: Path):
 
 
 @logger.catch
-def aquire_this_data(file_path: Path, date_str) -> bool:
+def aquire_this_data(file_path: Path, date_str, device_id) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
     empty_df = panda.DataFrame()
     
@@ -122,6 +122,10 @@ def aquire_this_data(file_path: Path, date_str) -> bool:
     rotated_df.columns = new_columns
     logger.debug(f'{new_columns=}')
 
+    # add the date and device fields
+    rotated_df['Device_ID'] = device_id
+    rotated_df['Date'] = date_str
+
     print(f'{rotated_df}')
 
     print(f'Items: {rotated_df.columns.to_list()}')
@@ -138,6 +142,9 @@ def ID_inside_filename(fn: Path):
     if len(parts) > 1:
         subparts = parts[1].split(')')
         if len(subparts) > 1:
+            # normalize the ID because the leading zero get dropped by the in-consistant handling by TouchTunes
+            if len(subparts[0]) < 6:
+                subparts[0] = f'0{subparts[0]}'
             return subparts[0]
     return 'xxxxxx'
 
