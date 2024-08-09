@@ -98,14 +98,14 @@ def aquire_this_data(file_path: Path, date_str, device_id) -> bool:
     # Read the CSV file with no headers
     df = panda.read_csv(file_path, header=None)
 
-    # Set the first column as the index
-    df.set_index(0, inplace=True)
+    # Set the first column as the index otherwise we would get the default index numbers as column headers when we rotate
+    df = df.set_index(df.columns[0])
 
     # Rotate the DataFrame 90 degrees to the right
-    rotated_df = df.T
+    rotated_df = df.transpose()
 
     # Reset the index if needed
-    rotated_df.reset_index(drop=True, inplace=True)
+    rotated_df = rotated_df.reset_index(drop=True)
 
     logger.debug(f'{rotated_df.columns.to_list()=}')
 
