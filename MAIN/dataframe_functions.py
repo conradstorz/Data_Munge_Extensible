@@ -96,15 +96,15 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
 
 def is_date_valid(date_str):
     formats = ['%Y%b%d', '%Y%m%d']
+    min_date = datetime(1970, 1, 1)
+    max_date = datetime(2170, 1, 1)    
     for fmt in formats:
         try:
             # Parse the date string
             date_obj = datetime.strptime(date_str, fmt)
-            # Define valid date range
-            min_date = datetime(1970, 1, 1)
-            max_date = datetime(2170, 1, 1)
+            # test the truth of the valid date range
             return min_date <= date_obj <= max_date
-        except ValueError:
+        except (TypeError, ValueError) as e:
             continue
     return False
 
@@ -156,9 +156,18 @@ def extract_dates(string):
     if not found_dates:
         found_dates.add('1970jan01')
     
-    extracted_dates = sorted(list(found_dates))  # Ensure the dates are sorted TODO fix this so it works on dates not strings
-    
-    return extracted_dates
+    # extracted_dates = sorted(list(found_dates))  # Ensure the dates are sorted TODO fix this so it works on dates not strings
+
+    # Convert the date strings to datetime objects
+    date_objects = [datetime.strptime(date, "%Y-%m-%d") for date in found_dates]
+
+    # Sort the list of datetime objects
+    extracted_dates = sorted(date_objects)
+
+    # If you need the sorted dates back as strings, convert them back
+    sorted_date_strings = [date.strftime("%Y-%m-%d") for date in extracted_dates]
+
+    return sorted_date_strings
 
 
 @logger.catch
