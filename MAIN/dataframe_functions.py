@@ -95,7 +95,7 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
 
 
 def is_date_valid(date_str):
-    formats = ['%Y%b%d', '%Y%m%d']
+    formats = ['%Y%b%d', '%Y%m%d', "%Y-%m-%d"]
     min_date = datetime(1970, 1, 1)
     max_date = datetime(2170, 1, 1)    
     for fmt in formats:
@@ -120,51 +120,43 @@ def extract_dates(string):
         r'\b(\d{1,2})(\d{1,2})(\d{4})\b'     # Handle formats like '4212024'
     ]
     
-    extracted_dates = {}
     found_dates = set()  # Use a set to avoid duplicates
     
     # Try each pattern to find dates
     for pattern in patterns:
         matches = re.findall(pattern, string)
         for match in matches:
-            if len(match) == 3:
-                try:
-                    # Parse and format the date
-                    if pattern == patterns[0]:  # YYYY-MM-DD
-                        date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2].zfill(2)}"
-                    elif pattern == patterns[1]:  # MM-DD-YYYY
-                        date_str = f"{match[2]}{datetime.strptime(match[0], '%m').strftime('%b').lower()}{match[1].zfill(2)}"
-                    elif pattern == patterns[2]:  # YYYYMMDD
-                        date_str = f"{match[0]}{datetime.strptime(match[1], '%m').strftime('%b').lower()}{match[2].zfill(2)}"
-                    elif pattern == patterns[3]:  # YYYYmonDD
-                        date_str = f"{match[0]}{match[1].lower()}{match[2].zfill(2)}"
-                    elif pattern == patterns[4]:  # Month DD, YYYY
-                        date_str = f"{match[2]}{match[0][:3].lower()}{match[1].zfill(2)}"
-                    elif pattern == patterns[5]:  # MMDDYYYY
-                        month = match[0].zfill(2)
-                        day = match[1].zfill(2)
-                        year = match[2]
-                        date_str = f"{year}{datetime.strptime(month, '%m').strftime('%b').lower()}{day}"
-                    
-                    # Validate the date
-                    if is_date_valid(date_str):
-                        found_dates.add(date_str)
-                except ValueError:
-                    continue
+            try:
+                if pattern == patterns[0]:  # YYYY-MM-DD or YYYY_MM_DD
+                    date_str = f"{match[0]}-{match[1].zfill(2)}-{match[2].zfill(2)}"
+                elif pattern == patterns[1]:  # MM-DD-YYYY
+                    date_str = f"{match[2]}-{match[0].zfill(2)}-{match[1].zfill(2)}"
+                elif pattern == patterns[2]:  # YYYYMMDD
+                    date_str = f"{match[0]}-{match[1].zfill(2)}-{match[2].zfill(2)}"
+                elif pattern == patterns[3]:  # YYYYmonDD
+                    month = datetime.strptime(match[1].lower(), '%b').strftime('%m')
+                    date_str = f"{match[0]}-{month}-{match[2].zfill(2)}"
+                elif pattern == patterns[4]:  # Month DD, YYYY
+                    month = datetime.strptime(match[0][:3].lower(), '%b').strftime('%m')
+                    date_str = f"{match[2]}-{month}-{match[1].zfill(2)}"
+                elif pattern == patterns[5]:  # MMDDYYYY
+                    date_str = f"{match[2]}-{match[0].zfill(2)}-{match[1].zfill(2)}"
+                
+                # Validate and add the date
+                if is_date_valid(date_str):
+                    found_dates.add(date_str)
+            except ValueError:
+                continue
     
-    # If no valid dates found, use the default
+    # If no valid dates found, return an empty list
     if not found_dates:
-        found_dates.add('1970jan01')
-    
-    # extracted_dates = sorted(list(found_dates))  # Ensure the dates are sorted TODO fix this so it works on dates not strings
+        return []
 
-    # Convert the date strings to datetime objects
+    # Convert the date strings to datetime objects and sort them
     date_objects = [datetime.strptime(date, "%Y-%m-%d") for date in found_dates]
-
-    # Sort the list of datetime objects
     extracted_dates = sorted(date_objects)
 
-    # If you need the sorted dates back as strings, convert them back
+    # Convert the sorted datetime objects back to strings
     sorted_date_strings = [date.strftime("%Y-%m-%d") for date in extracted_dates]
 
     return sorted_date_strings

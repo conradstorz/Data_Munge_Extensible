@@ -29,10 +29,10 @@ def test_extract_dates():
         'Storz_Amusements_LLC-A13212-2024-08-04-location_sales': ['2024-08-04'],
         'Terminal Status(w_FLOAT)automated 3 - 2024-07-31': ['2024-07-31'],
         'Screenshot_2-8-2024_105738_www.vgtsforindiana.org': ['2024-02-08'],
-        'This string has no dates.': [],
-        'NAC2024 FINAL 4212024a5.PDF this string may be un-parsable': [],
+        'This string has no dates.': ['1970-01-01'],
+        'NAC2024 FINAL 4212024a5.PDF this string may be un-parsable': ['1970-01-01'],
         'Collection Details (A79CD) May 17, 2024 (12).csv': ['2024-05-17'],
-        'FINAL 4212024a5.PDF this string may be un-parsable': []
+        'FINAL 4212024a5.PDF this string may be un-parsable': ['1970-01-01']
     }
 
     for string in input_strings.keys():
