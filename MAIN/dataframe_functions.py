@@ -70,6 +70,22 @@ def dataframe_contains(df, list):
 
 
 @logger.catch()
+def de_duplicate_header_names(df):
+    # Rename duplicate columns to ensure uniqueness
+    new_columns = []
+    column_count = {}
+    for col in df.columns:
+        if col in column_count:
+            column_count[col] += 1
+            new_columns.append(f"{col}_{column_count[col]}")
+        else:
+            column_count[col] = 0
+            new_columns.append(col)
+    df.columns = new_columns
+    logger.debug(f'{new_columns=}')
+    return df
+
+@logger.catch()
 def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     """filename and dataframe are in the output_dict
     """
