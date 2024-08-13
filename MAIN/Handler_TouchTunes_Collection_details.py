@@ -70,14 +70,15 @@ def handler_process(file_path: Path):
     try:
         result = aquire_this_data(file_path, filedate, touchtunes_device)
 
-        # now generate the output dataframe
-        output = process_df(result)
+        if len(result) > 0:
+            # now generate the output dataframe
+            output = process_df(result)
 
-        # processing done, send result to printer
     except Exception as e:
         logger.error(f"Failure processing dataframe: {e}")
         return False
     else:
+        # processing done, send result to printer        
         if len(result) > 0:
             # save_results_and_print(output_file, result, file_path)
             logger.debug(f"Not yet ready for printing.\n{output}")
@@ -108,7 +109,10 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
     #                                       descript,value
     #                                       ...
     # Read the CSV file with no headers
-    df = panda.read_csv(file_path, header=None)
+    try:
+        df = panda.read_csv(file_path, header=None)
+    except FileNotFoundError as e:
+        return empty_df
 
     # Set the first column as the index otherwise we would get the default index numbers as column headers when we rotate
     df = df.set_index(df.columns[0])
