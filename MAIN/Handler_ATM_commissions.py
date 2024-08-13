@@ -78,83 +78,105 @@ def handler_process(file_path: Path):
     return True
 
 @logger.catch
-def process_commission_report(in_f, RUNDATE):
-    """Scan file and compute sums for 2 columns"""
-    # import data
-    empty_df = panda.DataFrame()
-    df = data_from_csv(in_f)
-    
-    expected_fields_list = ["Location","WD Trxs","Surcharge WDs","Settlement","Group"]
+def process_commission_report(input_file, runday):
+    """Scan file and compute sums for 2 columns.
 
-    actual_columns_found = dataframe_contains(df, expected_fields_list)
-    
-    if not (actual_columns_found == expected_fields_list):
-        logger.debug(f'Data was expected to contain: {expected_fields_list}\n but only these fileds found: {actual_columns_found}')
-        return empty_df
-    
+    Parameters:
+    - input_file: Path to the input CSV file.
+    - runday: Date the report was run.
+
+    Returns:
+    - A DataFrame with processed commission data or an empty DataFrame if an error occurs.
+    """
+    # Import data
+    try:
+        df = panda.read_csv(input_file)
+    except FileNotFoundError:
+        logger.error(f'File not found: {input_file}')
+        return panda.DataFrame()  # empty dataframe
+    except panda.errors.EmptyDataError:
+        logger.error(f'No data found in file: {input_file}')
+        return panda.DataFrame()  # empty dataframe
+
+    # Define expected fields
+    expected_fields_list = ["Location", "WD Trxs", "Surcharge WDs", "Settlement", "Group"]
+
+    # Check if expected fields are present
+    actual_columns_found = list(df.columns)
+    if not all(field in actual_columns_found for field in expected_fields_list):
+        logger.debug(f'Data was expected to contain: {expected_fields_list}\n'
+                     f'But only these fields found: {actual_columns_found}')
+        return panda.DataFrame()  # empty frame
+
     logger.info(f'Data contained all expected fields.')
 
-    # tack on the date of this report extracted from the filename
-    df.at[len(df), "Location"] = f"Report ran: {RUNDATE}"
+    # Tack on the date of this report extracted from the filename
+    df.at[len(df), "Location"] = f"Report ran: {runday}"
 
-    # Strip out undesirable characters from "Settlement" column
+    # Strip out undesirable characters from "Settlement" column and convert to float
     try:
         df["Settlement"] = df["Settlement"].replace("[\$,)]", "", regex=True)
         df["Settlement"] = df["Settlement"].astype(float)
     except KeyError as e:
-        logger.error(f"KeyError in Settlement column: {e}")
-        return empty_df
+        logger.error(f"KeyError in 'Settlement' column: {e}")
+        return panda.DataFrame()  # empty dataframe
+    except ValueError as e:
+        logger.error(f"ValueError converting 'Settlement' to float: {e}")
+        return panda.DataFrame()  # empty dataframe
 
     # Process "WD Trxs" column
     try:
-        df.replace({"WD Trxs": {"[\$,)]": ""}}, regex=True, inplace=True)
+        df["WD Trxs"] = df["WD Trxs"].replace("[\$,)]", "", regex=True)
         df["WD Trxs"] = panda.to_numeric(df["WD Trxs"], errors="coerce")
     except KeyError as e:
         logger.error(f"KeyError in 'WD Trxs' column: {e}")
-        return empty_df
+        return panda.DataFrame()  # empty dataframe
 
     # Process "Surcharge WDs" column
     try:
-        # df["Surcharge WDs"] = df["Surcharge WDs"].astype(int)  was throwing exception
         df["Surcharge WDs"] = panda.to_numeric(df["Surcharge WDs"], errors='coerce').astype('Int64')
     except KeyError as e:
         logger.error(f"KeyError in 'Surcharge WDs' column: {e}")
-        return empty_df
+        return panda.DataFrame()  # empty dataframe
 
-    # process the "group" column
-    # Define the regular expression pattern
+    # Define the regular expression pattern for extracting monetary values
     find_monetary_value = r'^(.*?),?\s*([$]?\d+\.\d+)$'
 
-    # Extract the commission_rate from the remainder of the Group column
+    # Extract the commission rate from the Group column
     try:
         df[['groupname', 'comm_rate']] = df['Group'].str.extract(find_monetary_value)
     except KeyError as e:
         logger.error(f"KeyError in 'Group' column: {e}")
-        return empty_df
+        return panda.DataFrame()  # empty dataframe
 
     # Convert commission_rate to float
     try:
-        df['comm_rate'] = df['comm_rate'].str.replace('$', '').astype(float)    
+        df['comm_rate'] = df['comm_rate'].str.replace('$', '').astype(float)
     except KeyError as e:
-        logger.error(f"KeyError in 'Surcharge WDs' column: {e}")
-        return empty_df
+        logger.error(f"KeyError in 'comm_rate' column: {e}")
+        return panda.DataFrame()  # empty dataframe
     except ValueError as e:
-        logger.error(f'Error converting string to float: {e}')
+        logger.error(f'ValueError converting string to float: {e}')
         df['comm_rate'] = 0.0
 
-
-    # calculate the commission due
+    # Calculate the commission due
     try:
-        df['Commission_Due'] = df['comm_rate'] * df["Surcharge WDs"]    
+        df['Commission_Due'] = df['comm_rate'] * df["Surcharge WDs"]
     except KeyError as e:
-        logger.error(f"KeyError in 'Surcharge WDs' column: {e}")
-        return empty_df
+        logger.error(f"KeyError in 'Commission_Due' calculation: {e}")
+        return panda.DataFrame()  # empty dataframe
 
-    # sort the data so the totals are listed at the top of the report
+    # Create an entry for the total of all commission_due
+    total_commission_due = df['Commission_Due'].sum()
+    df.at[len(df), 'Commission_Due'] = total_commission_due
+
+    # Sort the data so the totals are listed at the top of the report
     df = df.sort_values("Settlement", ascending=False)
+
     logger.debug(f'Dataframe finished: {df}')
 
-    # work is finished. Drop unneeded columns from output
-    df = df.drop(["groupname","Group","Settlement", "Surcharge WDs"], axis=1)
+    # Drop unneeded columns from output
+    df = df.drop(["groupname", "Group", "Settlement", "Surcharge WDs"], axis=1)
 
     return df
+
