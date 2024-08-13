@@ -87,6 +87,9 @@ def handler_process(file_path: Path):
             return False
 
     # processing done, send result to printer
+    # TODO create a nice looking report that can be sent to a customer
+    # TODO should probably be a PDF
+    # TODO Should split the functon below into file management and printing seperately optionally
     save_results_and_print(output_file, df_output, file_path)
     logger.debug(f'\n{df_output}')
 
