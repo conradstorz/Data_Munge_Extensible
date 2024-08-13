@@ -61,23 +61,27 @@ def handler_process(file_path: Path):
     logger.debug(f"Found Date: {filedate_list}")
     output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
     logger.debug(f"Output filename: {output_file}")
+
     # launch the processing function
     try:
         result = aquire_this_data(file_path, filedate_list)
-        if len(result) > 0:
-            # now generate the output dataframe
-            output = process_df(result)
-
     except Exception as e:
         logger.error(f"Failure processing dataframe: {e}")
         return False
-    else:
-        # processing done, send result to printer        
-        if len(result) > 0:
-            save_results_and_print(output_file, output, file_path)
-        else:
+    if len(result) < 1:
+        logger.error(f"No data found to process")
+        return False
+
+    # now generate the output dataframe
+    df_output = process_df(result)        
+    if len(df_output) < 1:
             logger.error(f"No data found to process")
             return False
+
+    # processing done, send result to printer
+    save_results_and_print(output_file, df_output, file_path)
+    logger.debug(f'\n{df_output}')
+
     # all work complete
     return True
 
