@@ -329,6 +329,7 @@ def Send_dataframe_to_file_and_print(filename, frame):
         "_surch": "$",
         "_Surch%": "%",
         "_Assets": "$",
+        "Sales($)": "$"
     }
     # clean up any old output file that exists
     logger.info(f'Cleanup any old file left over from previous runs.')
