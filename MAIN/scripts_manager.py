@@ -2,6 +2,7 @@ import sys
 import importlib
 from pathlib import Path
 from loguru import logger
+import pprint
 
 class ScriptManager:
     """
@@ -57,7 +58,8 @@ class ScriptManager:
                     filename_substrings.append(f"{script_name}: {script['declaration'].get_filename_strings_to_match()}")
                 except Exception as e:
                     logger.error(f'SCRIPT: {script_name}\n{e}')
-            logger.info(f'These are the templates and filename sub-strings being monitored during this run:\n{filename_substrings}')
+            pretty_list_of_handlers = pprint.pformat(filename_substrings, width=160)
+            logger.info(f'These are the templates and filename sub-strings being monitored during this run:\n{pretty_list_of_handlers}')
 
     def get_script_for_file(self, filename):
         """
