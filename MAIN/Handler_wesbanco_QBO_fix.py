@@ -10,7 +10,7 @@ QBO_MODIFIED_DIRECTORY = Path("D:/Users/Conrad/Documents/")
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".qbo"
-FILENAME_STRINGS_TO_MATCH = ["Export-", "dummy place holder for more matches in future"]
+FILENAME_STRINGS_TO_MATCH = ["Export-", "dummy place holder"]
 
 
 class Declaration:

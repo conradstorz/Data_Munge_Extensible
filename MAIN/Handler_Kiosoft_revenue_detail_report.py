@@ -11,7 +11,7 @@ INPUT_DATA_FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = ".xlsx"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "pay_at_machine_log",
-    "dummy place holder for more matches in future when there are more than one filename that contains same data",
+    "dummy place holder",
 ]
 ARCHIVE_DIRECTORY_NAME = "KioSoft_History"
 

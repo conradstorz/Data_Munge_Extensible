@@ -26,7 +26,7 @@ from dataframe_functions import save_results_and_print
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = '.xlsx'
-FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder for more matches in future"]
+FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder"]
 ARCHIVE_DIRECTORY_NAME = "SimpleTerminalData"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
 

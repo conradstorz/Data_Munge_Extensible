@@ -16,7 +16,7 @@ from dataframe_functions import dataframe_contains
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = '.xlsx'
-FILENAME_STRINGS_TO_MATCH = ["ATMActivityReportforcommissions", "dummy place holder for more matches in future"]
+FILENAME_STRINGS_TO_MATCH = ["ATMActivityReportforcommissions", "dummy place holder"]
 ARCHIVE_DIRECTORY_NAME = "QuarterlyCommission"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
 VALUE_FILE = Path.cwd() / "MAIN" / "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses

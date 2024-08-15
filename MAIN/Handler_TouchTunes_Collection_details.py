@@ -13,7 +13,7 @@ INPUT_DATA_FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = ".xlsx"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "Collection Details (",
-    "dummy place holder for more matches in future when there are more than one filename that contains same data",
+    "dummy place holder",
 ]
 ARCHIVE_DIRECTORY_NAME = "TouchTunes_Collection_History"
 
@@ -89,7 +89,7 @@ def handler_process(file_path: Path):
     # processing done, send result to printer
     # TODO create a nice looking report that can be sent to a customer
     # TODO should probably be a PDF
-    # TODO Should split the functon below into file management and printing seperately optionally
+
     save_results_and_print(output_file, df_output, file_path)
     logger.debug(f'\n{df_output}')
 
