@@ -85,9 +85,26 @@ def de_duplicate_header_names(df):
     logger.debug(f'{new_columns=}')
     return df
 
+
 @logger.catch()
-def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
-    """filename and dataframe are in the output_dict
+def save_results_and_print(output_file, result, file_path):
+    # This wrapper function is to maintain compatabilitiy with existing code
+    save_results(output_file, result, file_path)
+
+
+
+@logger.catch()
+def save_results(outfile: Path, frame, input_filename: Path) -> bool:
+    """
+    Save results to a file and manage file movement.
+    
+    Args:
+        outfile (Path): Path to the output file.
+        frame (DataFrame): Data to be saved.
+        input_filename (Path): Original input file name.
+        
+    Returns:
+        bool: True if successful, False otherwise.
     """
     try:
         if len(frame) > 0:
@@ -95,19 +112,50 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
             Send_dataframe_to_file_and_print(outfile, frame)
         else:
             logger.error(f'Dataframe {input_filename} is empty.')
+            return False
     except Exception as e:
         logger.error(f'Failure processing dataframe: {e}')
-    # work finished remove original file from download directory if filename provided.
-    if input_filename == "":
-        return True
-    else:
-        # Original path to the file
-        old_file_path = input_filename
-        # New path where to move the file
-        new_file_path = old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
-        # move the file
-        plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
-        return True
+        return False
+    
+    if input_filename:
+        move_original_file(input_filename, outfile)
+    
+    return True
+
+
+def move_original_file(input_filename: Path, outfile: Path):
+    """
+    Move the original file to a new location.
+    
+    Args:
+        input_filename (Path): Original input file name.
+        outfile (Path): Path to the output file.
+    """
+    # Original path to the file
+    old_file_path = input_filename
+    # New path where to move the file
+    new_file_path = old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
+    
+    # move the file
+    plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
+    logger.info(f'Moved original file from {old_file_path} to {new_file_path}')
+
+
+def Send_dataframe_to_file_and_print(outfile: Path, frame):
+    """
+    Save the dataframe to a file and print it.
+    
+    Args:
+        outfile (Path): Path to the output file.
+        frame (DataFrame): Data to be saved and printed.
+    """
+    # Save the dataframe to a file
+    frame.to_csv(outfile, index=False)
+    logger.info(f'Dataframe saved to {outfile}')
+    
+    # Print the dataframe
+    print(frame)
+    logger.info('Dataframe printed to console')
 
 
 def is_date_valid(date_str):
