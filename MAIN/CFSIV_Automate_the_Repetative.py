@@ -13,13 +13,18 @@ the proper script for processing the data that is incoming.
 
 TODO add a function that monitors my email and auto-downloads attachments for possible processing
 """
-from pathlib import Path
+
 
 if __name__ == "__main__":
     from scripts_manager import ScriptManager
     from file_processor import FileProcessor
     from directory_watcher import DirectoryWatcher
+    from email_watcher import EmailAttachmentDownloader
     from loguru import logger
+    from pathlib import Path
+    from dotenv import dotenv_values
+
+    secrets = dotenv_values(".env")
 
     logger.add("file_processing.log", rotation="10 MB")
 
@@ -29,6 +34,18 @@ if __name__ == "__main__":
     scripts_manager = ScriptManager(scripts_directory)
     file_processor = FileProcessor(scripts_manager)
     directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
+
+
+    email_downloader = EmailAttachmentDownloader(
+        email_user=secrets['EMAIL_USER'],
+        email_password=secrets['EMAIL_PASSWORD'],
+        download_folder=directory_to_watch,
+        interval=600  # Check every 10 minutes
+    )
+
+    # Start the email attachment checking
+    email_downloader.start()
+
 
     try:
         directory_watcher.run()
