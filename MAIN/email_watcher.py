@@ -4,6 +4,7 @@ from email.header import decode_header
 import os
 from threading import Timer
 from loguru import logger
+import re
 
 class EmailAttachmentDownloader:
     def __init__(self, email_user, email_password, download_folder, interval=300):
@@ -15,30 +16,46 @@ class EmailAttachmentDownloader:
 
     def download_attachments(self):
         try:
-            # Connect to the server
-            mail = imaplib.IMAP4_SSL("imap.gmail.com")
-            mail.login(self.email_user, self.email_password)
-            mail.select("inbox")
+            with imaplib.IMAP4_SSL("imap.gmail.com") as mail:
+                mail.login(self.email_user, self.email_password)
+                mail.select("inbox")
 
-            # Search for all emails with attachments
-            result, data = mail.search(None, '(HASATTACHMENT)')
-            for num in data[0].split():
-                result, data = mail.fetch(num, '(RFC822)')
-                msg = email.message_from_bytes(data[0][1])
+                # Search for all emails with attachments
+                result, data = mail.search(None, '(HASATTACHMENT)')
+                if result != "OK":
+                    logger.error("No messages found!")
+                    return
 
-                # Iterate over email parts
-                for part in msg.walk():
-                    if part.get_content_maintype() == 'multipart' or part.get('Content-Disposition') is None:
+                for num in data[0].split():
+                    result, data = mail.fetch(num, '(RFC822)')
+                    if result != "OK":
+                        logger.error(f"Failed to fetch email {num}")
                         continue
 
-                    filename = part.get_filename()
-                    if filename:
-                        filepath = os.path.join(self.download_folder, filename)
-                        with open(filepath, 'wb') as f:
-                            f.write(part.get_payload(decode=True))
-                        logger.info(f"Downloaded: {filename}")
+                    msg = email.message_from_bytes(data[0][1])
+                    logger.info(f"Processing email {num}")
 
-            mail.logout()
+                    # Iterate over email parts
+                    for part in msg.walk():
+                        if part.get_content_maintype() == 'multipart' or part.get('Content-Disposition') is None:
+                            continue
+
+                        filename = part.get_filename()
+                        if filename:
+                            decoded_header = decode_header(filename)
+                            filename, encoding = decoded_header[0]
+                            if isinstance(filename, bytes):
+                                filename = filename.decode(encoding or 'utf-8')
+                            
+                            # Sanitize filename
+                            safe_filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', filename)
+                            filepath = os.path.join(self.download_folder, safe_filename)
+                            
+                            with open(filepath, 'wb') as f:
+                                f.write(part.get_payload(decode=True))
+                            logger.info(f"Downloaded: {safe_filename}")
+
+                mail.logout()
         except Exception as e:
             logger.error(f"Error downloading attachments: {e}")
 
