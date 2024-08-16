@@ -1,6 +1,7 @@
 import imaplib
 import email
 from email.header import decode_header
+from datetime import datetime, timedelta
 import os
 from threading import Timer
 from loguru import logger
@@ -15,6 +16,7 @@ class EmailAttachmentDownloader:
         self.timer = None
 
     def download_attachments(self):
+        ignored_extensions = ['.exe', '.bat', '.tmp', '.gif', 'html', '.pdf', '.jpg']  # Specify the extensions to ignore
         try:
             with imaplib.IMAP4_SSL("imap.gmail.com") as mail:
                 mail.login(self.email_user, self.email_password)
@@ -50,10 +52,16 @@ class EmailAttachmentDownloader:
                             if isinstance(filename, bytes):
                                 filename = filename.decode(encoding or 'utf-8')
 
+                            # Check file extension and skip if it's in the ignored list
+                            file_extension = os.path.splitext(filename)[1].lower()
+                            if file_extension in ignored_extensions:
+                                logger.info(f"Ignored: {filename}")
+                                continue
+
                             # Sanitize filename
                             safe_filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', filename)
                             filepath = os.path.join(self.download_folder, safe_filename)
-
+                            
                             with open(filepath, 'wb') as f:
                                 f.write(part.get_payload(decode=True))
                             logger.info(f"Downloaded: {safe_filename}")
