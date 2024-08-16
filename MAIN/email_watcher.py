@@ -20,19 +20,22 @@ class EmailAttachmentDownloader:
                 mail.login(self.email_user, self.email_password)
                 mail.select("inbox")
 
-                # Search for all emails with attachments
-                result, data = mail.search(None, '(HASATTACHMENT)')
+                # Calculate the date 24 hours ago
+                date_since = (datetime.now() - timedelta(days=1)).strftime("%d-%b-%Y")
+
+                # Search for emails since the calculated date
+                result, data = mail.search(None, f'(SINCE "{date_since}")')
                 if result != "OK":
                     logger.error("No messages found!")
                     return
 
                 for num in data[0].split():
-                    result, data = mail.fetch(num, '(RFC822)')
+                    result, email_data = mail.fetch(num, '(RFC822)')
                     if result != "OK":
                         logger.error(f"Failed to fetch email {num}")
                         continue
 
-                    msg = email.message_from_bytes(data[0][1])
+                    msg = email.message_from_bytes(email_data[0][1])
                     logger.info(f"Processing email {num}")
 
                     # Iterate over email parts
@@ -46,11 +49,11 @@ class EmailAttachmentDownloader:
                             filename, encoding = decoded_header[0]
                             if isinstance(filename, bytes):
                                 filename = filename.decode(encoding or 'utf-8')
-                            
+
                             # Sanitize filename
                             safe_filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', filename)
                             filepath = os.path.join(self.download_folder, safe_filename)
-                            
+
                             with open(filepath, 'wb') as f:
                                 f.write(part.get_payload(decode=True))
                             logger.info(f"Downloaded: {safe_filename}")
@@ -58,6 +61,7 @@ class EmailAttachmentDownloader:
                 mail.logout()
         except Exception as e:
             logger.error(f"Error downloading attachments: {e}")
+
 
     def check_for_attachments(self):
         logger.info("Checking for new email attachments...")
