@@ -24,12 +24,13 @@ if __name__ == "__main__":
     from pathlib import Path
     from dotenv import dotenv_values
 
-    secrets = dotenv_values(".env")
-
     logger.add("file_processing.log", rotation="10 MB")
 
     scripts_directory = Path.cwd() / "MAIN"
     directory_to_watch = Path("D:/Users/Conrad/Downloads/")
+    secrets_directory = scripts_directory / Path('.env')
+
+    secrets = dotenv_values(secrets_directory)
 
     scripts_manager = ScriptManager(scripts_directory)
     file_processor = FileProcessor(scripts_manager)
@@ -51,3 +52,8 @@ if __name__ == "__main__":
         directory_watcher.run()
     except Exception as e:
         logger.error(f"Error in directory watcher: {e}")
+
+    print('directory watcher ended')
+    email_downloader.stop()
+    print('email watcher stopped')
+    
