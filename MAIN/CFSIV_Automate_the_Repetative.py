@@ -30,4 +30,7 @@ if __name__ == "__main__":
     file_processor = FileProcessor(scripts_manager)
     directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
 
-    directory_watcher.run()
+    try:
+        directory_watcher.run()
+    except Exception as e:
+        logger.error(f"Error in directory watcher: {e}")
