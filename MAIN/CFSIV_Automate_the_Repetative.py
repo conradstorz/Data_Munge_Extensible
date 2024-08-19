@@ -18,7 +18,7 @@ TODO add a function that monitors my email and auto-downloads attachments for po
 if __name__ == "__main__":
     from scripts_manager import ScriptManager
     from file_processor import FileProcessor
-    from directory_watcher import DirectoryWatcher
+    from directory_watcher import monitor_download_directory
     from email_watcher import EmailAttachmentDownloader
     from loguru import logger
     from pathlib import Path
@@ -34,7 +34,6 @@ if __name__ == "__main__":
 
     scripts_manager = ScriptManager(scripts_directory)
     file_processor = FileProcessor(scripts_manager)
-    directory_watcher = DirectoryWatcher(directory_to_watch, file_processor)
 
 
     email_downloader = EmailAttachmentDownloader(
@@ -47,11 +46,8 @@ if __name__ == "__main__":
     # Start the email attachment checking
     email_downloader.start()
 
-
-    try:
-        directory_watcher.run()
-    except Exception as e:
-        logger.error(f"Error in directory watcher: {e}")
+    # This function will run until Keyboard Interrupt is detected
+    monitor_download_directory(directory_to_watch, file_processor)
 
     print('directory watcher ended')
     email_downloader.stop()
