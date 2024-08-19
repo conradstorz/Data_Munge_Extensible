@@ -16,6 +16,7 @@ def data_from_csv(in_f):
     """Import a CSV file into a datframe"""
     empty_df = panda.DataFrame() 
     # load csv file into dataframe
+    logger.debug(f'Reading CSV data using Pandas on file {in_f}')
     try:
         df = panda.read_csv(in_f)
     except Exception as e:
@@ -234,7 +235,7 @@ def extract_date_from_filename(fname):
     """
     datestring = "xxxxxxxx"
     logger.info("Processing: " + str(fname))
-    parts = str(fname).split('-')
+    parts = str(fname).replace("_", "-").split('-')
     logger.debug(f"fname split result: {parts}")
     for part in parts:
         try:
