@@ -17,7 +17,7 @@ from dataframe_functions import dataframe_contains
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = ".xlsx"
-FILENAME_STRINGS_TO_MATCH = ["Terminal Status(w_FLOAT)automated", "TerminalStatuswFLOATautomated"]
+FILENAME_STRINGS_TO_MATCH = ["Terminal Status(w_FLOAT)automated", "TerminalStatuswFLOATautomated", "Terminal_Status_w_FLOAT_automated"]
 ARCHIVE_DIRECTORY_NAME = "FloatReport"
 
 class Declaration:
