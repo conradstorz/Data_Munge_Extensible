@@ -8,6 +8,8 @@ def get_first_new_file(directory_to_watch, pickle_file):
     """
     Checks the download directory, removes missing filenames from pickle,
     and returns the first new filename it finds. Updates the pickle file.
+        # NOTE: Edge Case: When my bank downloads data it uses the same name for all downloads on any given day and this stops the file from being processed.
+        as such the workaround will be to manually rename the file when it arrives.
 
     :param directory_to_watch: Directory to monitor for new files
     :type directory_to_watch: str or Path

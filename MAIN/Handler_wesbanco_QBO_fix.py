@@ -58,7 +58,14 @@ def handler_process(file_path: Path) -> bool:
         # work finished remove original file from download directory
         new_file_path = file_path.parent / "QBO_file_history" / file_path.name
         # move the file
-        plfh.move_file_with_check(file_path, new_file_path, exist_ok=True)
+        
+        # NOTE: this is suspended due to the behaviour of my bank
+        #plfh.move_file_with_check(file_path, new_file_path, exist_ok=True)
+        # the bank uses the exact same name for each download made in the same day.
+        # when i am working and I need multiple downloads only the first download will get processed.
+        # this is the result of a behaviour of the way other routines here archive downloads.
+        # this workaround will cause the downloads to each get a unique name and then they will all get processed.
+
     # all work complete
     return True
 
