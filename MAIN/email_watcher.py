@@ -9,7 +9,7 @@ import re
 
 
 class EmailAttachmentDownloader:
-    def __init__(self, email_user, email_password, download_folder, interval=300):
+    def __init__(self, email_user, email_password, download_folder, interval=600):
         self.email_user = email_user
         self.email_password = email_password
         self.download_folder = download_folder
@@ -88,7 +88,7 @@ class EmailAttachmentDownloader:
 
 
 class EmailTextDownloader:
-    def __init__(self, email_user, email_password, download_folder, interval=300, sender_email=None):
+    def __init__(self, email_user, email_password, download_folder, interval=600, sender_email=None):
         self.email_user = email_user
         self.email_password = email_password
         self.download_folder = download_folder
