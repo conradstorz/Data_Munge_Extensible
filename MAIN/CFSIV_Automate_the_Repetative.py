@@ -47,7 +47,7 @@ if __name__ == "__main__":
     email_downloader.start()
 
     # This function will run until Keyboard Interrupt is detected
-    monitor_download_directory(directory_to_watch, file_processor)
+    monitor_download_directory(directory_to_watch, file_processor, delay=10)
 
     print('directory watcher ended')
     email_downloader.stop()

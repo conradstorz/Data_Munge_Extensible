@@ -47,13 +47,13 @@ def get_first_new_file(directory_to_watch, pickle_file):
 
 
 @logger.catch()
-def monitor_download_directory(directory_to_watch, file_processor):
+def monitor_download_directory(directory_to_watch, file_processor, delay=1):
 
     logger.info(f"Starting directory watcher on {directory_to_watch}")
 
     try:
         while True:
-            time.sleep(1)
+            time.sleep(delay)
             logger.debug(f'Checking for new files in {directory_to_watch}')
             new_file = get_first_new_file(directory_to_watch, './download_history_file.pkl')
             logger.debug(f'found: {new_file}')
