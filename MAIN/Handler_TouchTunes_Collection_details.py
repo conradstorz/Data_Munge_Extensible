@@ -1,12 +1,15 @@
 import pandas as pd
 from loguru import logger
 from pathlib import Path
-from dataframe_functions import extract_date_from_filename
-from dataframe_functions import save_results_and_print
-from dataframe_functions import load_csv_with_optional_headers
+
 from dataframe_functions import extract_dates
-from dataframe_functions import de_duplicate_header_names
+from dataframe_functions import apply_formatting_and_save
+from dataframe_functions import convert_xlsx_2_pdf
+from dataframe_functions import print_pdf_using_os_subprocess
+
 from TouchTunes_Jukebox_Details import jukebox_data_for_ID  # this is a dictionary constant of IDs and the associated details
+
+SYSTEM_PRINTER_NAME = 'Canon TR8500 series'
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"
@@ -87,11 +90,21 @@ def handler_process(file_path: Path):
             return False
 
     # processing done, send result to printer
-    # TODO create a nice looking report that can be sent to a customer
-    # TODO should probably be a PDF
-
-    save_results_and_print(output_file, df_output, file_path)
-    logger.debug(f'\n{df_output}')
+    headers = [
+        'Storz Amusements LLC, Jeffersonville, 812-557-7095',
+        'estorz@gmail.com',
+        'Jukebox Collection Report',
+        ]
+    footers = [
+        'Thank you for letting me serve you!', 
+        'Please find Commission check included.',
+        ]
+    # save_results_and_print(output_file, df_output, file_path)
+    outfilename = apply_formatting_and_save(output_file, df_output)
+    # xslx = convert_dataframe_to_excel_with_formatting_and_save(output_file, df_output)
+    outfilename = convert_xlsx_2_pdf(outfilename, header=headers, footer=footers)
+    print_pdf_using_os_subprocess(outfilename, SYSTEM_PRINTER_NAME)
+    logger.debug(f'Output is:\n{df_output}')
 
     # all work complete
     return True
@@ -195,6 +208,7 @@ def ID_inside_filename(fn: Path):
         if len(subparts) > 1:
             logger.debug(f'{subparts[0]=}')
             # normalize the ID because the leading zero gets dropped by the in-consistant handling by TouchTunes
+            # also found one case where ID did not contain a trailing zero. Handled that edge case manually in the details file.
             if len(subparts[0]) < 6:
                 subparts[0] = f"0{subparts[0]}"
             logger.debug(f'{subparts[0]=}')

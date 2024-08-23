@@ -111,7 +111,7 @@ def save_results(outfile: Path, frame, input_filename: Path) -> bool:
     try:
         if len(frame) > 0:
             logger.info(f'Sending Float Report to file/print...')
-            Send_dataframe_to_file_and_print(outfile, frame)
+            convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
         else:
             logger.error(f'Dataframe {input_filename} is empty.')
             return False
@@ -143,6 +143,18 @@ def move_original_file(input_filename: Path, outfile: Path):
     logger.info(f'Moved original file from {old_file_path} to {new_file_path}')
 
 
+def send_dataframe_to_file(outfile: Path, frame):
+    # Save the dataframe to a file
+    frame.to_csv(outfile, index=False)
+    logger.info(f'Dataframe saved to {outfile}')
+    
+
+def print_dataframe(frame):
+    # Print the dataframe
+    logger.info(frame)
+    logger.info('Dataframe printed to console')
+
+
 def Send_dataframe_to_file_and_print(outfile: Path, frame):
     """
     Save the dataframe to a file and print it.
@@ -151,13 +163,9 @@ def Send_dataframe_to_file_and_print(outfile: Path, frame):
         outfile (Path): Path to the output file.
         frame (DataFrame): Data to be saved and printed.
     """
-    # Save the dataframe to a file
-    frame.to_csv(outfile, index=False)
-    logger.info(f'Dataframe saved to {outfile}')
-    
-    # Print the dataframe
-    print(frame)
-    logger.info('Dataframe printed to console')
+    convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
+    send_dataframe_to_file(outfile, frame)
+    print_dataframe(frame)
 
 
 def is_date_valid(date_str):
@@ -332,8 +340,17 @@ def set_custom_excel_formatting(df, writer, details):
 
 
 @logger.catch()
-def Send_dataframe_to_file_and_print(filename, frame):
-    """Takes a dataframe and outputs to excel file then sends to default printer.
+def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
+    """Takes a dataframe and outputs to excel file.
+    """
+    apply_formatting_and_save(filename, frame)
+    time.sleep(1)  # Allow time for file to save
+    print_excel_file(filename)
+
+
+@logger.catch()
+def apply_formatting_and_save(filename, frame):
+    """Create an excel file on the default storage
     """
     # define the various labels as $ or % or a plain number
     column_details = {
@@ -394,22 +411,26 @@ def Send_dataframe_to_file_and_print(filename, frame):
             logger.debug(f'Applying custom column formatting')
             set_custom_excel_formatting(frame, writer, column_details)
             logger.info("All work done. Saving worksheet...")
-            # File creation ends here.
+            # File creation ends here and is saved automatically.
 
-        time.sleep(1)  # Allow time for file to save
-        # Now we print
-        logger.info("Send processed file to printer...")
-        try:
-            # this should launch the system spreadsheet program and trigger the print function.
-            # A possible failure mode here is that the output goes to the same destination as the last
-            # destination used while working with the windows system print dialog which could be the wrong
-            # printer or even the print to file option.
-            os.startfile(filename, "print")
-            logger.debug(f'Call to launch spreadsheet {filename} appears to have worked.')
-        except FileNotFoundError as e:
-            logger.error(f"Output file not found: {e}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
+    return filename
+
+
+def print_excel_file(filename):
+    # Now we print
+    logger.info("Send processed file to printer...")
+    try:
+        # this should launch the system spreadsheet program and trigger the print function.
+        # A possible failure mode here is that the output goes to the same destination as the last
+        # destination used while working with the windows system print dialog which could be the wrong
+        # printer or even the print to file option.
+        os.startfile(filename, "print")
+        logger.debug(f'Call to launch spreadsheet {filename} appears to have worked.')
+    except FileNotFoundError as e:
+        logger.error(f"Output file not found: {e}")
+
 
 
 
@@ -431,20 +452,20 @@ def load_excel_file(fname):
         return excel_data
     
     except FileNotFoundError as e:
-        print(f"Error: {e}")
+        logger.error(f"Error: {e}")
     except ValueError as e:
-        print(f"Error: {e} - The file may not be a valid Excel file.")
+        logger.error(f"Error: {e} - The file may not be a valid Excel file.")
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.error(f"An unexpected error occurred: {e}")
 
 
 @logger.catch()
-def convert_xlsx_2_pdf(fname, label=None, footer=None):
+def convert_xlsx_2_pdf(fname, header=None, footer=None):
     """Converts an xlsx file into a pdf and saves back to same storage as original file.
     header must be a list of strings to be added one per line at the top of the PDF.
     """
-    if label == None:
-        label = ["Top of Page"]  # Default value
+    if header == None:
+        header = ["Top of Page"]  # Default value
 
     if footer == None:
         footer = ["End"]  # Default value
@@ -476,14 +497,14 @@ def convert_xlsx_2_pdf(fname, label=None, footer=None):
     # Set font for the PDF
     pdf.set_font("Arial", size=12)
 
-    # Add any titles
-    for s in label:
+    # Add any header lines
+    for s in header:
         pdf.cell(200, 10, txt=s, ln=True, align="C")
 
     # Add a line break
     pdf.ln(10)
 
-    # Adding the headers and their corresponding data
+    # Adding the labels and their corresponding data
     for label, value in zip(value_name, row_data):
         pdf.cell(50, 10, f"{label}: ", border=1)
         pdf.cell(140, 10, f"{value}", border=1, ln=True)
@@ -499,7 +520,7 @@ def convert_xlsx_2_pdf(fname, label=None, footer=None):
     pdf_output_path = fname.with_suffix(".pdf")
     pdf.output(pdf_output_path)
 
-    print(f"PDF generated successfully at: {pdf_output_path}")
+    logger.info(f"PDF generated successfully at: {pdf_output_path}")
     return pdf_output_path
 
 
