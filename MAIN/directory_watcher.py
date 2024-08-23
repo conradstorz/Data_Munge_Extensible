@@ -4,6 +4,8 @@ from loguru import logger
 import time
 
 logger.catch()
+
+
 def get_first_new_file(directory_to_watch, pickle_file):
     """
     Checks the download directory, removes missing filenames from pickle,
@@ -23,7 +25,7 @@ def get_first_new_file(directory_to_watch, pickle_file):
 
     # Load existing filenames from pickle file
     if pickle_file.exists():
-        with open(pickle_file, 'rb') as f:
+        with open(pickle_file, "rb") as f:
             existing_files = set(pickle.load(f))
     else:
         existing_files = set()
@@ -40,7 +42,7 @@ def get_first_new_file(directory_to_watch, pickle_file):
 
         # Update pickle with the new file
         existing_files.add(new_file)
-        with open(pickle_file, 'wb') as f:
+        with open(pickle_file, "wb") as f:
             pickle.dump(existing_files, f)
 
         return Path(new_file)
@@ -56,27 +58,27 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
     try:
         while True:
             time.sleep(delay)
-            logger.debug(f'Checking for new files in {directory_to_watch}')
-            new_file = get_first_new_file(directory_to_watch, './download_history_file.pkl')
-            logger.debug(f'found: {new_file}')
+            logger.debug(f"Checking for new files in {directory_to_watch}")
+            new_file = get_first_new_file(
+                directory_to_watch, "./download_history_file.pkl"
+            )
+            logger.debug(f"found: {new_file}")
             if new_file:
-                if Path(new_file).suffix not in ['.ini', '.tmp', '.png']:
+                if Path(new_file).suffix not in [".ini", ".tmp", ".png"]:
                     file_processor.process(directory_to_watch / new_file)
                 else:
-                    logger.debug(f'Ignoring file found: {new_file}')
+                    logger.debug(f"Ignoring file found: {new_file}")
 
     except KeyboardInterrupt:
-        logger.info(f'Keyboard interrupt detected.')
+        logger.info(f"Keyboard interrupt detected.")
         logger.info("Directory watcher stopped")
-    logger.info(f'All processes ended.')
+    logger.info(f"All processes ended.")
     return True
 
 
-
 # Example usage
-new_file = get_first_new_file('./', './pickle_file.pkl')
+new_file = get_first_new_file("./", "./pickle_file.pkl")
 if new_file:
     print(f"New file detected: {new_file}")
 else:
     print("No new files detected.")
-

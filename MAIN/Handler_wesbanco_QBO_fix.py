@@ -22,10 +22,13 @@ class Declaration:
     :return: True if the script matches the file, False otherwise
     :rtype: bool
     """
+
     @logger.catch
     def matches(self, filename: Path) -> bool:
 
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(
+            FILE_EXTENSION
+        ):
             # match found
             return True
         else:
@@ -36,6 +39,7 @@ class Declaration:
         """Returns the list of filename strings to match"""
         return FILENAME_STRINGS_TO_MATCH
 
+
 # activate declaration
 declaration = Declaration()
 
@@ -44,23 +48,23 @@ declaration = Declaration()
 def handler_process(file_path: Path) -> bool:
     # This is the standardized functioncall for the Data_Handler_Template
     if not file_path.exists:
-        logger.error(f'File to process does not exist.')
+        logger.error(f"File to process does not exist.")
         return False
     else:
         # process file
         original_records_list = read_base_file(file_path)
         if not len(original_records_list) > 0:
-            logger.error(f'File returned no records.')
+            logger.error(f"File returned no records.")
             return False
         # we have a file, try to process
         logger.info(f"file found to process: {file_path.name}")
-        modify_QBO(original_records_list)        
+        modify_QBO(original_records_list)
         # work finished remove original file from download directory
         new_file_path = file_path.parent / "QBO_file_history" / file_path.name
         # move the file
-        
+
         # NOTE: this is suspended due to the behaviour of my bank
-        #plfh.move_file_with_check(file_path, new_file_path, exist_ok=True)
+        # plfh.move_file_with_check(file_path, new_file_path, exist_ok=True)
         # the bank uses the exact same name for each download made in the same day.
         # when i am working and I need multiple downloads only the first download will get processed.
         # this is the result of a behaviour of the way other routines here archive downloads.
@@ -90,7 +94,7 @@ def modify_QBO(QBO_records_list):
         logger.error(f"Error in writing {clean_output_file}")
         logger.warning(str(e))
         return False
-    
+
     logger.info(f"File {clean_output_file} contents written successfully.")
     return True
 
@@ -141,7 +145,7 @@ def preprocess_memo(memo):
     # Shortening common phrases (if any remain)
     memo = memo.replace("BILL PAYMT", "BillPay").strip()
     # Further cleanup to remove extra spaces and standardize spacing
-    memo = re.sub(' +', ' ', memo).strip()
+    memo = re.sub(" +", " ", memo).strip()
     logger.debug(f"Cleaned memo:{memo}")
     return memo
 
@@ -160,8 +164,11 @@ def extract_transaction_details(transaction_lines):
         # Split the line at the first occurrence of ">" to separate the tag from its value
         parts = line.split(">", 1)
         if len(parts) == 2:
-            if parts[0].startswith('<'):  # is this a valid tag?
-                tag, value = parts[0][1:], parts[1]  # Remove the opening "<" from the tag
+            if parts[0].startswith("<"):  # is this a valid tag?
+                tag, value = (
+                    parts[0][1:],
+                    parts[1],
+                )  # Remove the opening "<" from the tag
                 transaction_details[tag] = value.strip()
     logger.debug(transaction_details)
     return transaction_details
@@ -173,26 +180,30 @@ def process_transaction(transaction_lines):
     and reformatting back into a list of lines."""
     transaction_details = extract_transaction_details(transaction_lines)
     # Ensure there's a memo tag, add a default one if necessary
-    if 'MEMO' not in transaction_details:
-        transaction_details['MEMO'] = 'No Memo'
+    if "MEMO" not in transaction_details:
+        transaction_details["MEMO"] = "No Memo"
     else:
         # memo needs to be stripped of bad text and truncated
-        transaction_details['MEMO'] = truncate_name(preprocess_memo(transaction_details['MEMO']))
+        transaction_details["MEMO"] = truncate_name(
+            preprocess_memo(transaction_details["MEMO"])
+        )
     logger.debug(transaction_details)
     # Check for equality of name and memo
-    if 'NAME' not in transaction_details:
-        transaction_details['NAME'] = 'No Name'
-    name = transaction_details['NAME']
-    memo = transaction_details['MEMO']
-    if name == memo == 'CHECK PAID':
+    if "NAME" not in transaction_details:
+        transaction_details["NAME"] = "No Name"
+    name = transaction_details["NAME"]
+    memo = transaction_details["MEMO"]
+    if name == memo == "CHECK PAID":
         # Use checknum for name and refnum for memo if available
-        checknum = transaction_details.get('CHECKNUM', 'No CheckNum')
-        refnum = transaction_details.get('REFNUM', 'No RefNum')
-        transaction_details['NAME'] = checknum
-        transaction_details['MEMO'] = refnum
+        checknum = transaction_details.get("CHECKNUM", "No CheckNum")
+        refnum = transaction_details.get("REFNUM", "No RefNum")
+        transaction_details["NAME"] = checknum
+        transaction_details["MEMO"] = refnum
     else:
         # name and memo are different so we need to swap their values using the power of tuple unpacking
-        transaction_details['NAME'], transaction_details['MEMO'] = transaction_details['MEMO'], transaction_details.get('NAME', 'No Name')
+        transaction_details["NAME"], transaction_details["MEMO"] = transaction_details[
+            "MEMO"
+        ], transaction_details.get("NAME", "No Name")
     logger.debug(transaction_details)
     # Convert transaction_details back into a list of lines
     processed_lines = []
@@ -204,29 +215,37 @@ def process_transaction(transaction_lines):
 
 @logger.catch
 def process_qbo_lines(lines):
-    qbo_file_date = '19700101'  # default value incase no date found
-    account_number = '42'  # default  
+    qbo_file_date = "19700101"  # default value incase no date found
+    account_number = "42"  # default
     modified_lines = []  # Stores the modified lines of the entire file
     transaction_lines = []  # Temporarily stores lines of the current transaction
-    processing_transaction = False  # Flag to indicate if we're within a transaction block
+    processing_transaction = (
+        False  # Flag to indicate if we're within a transaction block
+    )
     xacts_found = 0  # initialize counter of transactions found
     for line in lines:
-        line_stripped = line.strip()        
+        line_stripped = line.strip()
         # Process header lines to extract date and account number
-        if line_stripped.startswith('<DTEND>'):
-            qbo_file_date = line_stripped.replace('<DTEND>', '')
-        elif line_stripped.startswith('<ACCTID>'):
-            account_number = line_stripped.replace('<ACCTID>', '')        
-        if line_stripped.startswith('<STMTTRN>'):
+        if line_stripped.startswith("<DTEND>"):
+            qbo_file_date = line_stripped.replace("<DTEND>", "")
+        elif line_stripped.startswith("<ACCTID>"):
+            account_number = line_stripped.replace("<ACCTID>", "")
+        if line_stripped.startswith("<STMTTRN>"):
             processing_transaction = True  # Mark the start of a transaction
             xacts_found += 1  # increment counter
             transaction_lines = [line]  # Start a new transaction block
-        elif line_stripped.startswith('</STMTTRN>'):
+        elif line_stripped.startswith("</STMTTRN>"):
             # End of transaction found
             transaction_lines.append(line)  # append the line
-            processing_transaction = False  # Reset the flag as the transaction block ends
-            modified_transaction_lines = process_transaction(transaction_lines)  # Process the collected lines of the transaction
-            modified_lines.extend(modified_transaction_lines)  # Add processed lines to the output
+            processing_transaction = (
+                False  # Reset the flag as the transaction block ends
+            )
+            modified_transaction_lines = process_transaction(
+                transaction_lines
+            )  # Process the collected lines of the transaction
+            modified_lines.extend(
+                modified_transaction_lines
+            )  # Add processed lines to the output
         elif processing_transaction:
             # If we are within a transaction, keep collecting its lines
             transaction_lines.append(line)
@@ -236,7 +255,6 @@ def process_qbo_lines(lines):
     logger.info(f"{xacts_found} transactions found.")
     logger.debug(modified_lines)  # TODO make this output more log friendly
     return modified_lines, qbo_file_date, account_number
-
 
 
 @logger.catch
@@ -255,5 +273,3 @@ def read_base_file(input_file):
     if file_contents != []:
         logger.info(f"File contents read successfully. {len(file_contents)} lines.")
     return file_contents
-
-

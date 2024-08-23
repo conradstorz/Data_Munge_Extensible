@@ -25,10 +25,11 @@ from dataframe_functions import save_results_and_print
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = '.xlsx'
+OUTPUT_FILE_EXTENSION = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder"]
 ARCHIVE_DIRECTORY_NAME = "SimpleTerminalData"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
+
 
 class Declaration:
     """
@@ -39,10 +40,13 @@ class Declaration:
     :return: True if the script matches the file, False otherwise
     :rtype: bool
     """
+
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(
+            FILE_EXTENSION
+        ):
             # match found
             return True
         else:
@@ -53,7 +57,8 @@ class Declaration:
         """Returns the list of filename strings to match"""
         return FILENAME_STRINGS_TO_MATCH
 
-# activate declaration 
+
+# activate declaration
 declaration = Declaration()
 
 
@@ -62,24 +67,24 @@ def handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
     result = empty_df = panda.DataFrame()
     if not file_path.exists:
-        logger.error(f'File to process does not exist.')
+        logger.error(f"File to process does not exist.")
         return False
     else:
         # process file
-        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
-        logger.debug(f'Output filename: {output_file}')        
+        output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+        logger.debug(f"Output filename: {output_file}")
         try:
-            logger.info(f'Sending {file_path} to be processed')
+            logger.info(f"Sending {file_path} to be processed")
             result = process_simple_summary_csv(file_path)
         except Exception as e:
-            logger.error(f'Failure processing dataframe: {e}')
+            logger.error(f"Failure processing dataframe: {e}")
             return False
         else:
             if len(result) > 0:
-                logger.info(f'saving results and printing')
+                logger.info(f"saving results and printing")
                 save_results_and_print(output_file, result, file_path)
             else:
-                logger.error(f'No data found to save or print')
+                logger.error(f"No data found to save or print")
                 return False
     # all work complete
     return True
@@ -93,9 +98,8 @@ def process_simple_summary_csv(in_f: Path):  # returns a dataframe
     try:
         df = panda.read_csv(in_f)
     except Exception as e:
-        logger.error(f'Problem using pandas: {e}')
+        logger.error(f"Problem using pandas: {e}")
         return empty_df
-
 
     logger.info(f"Reading formatting file..")
     with open(FORMATTING_FILE) as json_data:

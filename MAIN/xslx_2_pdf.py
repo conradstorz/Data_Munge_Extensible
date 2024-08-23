@@ -2,6 +2,7 @@ from pathlib import Path
 from loguru import logger
 from dataframe_functions import convert_xlsx_2_pdf, print_pdf_using_os_subprocess
 
+
 @logger.catch()
 def main():
     xslx_path = Path(
@@ -22,6 +23,5 @@ def main():
             print_pdf_using_os_subprocess(full_path_string, "Canon TR8500 series")
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

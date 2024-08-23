@@ -14,7 +14,6 @@ the proper script for processing the data that is incoming.
 TODO add a function that monitors my email and auto-downloads attachments for possible processing
 """
 
-
 if __name__ == "__main__":
     from scripts_manager import ScriptManager
     from file_processor import FileProcessor
@@ -28,19 +27,18 @@ if __name__ == "__main__":
 
     scripts_directory = Path.cwd() / "MAIN"
     directory_to_watch = Path("D:/Users/Conrad/Downloads/")
-    secrets_directory = scripts_directory / Path('.env')
+    secrets_directory = scripts_directory / Path(".env")
 
     secrets = dotenv_values(secrets_directory)
 
     scripts_manager = ScriptManager(scripts_directory)
     file_processor = FileProcessor(scripts_manager)
 
-
     email_downloader = EmailAttachmentDownloader(
-        email_user=secrets['EMAIL_USER'],
-        email_password=secrets['EMAIL_PASSWORD'],
+        email_user=secrets["EMAIL_USER"],
+        email_password=secrets["EMAIL_PASSWORD"],
         download_folder=directory_to_watch,
-        interval=600  # Check every 10 minutes
+        interval=600,  # Check every 10 minutes
     )
 
     # Start the email attachment checking
@@ -49,7 +47,6 @@ if __name__ == "__main__":
     # This function will run until Keyboard Interrupt is detected
     monitor_download_directory(directory_to_watch, file_processor, delay=10)
 
-    print('directory watcher ended')
+    print("directory watcher ended")
     email_downloader.stop()
-    print('email watcher stopped')
-    
+    print("email watcher stopped")

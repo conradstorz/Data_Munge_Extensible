@@ -17,7 +17,15 @@ class EmailAttachmentDownloader:
         self.timer = None
 
     def download_attachments(self):
-        ignored_extensions = ['.exe', '.bat', '.tmp', '.gif', 'html', '.pdf', '.jpg']  # Specify the extensions to ignore
+        ignored_extensions = [
+            ".exe",
+            ".bat",
+            ".tmp",
+            ".gif",
+            "html",
+            ".pdf",
+            ".jpg",
+        ]  # Specify the extensions to ignore
         try:
             with imaplib.IMAP4_SSL("imap.gmail.com") as mail:
                 mail.login(self.email_user, self.email_password)
@@ -33,7 +41,7 @@ class EmailAttachmentDownloader:
                     return
 
                 for num in data[0].split():
-                    result, email_data = mail.fetch(num, '(RFC822)')
+                    result, email_data = mail.fetch(num, "(RFC822)")
                     if result != "OK":
                         logger.error(f"Failed to fetch email {num}")
                         continue
@@ -43,7 +51,10 @@ class EmailAttachmentDownloader:
 
                     # Iterate over email parts
                     for part in msg.walk():
-                        if part.get_content_maintype() == 'multipart' or part.get('Content-Disposition') is None:
+                        if (
+                            part.get_content_maintype() == "multipart"
+                            or part.get("Content-Disposition") is None
+                        ):
                             continue
 
                         filename = part.get_filename()
@@ -51,7 +62,7 @@ class EmailAttachmentDownloader:
                             decoded_header = decode_header(filename)
                             filename, encoding = decoded_header[0]
                             if isinstance(filename, bytes):
-                                filename = filename.decode(encoding or 'utf-8')
+                                filename = filename.decode(encoding or "utf-8")
 
                             # Check file extension and skip if it's in the ignored list
                             file_extension = os.path.splitext(filename)[1].lower()
@@ -60,17 +71,16 @@ class EmailAttachmentDownloader:
                                 continue
 
                             # Sanitize filename
-                            safe_filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', filename)
+                            safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", filename)
                             filepath = os.path.join(self.download_folder, safe_filename)
-                            
-                            with open(filepath, 'wb') as f:
+
+                            with open(filepath, "wb") as f:
                                 f.write(part.get_payload(decode=True))
                             logger.info(f"Downloaded: {safe_filename}")
 
                 mail.logout()
         except Exception as e:
             logger.error(f"Error downloading attachments: {e}")
-
 
     def check_for_attachments(self):
         logger.info("Checking for new email attachments...")
@@ -86,9 +96,15 @@ class EmailAttachmentDownloader:
             self.timer.cancel()
 
 
-
 class EmailTextDownloader:
-    def __init__(self, email_user, email_password, download_folder, interval=600, sender_email=None):
+    def __init__(
+        self,
+        email_user,
+        email_password,
+        download_folder,
+        interval=600,
+        sender_email=None,
+    ):
         self.email_user = email_user
         self.email_password = email_password
         self.download_folder = download_folder
@@ -103,12 +119,16 @@ class EmailTextDownloader:
                 mail.select("inbox")
 
                 # Calculate the date 24 hours ago
-                date_24_hours_ago = (datetime.now() - timedelta(days=1)).strftime('%d-%b-%Y')
-                
+                date_24_hours_ago = (datetime.now() - timedelta(days=1)).strftime(
+                    "%d-%b-%Y"
+                )
+
                 # Construct search criteria to include only emails from the last 24 hours and from the specific sender
-                search_criteria = f'(SINCE {date_24_hours_ago})'
+                search_criteria = f"(SINCE {date_24_hours_ago})"
                 if self.sender_email:
-                    search_criteria = f'(FROM "{self.sender_email}" SINCE {date_24_hours_ago})'
+                    search_criteria = (
+                        f'(FROM "{self.sender_email}" SINCE {date_24_hours_ago})'
+                    )
 
                 result, data = mail.search(None, search_criteria)
                 if result != "OK":
@@ -116,7 +136,7 @@ class EmailTextDownloader:
                     return
 
                 for num in data[0].split():
-                    result, data = mail.fetch(num, '(RFC822)')
+                    result, data = mail.fetch(num, "(RFC822)")
                     if result != "OK":
                         logger.error(f"Failed to fetch email {num}")
                         continue
@@ -133,7 +153,10 @@ class EmailTextDownloader:
                     body = ""
                     if msg.is_multipart():
                         for part in msg.walk():
-                            if part.get_content_type() == "text/plain" and part.get("Content-Disposition") is None:
+                            if (
+                                part.get_content_type() == "text/plain"
+                                and part.get("Content-Disposition") is None
+                            ):
                                 body = part.get_payload(decode=True).decode("utf-8")
                                 break
                     else:
@@ -163,6 +186,7 @@ class EmailTextDownloader:
     def stop(self):
         if self.timer is not None:
             self.timer.cancel()
+
 
 """example usage
 

@@ -7,7 +7,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Ovation II",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "000000B2EC1F": {
         "Location name": "American Legion Post 28",
@@ -15,7 +15,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Digital Conversion Kit",
         "Computer": "JCB 1.2Ghz",
         "Software": "GEN3",
-        "Version": "4.7.33-2"
+        "Version": "4.7.33-2",
     },
     "00000042E849": {
         "Location name": "American Legion Post 42",
@@ -23,7 +23,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Allegro",
         "Computer": "JCB+",
         "Software": "GEN3",
-        "Version": "4.7.35-2"
+        "Version": "4.7.35-2",
     },
     "0000000A94D3": {
         "Location name": "Amvets Post 9",
@@ -31,7 +31,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000A7F11": {
         "Location name": "BACKROOM RAILYARD BILLIARDS",
@@ -39,7 +39,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "0000000A8A0B": {
         "Location name": "Cluckers Jeffersonville",
@@ -47,7 +47,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "0000000A8C27": {
         "Location name": "Cluckers Versailles",
@@ -55,7 +55,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000004171AD": {
         "Location name": "Crothersville VFW",
@@ -63,7 +63,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "CD Conversion Kit",
         "Computer": "JCB+",
         "Software": "GEN3",
-        "Version": "4.7.35-2"
+        "Version": "4.7.35-2",
     },
     "0000000A587A": {
         "Location name": "El Maguey",
@@ -71,7 +71,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000AA359": {
         "Location name": "El Maguey Salem",
@@ -79,7 +79,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "000000BF2CB7": {
         "Location name": "FOEagles",
@@ -87,7 +87,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo",
         "Computer": "i3",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "0000000A5B40": {
         "Location name": "GOLDEN NUGGET",
@@ -95,7 +95,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Fusion",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "The entry below is because touchtunes reports the device ID wrong": "No idea why",
     "0000000A5B4": {
@@ -104,7 +104,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Fusion",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "0000000A7276": {
         "Location name": "Harry's backroom",
@@ -112,7 +112,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "0000003D2C72": {
         "Location name": "HOBART BEACH VFW",
@@ -120,7 +120,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Ovation",
         "Computer": "JCB+",
         "Software": "GEN3",
-        "Version": "4.7.35-2"
+        "Version": "4.7.35-2",
     },
     "0000000A94E3": {
         "Location name": "Hoopsters Sports Bar jeff",
@@ -128,7 +128,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "000000E36408": {
         "Location name": "Krazy Dave's",
@@ -136,7 +136,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo",
         "Computer": "i3",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-11"
+        "Version": "2.28.1-11",
     },
     "0000000A304F": {
         "Location name": "Mac's Hideaway",
@@ -144,7 +144,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo 2",
         "Computer": "i3",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000A6787": {
         "Location name": "Mick's Lounge",
@@ -152,7 +152,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000A79CC": {
         "Location name": "Our Lady of Perpetual Hops",
@@ -160,7 +160,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000A551C": {
         "Location name": "Pearl Street Taphouse",
@@ -168,7 +168,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Fusion",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "00000042C2BE": {
         "Location name": "Pizza Place",
@@ -176,7 +176,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "CD Conversion Kit",
         "Computer": "JCB 1.2Ghz",
         "Software": "GEN3",
-        "Version": "4.7.33-2"
+        "Version": "4.7.33-2",
     },
     "0000000A7865": {
         "Location name": "POOLROOM RAILYARD BILLARDS",
@@ -184,7 +184,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "000000BF0ABA": {
         "Location name": "Post 204 Am.Legion Sellersburg",
@@ -192,7 +192,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo",
         "Computer": "i3",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000005F3F8C": {
         "Location name": "Pride Bar",
@@ -200,7 +200,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Playdium",
         "Computer": "i3",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "00000043455C": {
         "Location name": "Resch's Tavern",
@@ -208,7 +208,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Ovation",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000003C2954": {
         "Location name": "Rubbin¿ Butts BBQ",
@@ -216,7 +216,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Ovation",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "000000BF26D0": {
         "Location name": "THE DERBY HOTEL",
@@ -224,7 +224,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo",
         "Computer": "i3",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000A913D": {
         "Location name": "The Dock Restaurant and Bar",
@@ -232,7 +232,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "0000000A77B7": {
         "Location name": "Thirsty's",
@@ -240,7 +240,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.0-15"
+        "Version": "2.28.0-15",
     },
     "0000000A60C8": {
         "Location name": "VFW - Austin",
@@ -248,7 +248,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "0000000A7EE5": {
         "Location name": "VFW 1427 Charlestown",
@@ -256,7 +256,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "000000481201": {
         "Location name": "VFW 1832",
@@ -264,7 +264,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Ovation JCB Upgrade",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.2-9"
+        "Version": "2.28.2-9",
     },
     "000000433419": {
         "Location name": "VFW 3281",
@@ -272,7 +272,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Allegro",
         "Computer": "JCB+",
         "Software": "GEN3",
-        "Version": "4.7.35-2"
+        "Version": "4.7.35-2",
     },
     "0000000A79CD": {
         "Location name": "Vic's Cafe",
@@ -280,7 +280,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-12"
+        "Version": "2.28.1-12",
     },
     "000000422B5B": {
         "Location name": "WAREHOUSE",
@@ -288,7 +288,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Allegro",
         "Computer": "JCB+",
         "Software": "GEN3",
-        "Version": "4.7.18-2"
+        "Version": "4.7.18-2",
     },
     "000000487832": {
         "Location name": "WAREHOUSE",
@@ -296,7 +296,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "CD Conversion Kit",
         "Computer": "JCB+",
         "Software": "GEN3",
-        "Version": "4.7.33-2"
+        "Version": "4.7.33-2",
     },
     "000000FCC271": {
         "Location name": "WAREHOUSE",
@@ -304,7 +304,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo",
         "Computer": "Core 2 Duo",
         "Software": "OS2_US_BASE",
-        "Version": "2.27.3-9"
+        "Version": "2.27.3-9",
     },
     "0000000A91CF": {
         "Location name": "WAREHOUSE",
@@ -312,7 +312,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-11"
+        "Version": "2.28.1-11",
     },
     "0000001F9AEC": {
         "Location name": "WAREHOUSE",
@@ -320,7 +320,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Virtuo",
         "Computer": "Core 2 Duo",
         "Software": "OS2_US_BASE",
-        "Version": "2.27.2-14"
+        "Version": "2.27.2-14",
     },
     "0000000A6F21": {
         "Location name": "WAREHOUSE",
@@ -328,7 +328,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Angelina",
         "Computer": "MHP",
         "Software": "OS2_US_BASE",
-        "Version": "2.28.1-11"
+        "Version": "2.28.1-11",
     },
     "000000352A12": {
         "Location name": "WAREHOUSE",
@@ -336,7 +336,7 @@ jukebox_data_for_ID = {
         "Jukebox model": "Maestro",
         "Computer": "JCB 1.2Ghz",
         "Software": "GEN3",
-        "Version": "4.7.33-2"
+        "Version": "4.7.33-2",
     },
     "0000002AA1AE": {
         "Location name": "WAREHOUSE",
@@ -344,6 +344,6 @@ jukebox_data_for_ID = {
         "Jukebox model": "Gen1 / Gen2 Gen3 Upgrade",
         "Computer": "JCB 1.2Ghz",
         "Software": "GEN3",
-        "Version": "4.7.31-2"
-    }
+        "Version": "4.7.31-2",
+    },
 }

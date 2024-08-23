@@ -39,14 +39,14 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
         source = Path(source_path)
         destination = Path(destination_path)
 
-        logger.info(f'Moving {source.name} to {destination}')
+        logger.info(f"Moving {source.name} to {destination}")
 
         # Ensure the destination directory exists
         destination.parent.mkdir(parents=True, exist_ok=exist_ok)
 
         # Move the file
         source.replace(destination)
-        logger.info(f'Successfully moved {source} to {destination}')       
+        logger.info(f"Successfully moved {source} to {destination}")
 
         # Verify the move
         if destination.exists() and not source.exists():
@@ -57,7 +57,9 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
     except FileNotFoundError:
         logger.info(f"Error: The source file {source} does not exist.")
     except PermissionError:
-        logger.info(f"Error: Permission denied. Unable to move {source} to {destination}.")
+        logger.info(
+            f"Error: Permission denied. Unable to move {source} to {destination}."
+        )
     except IsADirectoryError:
         logger.info(f"Error: {source} is a directory, not a file.")
     except OSError as e:

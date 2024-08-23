@@ -7,9 +7,11 @@ from dataframe_functions import apply_formatting_and_save
 from dataframe_functions import convert_xlsx_2_pdf
 from dataframe_functions import print_pdf_using_os_subprocess
 
-from TouchTunes_Jukebox_Details import jukebox_data_for_ID  # this is a dictionary constant of IDs and the associated details
+from TouchTunes_Jukebox_Details import (
+    jukebox_data_for_ID,
+)  # this is a dictionary constant of IDs and the associated details
 
-SYSTEM_PRINTER_NAME = 'Canon TR8500 series'
+SYSTEM_PRINTER_NAME = "Canon TR8500 series"
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"
@@ -66,13 +68,13 @@ def handler_process(file_path: Path):
     # this data has more needed details in the filename. example:   Collection Details (A79CD) May 17, 2024 (4).csv
     # the jukebox ID is contained inside the first set of parenthesis and needs to be recovered and used to find the location name.
     touchtunes_device = ID_inside_filename(file_path)
-    logger.debug(f'Found device ID in filename: Device ID = {touchtunes_device}')
+    logger.debug(f"Found device ID in filename: Device ID = {touchtunes_device}")
 
     output_file = Path(
         f"{ARCHIVE_DIRECTORY_NAME}({touchtunes_device}){OUTPUT_FILE_EXTENSION}"
     )
     logger.debug(f"Output filename: {output_file}")
-    
+
     # launch the processing function
     try:
         result = aquire_this_data(file_path, filedates_list, touchtunes_device)
@@ -84,27 +86,27 @@ def handler_process(file_path: Path):
         return False
 
     # now generate the output dataframe
-    df_output = process_df(result)        
+    df_output = process_df(result)
     if len(df_output) < 1:
-            logger.error(f"No data found to process")
-            return False
+        logger.error(f"No data found to process")
+        return False
 
     # processing done, send result to printer
     headers = [
-        'Storz Amusements LLC, Jeffersonville, 812-557-7095',
-        'estorz@gmail.com',
-        'Jukebox Collection Report',
-        ]
+        "Storz Amusements LLC, Jeffersonville, 812-557-7095",
+        "estorz@gmail.com",
+        "Jukebox Collection Report",
+    ]
     footers = [
-        'Thank you for letting me serve you!', 
-        'Please find Commission check included.',
-        ]
+        "Thank you for letting me serve you!",
+        "Please find Commission check included.",
+    ]
     # save_results_and_print(output_file, df_output, file_path)
     outfilename = apply_formatting_and_save(output_file, df_output)
     # xslx = convert_dataframe_to_excel_with_formatting_and_save(output_file, df_output)
     outfilename = convert_xlsx_2_pdf(outfilename, header=headers, footer=footers)
     print_pdf_using_os_subprocess(outfilename, SYSTEM_PRINTER_NAME)
-    logger.debug(f'Output is:\n{df_output}')
+    logger.debug(f"Output is:\n{df_output}")
 
     # all work complete
     return True
@@ -113,7 +115,7 @@ def handler_process(file_path: Path):
 @logger.catch
 def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
-    logger.debug(f'{device_id=}')
+    logger.debug(f"{device_id=}")
     empty_df = pd.DataFrame()
 
     logger.info(
@@ -145,7 +147,7 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
         return empty_df
 
     # Rename the columns for better readability
-    df.columns = ['Category', 'Value']
+    df.columns = ["Category", "Value"]
 
     """ These values are not needed to be converted from strings for my current needs.
     # Convert the 'Value' column from string to float
@@ -154,6 +156,7 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
 
     # Create a dictionary to track the occurrence of each category as we look for duplicate labels
     category_count = {}
+
     # Function to rename duplicate category labels which we want to avoid
     def rename_duplicate_categories(category):
         if category in category_count:
@@ -164,14 +167,17 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
             return category
 
     # Apply the function to rename categories in the DataFrame
-    df['Category'] = df['Category'].apply(rename_duplicate_categories)
+    df["Category"] = df["Category"].apply(rename_duplicate_categories)
 
-    logger.debug(f'{df}')
+    logger.debug(f"{df}")
 
     # Define the new rows as a list of dictionaries so we can add data to the bottom
     new_rows = [
-        {'Category': 'Device_ID', 'Value': str(device_id)},
-        {'Category': 'Date', 'Value': dates_list[0]}  # we only want the first date if more than 1 is provided
+        {"Category": "Device_ID", "Value": str(device_id)},
+        {
+            "Category": "Date",
+            "Value": dates_list[0],
+        },  # we only want the first date if more than 1 is provided
     ]
 
     # Create a DataFrame from the new rows
@@ -180,7 +186,7 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
     # Append the new DataFrame to the original DataFrame
     df = pd.concat([df, new_df], ignore_index=True)
 
-    logger.debug(f'{df}')
+    logger.debug(f"{df}")
 
     # Set the first column as the index otherwise we would get the default index numbers as column headers when we rotate
     df = df.set_index(df.columns[0])
@@ -199,19 +205,19 @@ def ID_inside_filename(fn: Path):
     # unique to this data report the ID of the jukebox this data belongs to is only in the download filename
     # get the sub-string inside the parenthesis of the filename which is the jukebox ID
     file_name_string = fn.name
-    logger.debug(f'{file_name_string=}')
+    logger.debug(f"{file_name_string=}")
     parts = file_name_string.split("(")
-    logger.debug(f'{parts=}')
+    logger.debug(f"{parts=}")
     if len(parts) > 1:
         subparts = parts[1].split(")")
-        logger.debug(f'{subparts=}')
+        logger.debug(f"{subparts=}")
         if len(subparts) > 1:
-            logger.debug(f'{subparts[0]=}')
+            logger.debug(f"{subparts[0]=}")
             # normalize the ID because the leading zero gets dropped by the in-consistant handling by TouchTunes
             # also found one case where ID did not contain a trailing zero. Handled that edge case manually in the details file.
             if len(subparts[0]) < 6:
                 subparts[0] = f"0{subparts[0]}"
-            logger.debug(f'{subparts[0]=}')
+            logger.debug(f"{subparts[0]=}")
             return subparts[0]
     return "xxxxxx"  # we failed for some reason
 
@@ -220,27 +226,27 @@ def ID_inside_filename(fn: Path):
 def process_df(df):
     # Remove un-needed columns
     cols_to_drop = [
-        '1 Credit Jukebox', 
-        'Multi-Credit Jukebox', 
-        'Karaoke', 
-        'Photobooth', 
-        'Unused credits', 
-        'Cleared credits', 
-        'Total Revenue Breakdown', 
-        'Coin', 
-        'Subtotal (Bill + Coin)', 
-        'Linked', 
-        'CC/3rd Party', 
-        'Mobile_1',
-        'Total Revenue', 
-        '1 Credit Jukebox (music)', 
-        'Multi-Credit Jukebox (music)', 
-        'Mobile_2', 
-        'Karaoke service', 
-        'Karaoke BGM', 
-        'Karaoke plays', 
-        'Photobooth print', 
-        'Other fees', 
+        "1 Credit Jukebox",
+        "Multi-Credit Jukebox",
+        "Karaoke",
+        "Photobooth",
+        "Unused credits",
+        "Cleared credits",
+        "Total Revenue Breakdown",
+        "Coin",
+        "Subtotal (Bill + Coin)",
+        "Linked",
+        "CC/3rd Party",
+        "Mobile_1",
+        "Total Revenue",
+        "1 Credit Jukebox (music)",
+        "Multi-Credit Jukebox (music)",
+        "Mobile_2",
+        "Karaoke service",
+        "Karaoke BGM",
+        "Karaoke plays",
+        "Photobooth print",
+        "Other fees",
     ]
     # Check existing columns in the DataFrame
     existing_cols = df.columns.tolist()
@@ -251,15 +257,15 @@ def process_df(df):
     # Drop the filtered columns
     df_dropped = df.drop(columns=cols_to_drop_filtered)
     logger.debug(f"{df_dropped.columns.tolist()=}")
-    logger.debug(f'{df_dropped}')
+    logger.debug(f"{df_dropped}")
     # Add the Location details needed by referencing the Device_ID
     # Device IDs in the dictionary are left padded with 6 zeros
-    Dev_ID = df_dropped['Device_ID'].iloc[0]  # Extracts the first element
-    logger.debug(f'{Dev_ID=}')
+    Dev_ID = df_dropped["Device_ID"].iloc[0]  # Extracts the first element
+    logger.debug(f"{Dev_ID=}")
     logger.debug(f'"Date" field ={df_dropped["Date"].iloc[0]}')
     Juke_ID = f"000000{Dev_ID}"
-    logger.debug(f'{Juke_ID=}')
-    df_dropped['Location Name'] = jukebox_data_for_ID[Juke_ID]['Location name']
+    logger.debug(f"{Juke_ID=}")
+    df_dropped["Location Name"] = jukebox_data_for_ID[Juke_ID]["Location name"]
     # The location name is the only detail available currently from the jukebox details dictionary
 
     return df_dropped

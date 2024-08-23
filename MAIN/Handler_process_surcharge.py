@@ -30,12 +30,20 @@ from dataframe_functions import save_results_and_print
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = '.xlsx'
-FILENAME_STRINGS_TO_MATCH = ["MonthlyRevenueByDevice", "ATMActivityReport"]  # TODO these may need to be different handlers because of different column headings like Terminal Number
+OUTPUT_FILE_EXTENSION = ".xlsx"
+FILENAME_STRINGS_TO_MATCH = [
+    "MonthlyRevenueByDevice",
+    "ATMActivityReport",
+]  # TODO these may need to be different handlers because of different column headings like Terminal Number
 ARCHIVE_DIRECTORY_NAME = "MonthlyRevenue"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
-VALUE_FILE = Path.cwd() / "MAIN" / "Terminal_Details.json"  # data concerning investment value and commissions due and operational expenses
-REPORT_DEFINITIONS_FILE = Path.cwd() / "MAIN" / "SurchargeReportVariations.json"  # this dictionary will contain information about individual reports layouts
+VALUE_FILE = (
+    Path.cwd() / "MAIN" / "Terminal_Details.json"
+)  # data concerning investment value and commissions due and operational expenses
+REPORT_DEFINITIONS_FILE = (
+    Path.cwd() / "MAIN" / "SurchargeReportVariations.json"
+)  # this dictionary will contain information about individual reports layouts
+
 
 class Declaration:
     """
@@ -46,10 +54,13 @@ class Declaration:
     :return: True if the script matches the file, False otherwise
     :rtype: bool
     """
+
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(
+            FILE_EXTENSION
+        ):
             # match found
             return True
         else:
@@ -59,7 +70,8 @@ class Declaration:
     def get_filename_strings_to_match(self):
         """Returns the list of filename strings to match"""
         return FILENAME_STRINGS_TO_MATCH
-    
+
+
 # activate declaration below when script is ready
 declaration = Declaration()
 
@@ -69,37 +81,48 @@ def handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
     result = empty_df = panda.DataFrame()
     if not file_path.exists:
-        logger.error(f'File to process does not exist.')
+        logger.error(f"File to process does not exist.")
         return False
     else:
         # process file
-        output_file = Path(f'{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}')
-        logger.debug(f'Output filename: {output_file}')        
+        output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+        logger.debug(f"Output filename: {output_file}")
         try:
-            Input_df, INPUTDF_TOTAL_ROWS, column_details, terminal_details, LOCATION_TAG = process_monthly_surcharge_report(file_path, Instant.now())
+            (
+                Input_df,
+                INPUTDF_TOTAL_ROWS,
+                column_details,
+                terminal_details,
+                LOCATION_TAG,
+            ) = process_monthly_surcharge_report(file_path, Instant.now())
             # processing done, send result to printer
         except Exception as e:
-            logger.error(f'Failure processing dataframe: {e}')
+            logger.error(f"Failure processing dataframe: {e}")
             return False
         else:
             # dataframe needs to have additional columns calculated
-            new_df = calculate_additional_values(Input_df, terminal_details, column_details)            
+            new_df = calculate_additional_values(
+                Input_df, terminal_details, column_details
+            )
             if len(new_df) > 0:
-                logger.info(f'Send dataframe to be made into various reports')
-                frames = generate_multiple_report_dataframes(column_details, new_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG)
-                logger.debug(f'Frames:\n{frames}')
+                logger.info(f"Send dataframe to be made into various reports")
+                frames = generate_multiple_report_dataframes(
+                    column_details, new_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG
+                )
+                logger.debug(f"Frames:\n{frames}")
             else:
-                logger.error(f'No data found to process')
+                logger.error(f"No data found to process")
                 return False
             if len(frames) > 0:
-                logger.info(f'Send dataframes to printer')
+                logger.info(f"Send dataframes to printer")
                 for filename, df in frames.items():
-                    save_results_and_print(filename, df, "")  # empty string tells function not to move input file to history
+                    save_results_and_print(
+                        filename, df, ""
+                    )  # empty string tells function not to move input file to history
             else:
-                logger.error(f'No data frames found to print')
+                logger.error(f"No data frames found to print")
     # all work complete
     return True
-
 
 
 # Custom function to serialize the dictionary excluding unserializable objects
@@ -109,10 +132,12 @@ def custom_json_serializer(obj):
         return obj
     else:
         return str(obj)
-    
+
+
 from customize_dataframe_for_excel import set_custom_excel_formatting
 
-def validate_value(value, min_value=0, max_value=float('inf')):
+
+def validate_value(value, min_value=0, max_value=float("inf")):
     """Validate if the value is within the expected range and is not negative.
 
     Args:
@@ -130,8 +155,7 @@ def validate_value(value, min_value=0, max_value=float('inf')):
 
 @logger.catch
 def process_monthly_surcharge_report(input_file, RUNDATE):
-    """takes a 'csv' file and returns a dataframe
-    """
+    """takes a 'csv' file and returns a dataframe"""
     # pandas tags:
     LOCATION_TAG = "Location"
     DEVICE_NUMBER_TAG = "Terminal"  # changed from 'Device Number' for compatability with "ATM activity report for commissions"
@@ -147,14 +171,14 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
         cols = cols[-1:] + cols[:-1]
         return df[cols]
 
-    empty_df = panda.DataFrame() 
+    empty_df = panda.DataFrame()
     # load the data from filename provided
     try:
         Input_df = panda.read_csv(input_file)
     except Exception as e:
-        logger.error(f'Problem using pandas: {e}')
+        logger.error(f"Problem using pandas: {e}")
         return (empty_df, 0, "")
-    
+
     INPUTDF_TOTAL_ROWS = len(Input_df)
 
     logger.info(f"csv file imported into dataframe with {INPUTDF_TOTAL_ROWS} rows.")
@@ -186,7 +210,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     # this dictionary will contain information about individual terminals
     # Pretty print and log the dictionary item
     pretty_json = json.dumps(terminal_details, default=custom_json_serializer, indent=4)
-    logger.debug(f'Printer details report:\n{pretty_json}')
+    logger.debug(f"Printer details report:\n{pretty_json}")
 
     logger.info(f"Reading formatting file..")
     # TODO needs try/except for missing file detection
@@ -195,9 +219,15 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     # this dictionary will contain information about formating output values.
     # Pretty print and log the dictionary item
     pretty_json = json.dumps(column_details, default=custom_json_serializer, indent=4)
-    logger.debug(f'Printer details report:\n{pretty_json}')
+    logger.debug(f"Printer details report:\n{pretty_json}")
 
-    return (Input_df, INPUTDF_TOTAL_ROWS, column_details, terminal_details, LOCATION_TAG)
+    return (
+        Input_df,
+        INPUTDF_TOTAL_ROWS,
+        column_details,
+        terminal_details,
+        LOCATION_TAG,
+    )
 
 
 """ these are the calculations used for dupont analysis
@@ -224,7 +254,7 @@ def calculate_additional_values(df, terminal_details, column_details):
     DAYS = 30
     FIXED_ASSETS = 1000
     OPERATING_EXPENSES = 50
-    OPERATING_LABOR = 25 
+    OPERATING_LABOR = 25
 
     # Column names
     column_names = {
@@ -245,7 +275,7 @@ def calculate_additional_values(df, terminal_details, column_details):
         "ASSETSTO": "A_T_O",
         "ERNBIT": "Earnings_BIT",
         "PRFTMGN": "p_Margin",
-        "RTNONINV": "R_O_I"
+        "RTNONINV": "R_O_I",
     }
 
     LOCATION_TAG = "Location"
@@ -264,7 +294,7 @@ def calculate_additional_values(df, terminal_details, column_details):
     TOTDISP = "Total Dispensed Amount"
     SURCHXACTS = "SurWD Trxs"
     TOTALXACTS = "Total Trxs"
-    TOTALINTRCHANGE ="Total Interchange"
+    TOTALINTRCHANGE = "Total Interchange"
 
     # These names are added to the original input dataframe
     COMM = "Comm_Due"
@@ -301,7 +331,11 @@ def calculate_additional_values(df, terminal_details, column_details):
 
     def calculate_surcharge_percentage(row):
         total_surcharge = float(row.get(TOTSUR, 1)) * 12
-        return round(float(row[AnnualNetIncome]) / total_surcharge, 2) if total_surcharge != 0 else 0
+        return (
+            round(float(row[AnnualNetIncome]) / total_surcharge, 2)
+            if total_surcharge != 0
+            else 0
+        )
 
     def calculate_average_daily_dispense(row):
         return round(float(row.get(TOTDISP, 0)) / DAYS, 2)
@@ -309,14 +343,16 @@ def calculate_additional_values(df, terminal_details, column_details):
     def calculate_current_assets(row):
         device = terminal_details.get(row[DEVICE_NUMBER_TAG], {})
         visits = float(device.get(VF_KEY_VisitDays, 0))
-        owned = device.get(VF_KEY_Owned, 'Yes')
+        owned = device.get(VF_KEY_Owned, "Yes")
         if owned == "No":
             return 0
         buffer = 1.5
         return round(float(row[DAYDISP]) * visits * buffer, 2)
 
     def calculate_assets(row):
-        FA = float(terminal_details.get(row[DEVICE_NUMBER_TAG], {}).get(VF_KEY_Value, 0))
+        FA = float(
+            terminal_details.get(row[DEVICE_NUMBER_TAG], {}).get(VF_KEY_Value, 0)
+        )
         return round(FA + float(row[CURASS]), 2)
 
     def calculate_asset_turnover(row):
@@ -357,26 +393,27 @@ def calculate_additional_values(df, terminal_details, column_details):
     # df = calculate_values(df, terminal_details, column_details)
 
 
-
-
-
 @logger.catch()
-def generate_multiple_report_dataframes(column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG):
+def generate_multiple_report_dataframes(
+    column_details, Input_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG
+):
     """send ATM terminal activity dataframe to file and printer"""
 
     with open(REPORT_DEFINITIONS_FILE) as json_data:
         report_definitions = json.load(json_data)
     # this dictionary will contain information about individual reports
     # Pretty print and log the dictionary item
-    pretty_json = json.dumps(report_definitions, default=custom_json_serializer, indent=4)
-    logger.debug(f'Report Definitions File:{pretty_json}')        
+    pretty_json = json.dumps(
+        report_definitions, default=custom_json_serializer, indent=4
+    )
+    logger.debug(f"Report Definitions File:{pretty_json}")
 
     # create these reports
     DESIRED_REPORTS = ["Commission", "Surcharge", "Dupont"]
 
     frames = {}
     for indx, report in enumerate(DESIRED_REPORTS):
-        logger.info(f'Generating report: {report}')
+        logger.info(f"Generating report: {report}")
         # create a unique filename for each report
         fn = f"{report}_Outputfile{indx}.xlsx"
         # Creating an empty Dataframe with column names only
@@ -387,9 +424,9 @@ def generate_multiple_report_dataframes(column_details, Input_df, INPUTDF_TOTAL_
                 frames[fn][column] = Input_df[column]
             except KeyError as e:
                 logger.error(f"Key Error: {e} column {column} not added")
-        logger.info(f'Dataframe with {len(frames[fn])} items created.')
-        logger.debug(f'Frame name: {fn}\nFrame data:\n{frames[fn]}')
-        # insert name of report into dataframe past the last row 
+        logger.info(f"Dataframe with {len(frames[fn])} items created.")
+        logger.debug(f"Frame name: {fn}\nFrame data:\n{frames[fn]}")
+        # insert name of report into dataframe past the last row
         frames[fn].at[INPUTDF_TOTAL_ROWS + 1, LOCATION_TAG] = report
-    logger.info(f'Finished creating {len(frames)} reports as dataframes.')
+    logger.info(f"Finished creating {len(frames)} reports as dataframes.")
     return frames

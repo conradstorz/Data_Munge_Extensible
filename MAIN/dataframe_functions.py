@@ -1,5 +1,6 @@
 """Defines common functions for working with dataframes used throughout my code
 """
+
 from fpdf import FPDF
 import subprocess
 import re
@@ -12,54 +13,62 @@ import pandas as panda
 from pathlib import Path
 import pathlib_file_methods as plfh
 
+
 @logger.catch()
 def data_from_csv(in_f):
     """Import a CSV file into a datframe"""
-    empty_df = panda.DataFrame() 
+    empty_df = panda.DataFrame()
     # load csv file into dataframe
-    logger.debug(f'Reading CSV data using Pandas on file {in_f}')
+    logger.debug(f"Reading CSV data using Pandas on file {in_f}")
     try:
         df = panda.read_csv(in_f)
     except Exception as e:
-        logger.error(f'Problem using pandas: {e}')
+        logger.error(f"Problem using pandas: {e}")
         return empty_df
     else:
-        logger.debug(f'imported file processed by pandas okay.')
+        logger.debug(f"imported file processed by pandas okay.")
         DF_LAST_ROW = len(df)
         logger.info(f"file imported into dataframe with {DF_LAST_ROW} rows.")
         return df
 
 
 @logger.catch()
-def load_csv_with_optional_headers(in_f: str, headers='') -> panda.DataFrame:
+def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
     # Set headers to empty list if it's an empty string
-    if headers == '':
+    if headers == "":
         headers = []
     else:
         if not isinstance(headers, list):
-            logger.error('optional headers field must be a list of strings')
+            logger.error("optional headers field must be a list of strings")
             return panda.DataFrame()  # Return empty DataFrame
 
-    empty_df = panda.DataFrame()  
+    empty_df = panda.DataFrame()
     # Load CSV file into DataFrame
     try:
         df = panda.read_csv(in_f, header=None if not headers else 0)
     except Exception as e:
-        logger.error(f'Problem using pandas: {e}')
+        logger.error(f"Problem using pandas: {e}")
         return empty_df
-    
+
     # Handle possible header length mismatch
     if headers:
         num_columns = df.shape[1]
         if len(headers) < num_columns:
-            logger.warning(f'Number of headers ({len(headers)}) is less than number of columns ({num_columns}). Numbering missing headers.')
-            headers.extend([f'Missing_Header_{i+1}' for i in range(len(headers), num_columns)])  # Number missing headers
+            logger.warning(
+                f"Number of headers ({len(headers)}) is less than number of columns ({num_columns}). Numbering missing headers."
+            )
+            headers.extend(
+                [f"Missing_Header_{i+1}" for i in range(len(headers), num_columns)]
+            )  # Number missing headers
         elif len(headers) > num_columns:
-            logger.warning(f'Number of headers ({len(headers)}) exceeds number of columns ({num_columns}). Truncating to match.')
+            logger.warning(
+                f"Number of headers ({len(headers)}) exceeds number of columns ({num_columns}). Truncating to match."
+            )
             headers = headers[:num_columns]  # Truncate headers to match column count
         df.columns = headers
 
     return df
+
 
 @logger.catch()
 def dataframe_contains(df, list):
@@ -84,7 +93,7 @@ def de_duplicate_header_names(df):
             column_count[col] = 0
             new_columns.append(col)
     df.columns = new_columns
-    logger.debug(f'{new_columns=}')
+    logger.debug(f"{new_columns=}")
     return df
 
 
@@ -94,41 +103,40 @@ def save_results_and_print(output_file, result, file_path):
     save_results(output_file, result, file_path)
 
 
-
 @logger.catch()
 def save_results(outfile: Path, frame, input_filename: Path) -> bool:
     """
     Save results to a file and manage file movement.
-    
+
     Args:
         outfile (Path): Path to the output file.
         frame (DataFrame): Data to be saved.
         input_filename (Path): Original input file name.
-        
+
     Returns:
         bool: True if successful, False otherwise.
     """
     try:
         if len(frame) > 0:
-            logger.info(f'Sending Float Report to file/print...')
+            logger.info(f"Sending Float Report to file/print...")
             convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
         else:
-            logger.error(f'Dataframe {input_filename} is empty.')
+            logger.error(f"Dataframe {input_filename} is empty.")
             return False
     except Exception as e:
-        logger.error(f'Failure processing dataframe: {e}')
+        logger.error(f"Failure processing dataframe: {e}")
         return False
-    
+
     if input_filename:
         move_original_file(input_filename, outfile)
-    
+
     return True
 
 
 def move_original_file(input_filename: Path, outfile: Path):
     """
     Move the original file to a new location.
-    
+
     Args:
         input_filename (Path): Original input file name.
         outfile (Path): Path to the output file.
@@ -136,29 +144,31 @@ def move_original_file(input_filename: Path, outfile: Path):
     # Original path to the file
     old_file_path = input_filename
     # New path where to move the file
-    new_file_path = old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
-    
+    new_file_path = (
+        old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
+    )
+
     # move the file
     plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
-    logger.info(f'Moved original file from {old_file_path} to {new_file_path}')
+    logger.info(f"Moved original file from {old_file_path} to {new_file_path}")
 
 
 def send_dataframe_to_file(outfile: Path, frame):
     # Save the dataframe to a file
     frame.to_csv(outfile, index=False)
-    logger.info(f'Dataframe saved to {outfile}')
-    
+    logger.info(f"Dataframe saved to {outfile}")
+
 
 def print_dataframe(frame):
     # Print the dataframe
     logger.info(frame)
-    logger.info('Dataframe printed to console')
+    logger.info("Dataframe printed to console")
 
 
 def Send_dataframe_to_file_and_print(outfile: Path, frame):
     """
     Save the dataframe to a file and print it.
-    
+
     Args:
         outfile (Path): Path to the output file.
         frame (DataFrame): Data to be saved and printed.
@@ -169,9 +179,9 @@ def Send_dataframe_to_file_and_print(outfile: Path, frame):
 
 
 def is_date_valid(date_str):
-    formats = ['%Y%b%d', '%Y%m%d', "%Y-%m-%d"]
+    formats = ["%Y%b%d", "%Y%m%d", "%Y-%m-%d"]
     min_date = datetime(1970, 1, 1)
-    max_date = datetime(2170, 1, 1)    
+    max_date = datetime(2170, 1, 1)
     for fmt in formats:
         try:
             # Parse the date string
@@ -186,16 +196,16 @@ def is_date_valid(date_str):
 def extract_dates(string):
     # Define patterns to match different date formats
     patterns = [
-        r'(\d{4})[-_]?(\d{2})[-_]?(\d{2})',  # YYYY-MM-DD or YYYY_MM_DD
-        r'(\d{1,2})-(\d{1,2})-(\d{4})',      # MM-DD-YYYY
-        r'(\d{4})(\d{2})(\d{2})',            # YYYYMMDD
-        r'(\d{4})([a-zA-Z]{3})(\d{2})',      # YYYYmonDD
-        r'([A-Za-z]+) (\d{1,2}), (\d{4})',   # Month DD, YYYY
-        r'\b(\d{1,2})(\d{1,2})(\d{4})\b'     # Handle formats like '4212024'
+        r"(\d{4})[-_]?(\d{2})[-_]?(\d{2})",  # YYYY-MM-DD or YYYY_MM_DD
+        r"(\d{1,2})-(\d{1,2})-(\d{4})",  # MM-DD-YYYY
+        r"(\d{4})(\d{2})(\d{2})",  # YYYYMMDD
+        r"(\d{4})([a-zA-Z]{3})(\d{2})",  # YYYYmonDD
+        r"([A-Za-z]+) (\d{1,2}), (\d{4})",  # Month DD, YYYY
+        r"\b(\d{1,2})(\d{1,2})(\d{4})\b",  # Handle formats like '4212024'
     ]
-    
+
     found_dates = set()  # Use a set to avoid duplicates
-    
+
     # Try each pattern to find dates
     for pattern in patterns:
         matches = re.findall(pattern, string)
@@ -208,20 +218,20 @@ def extract_dates(string):
                 elif pattern == patterns[2]:  # YYYYMMDD
                     date_str = f"{match[0]}-{match[1].zfill(2)}-{match[2].zfill(2)}"
                 elif pattern == patterns[3]:  # YYYYmonDD
-                    month = datetime.strptime(match[1].lower(), '%b').strftime('%m')
+                    month = datetime.strptime(match[1].lower(), "%b").strftime("%m")
                     date_str = f"{match[0]}-{month}-{match[2].zfill(2)}"
                 elif pattern == patterns[4]:  # Month DD, YYYY
-                    month = datetime.strptime(match[0][:3].lower(), '%b').strftime('%m')
+                    month = datetime.strptime(match[0][:3].lower(), "%b").strftime("%m")
                     date_str = f"{match[2]}-{month}-{match[1].zfill(2)}"
                 elif pattern == patterns[5]:  # MMDDYYYY
                     date_str = f"{match[2]}-{match[0].zfill(2)}-{match[1].zfill(2)}"
-                
+
                 # Validate and add the date
                 if is_date_valid(date_str):
                     found_dates.add(date_str)
             except ValueError:
                 continue
-    
+
     # If no valid dates found, return an empty list
     if not found_dates:
         return []
@@ -244,7 +254,7 @@ def extract_date_from_filename(fname):
     """
     datestring = "xxxxxxxx"
     logger.info("Processing: " + str(fname))
-    parts = str(fname).replace("_", "-").split('-')
+    parts = str(fname).replace("_", "-").split("-")
     logger.debug(f"fname split result: {parts}")
     for part in parts:
         try:
@@ -254,7 +264,7 @@ def extract_date_from_filename(fname):
     reds = extract_date_from_filename_using_regularExpressions(fname)
     if datestring == "xxxxxxxx":
         if reds == "xxxxxxxx":
-            logger.error(f'No datestring found.')
+            logger.error(f"No datestring found.")
         else:
             return reds
     return datestring
@@ -264,19 +274,19 @@ def extract_date_from_filename_using_regularExpressions(fname):
 
     # The filename contains the date the report was run.
     # Extract and return the date string.
-    
+
     datestring = "xxxxxxxx"
     logger.info("Processing: " + str(fname))
-    
+
     # Regular expression patterns for different date formats
     date_patterns = [
-        r'\b\d{4}-\d{2}-\d{2}\b',  # YYYY-MM-DD
-        r'\b\d{2}-\d{2}-\d{4}\b',  # DD-MM-YYYY
-        r'\b\d{4}_\d{2}_\d{2}\b',  # YYYY_MM_DD
-        r'\b\d{2}_\d{2}_\d{4}\b',  # DD_MM_YYYY
-        r'\b\d{8}\b',              # YYYYMMDD or DDMMYYYY
+        r"\b\d{4}-\d{2}-\d{2}\b",  # YYYY-MM-DD
+        r"\b\d{2}-\d{2}-\d{4}\b",  # DD-MM-YYYY
+        r"\b\d{4}_\d{2}_\d{2}\b",  # YYYY_MM_DD
+        r"\b\d{2}_\d{2}_\d{4}\b",  # DD_MM_YYYY
+        r"\b\d{8}\b",  # YYYYMMDD or DDMMYYYY
     ]
-    
+
     for pattern in date_patterns:
         match = re.search(pattern, fname)
         if match:
@@ -291,7 +301,7 @@ def extract_date_from_filename_using_regularExpressions(fname):
 
     if datestring == "xxxxxxxx":
         logger.debug("No valid date found in filename.")
-    
+
     return datestring
 
 
@@ -334,15 +344,14 @@ def set_custom_excel_formatting(df, writer, details):
             if details[col] == "%":
                 worksheet.set_column(i, i, column_width, percntg)
         else:  # just set the width of the column
-            logger.info(f'No detailed column formating instructions found for: {col}')
+            logger.info(f"No detailed column formating instructions found for: {col}")
             worksheet.set_column(i, i, column_width)
     return True
 
 
 @logger.catch()
 def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
-    """Takes a dataframe and outputs to excel file.
-    """
+    """Takes a dataframe and outputs to excel file."""
     apply_formatting_and_save(filename, frame)
     time.sleep(1)  # Allow time for file to save
     print_excel_file(filename)
@@ -350,8 +359,7 @@ def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
 
 @logger.catch()
 def apply_formatting_and_save(filename, frame):
-    """Create an excel file on the default storage
-    """
+    """Create an excel file on the default storage"""
     # define the various labels as $ or % or a plain number
     column_details = {
         "Device Number": "A",
@@ -396,19 +404,19 @@ def apply_formatting_and_save(filename, frame):
         "_surch": "$",
         "_Surch%": "%",
         "_Assets": "$",
-        "Sales($)": "$"
+        "Sales($)": "$",
     }
     # clean up any old output file that exists
-    logger.info(f'Cleanup any old file left over from previous runs.')
+    logger.info(f"Cleanup any old file left over from previous runs.")
     plfh.delete_file_and_verify(filename)
     try:
         # Create a pandas ExcelWriter object
-        logger.debug(f'Creating Excel object {filename} with {len(frame)} lines')
+        logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
         with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
             # Write the DataFrame to the Excel file
-            logger.debug(f'Writing DataFrame to Excel file')
+            logger.debug(f"Writing DataFrame to Excel file")
             frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
-            logger.debug(f'Applying custom column formatting')
+            logger.debug(f"Applying custom column formatting")
             set_custom_excel_formatting(frame, writer, column_details)
             logger.info("All work done. Saving worksheet...")
             # File creation ends here and is saved automatically.
@@ -427,12 +435,9 @@ def print_excel_file(filename):
         # destination used while working with the windows system print dialog which could be the wrong
         # printer or even the print to file option.
         os.startfile(filename, "print")
-        logger.debug(f'Call to launch spreadsheet {filename} appears to have worked.')
+        logger.debug(f"Call to launch spreadsheet {filename} appears to have worked.")
     except FileNotFoundError as e:
         logger.error(f"Output file not found: {e}")
-
-
-
 
 
 @logger.catch()
@@ -440,17 +445,17 @@ def load_excel_file(fname):
     try:
         # Load the Excel file
         file_path = Path(fname)
-        
+
         # Ensure the file exists before trying to load it
         if not file_path.exists():
             raise FileNotFoundError(f"The file '{file_path}' does not exist.")
-        
+
         # Load the Excel file using pandas
         excel_data = panda.ExcelFile(file_path)
-        
+
         # Return the loaded Excel data
         return excel_data
-    
+
     except FileNotFoundError as e:
         logger.error(f"Error: {e}")
     except ValueError as e:
@@ -474,16 +479,16 @@ def convert_xlsx_2_pdf(fname, header=None, footer=None):
     try:
         excel_data = load_excel_file(file_path)
     except Exception as e:
-        logger.error(f'Error importing data: {e}')
+        logger.error(f"Error importing data: {e}")
         return ""
-    
+
     # Read the data from the first sheet
     try:
         data = panda.read_excel(file_path, sheet_name="Sheet1")
     except Exception as e:
-        logger.error(f'ERROR reading data: {e}')
+        logger.error(f"ERROR reading data: {e}")
         return ""
-    
+
     # Extract the labels and the data
     value_name = data.iloc[0].values
     row_data = data.iloc[1].values

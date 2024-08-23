@@ -27,6 +27,7 @@ def set_custom_excel_formatting(worksheet, workbook, df, details):
         worksheet.set_column(i, i, column_len, col_format)
 """
 
+
 def send_dataframes_to_file(frames, FORMATTING_FILE):
     """
     Takes a dict of dataframes, outputs them to Excel files, and optionally sends them to the default printer.
@@ -57,9 +58,11 @@ def send_dataframes_to_file(frames, FORMATTING_FILE):
             except FileNotFoundError as e:
                 logger.error(f"File not found: {e}")
 
+
 # Example usage:
 # frames = {'output.xlsx': pd.DataFrame(data)}
 # send_dataframes_to_file(frames, FORMATTING_FILE)
+
 
 @logger.catch()
 def set_custom_excel_formatting(df, writer, details):
