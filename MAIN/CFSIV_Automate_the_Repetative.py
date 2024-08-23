@@ -23,7 +23,7 @@ if __name__ == "__main__":
     from pathlib import Path
     from dotenv import dotenv_values
 
-    logger.add("file_processing.log", rotation="10 MB")
+    logger.add("LOGS/file_processing.log", rotation="00:00", retention="9 days")
 
     scripts_directory = Path.cwd() / "MAIN"
     directory_to_watch = Path("D:/Users/Conrad/Downloads/")
