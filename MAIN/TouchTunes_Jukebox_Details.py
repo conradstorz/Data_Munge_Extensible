@@ -97,6 +97,15 @@ jukebox_data_for_ID = {
         "Software": "OS2_US_BASE",
         "Version": "2.28.2-9"
     },
+    "The entry below is because touchtunes reports the device ID wrong": "No idea why",
+    "0000000A5B4": {
+        "Location name": "GOLDEN NUGGET",
+        "Location ID": "L238364",
+        "Jukebox model": "Fusion",
+        "Computer": "MHP",
+        "Software": "OS2_US_BASE",
+        "Version": "2.28.2-9"
+    },
     "0000000A7276": {
         "Location name": "Harry's backroom",
         "Location ID": "L290950",
