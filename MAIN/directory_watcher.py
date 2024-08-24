@@ -2,6 +2,7 @@ import pickle
 from pathlib import Path
 from loguru import logger
 import time
+import sys
 
 logger.catch()
 
@@ -53,21 +54,31 @@ def get_first_new_file(directory_to_watch, pickle_file):
 @logger.catch()
 def monitor_download_directory(directory_to_watch, file_processor, delay=1):
 
+    def indicate_progress(count):
+        count =+ 1
+        sys.stdout.write('.')
+        sys.stdout.flush()    
+        if count > 60:
+            sys.stdout.write('\n')
+            sys.stdout.flush()            
+            count = 0              
+        return count
+    
     logger.info(f"Starting directory watcher on {directory_to_watch}")
-
+    loops = 0
     try:
         while True:
-            time.sleep(delay)
-            logger.debug(f"Checking for new files in {directory_to_watch}")
+            time.sleep(delay)  # Set the pace for how often to look for new files.
+            loops = indicate_progress(loops)      
             new_file = get_first_new_file(
                 directory_to_watch, "./download_history_file.pkl"
             )
-            logger.debug(f"found: {new_file}")
             if new_file:
-                if Path(new_file).suffix not in [".ini", ".tmp", ".png"]:
-                    file_processor.process(directory_to_watch / new_file)
-                else:
+                if Path(new_file).suffix in [".ini", ".tmp", ".png"]:
                     logger.debug(f"Ignoring file found: {new_file}")
+                else:                    
+                    logger.info(f'File found to attempt processing {new_file}')
+                    file_processor.process(directory_to_watch / new_file)
 
     except KeyboardInterrupt:
         logger.info(f"Keyboard interrupt detected.")
