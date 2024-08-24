@@ -6,6 +6,7 @@ import os
 from threading import Timer
 from loguru import logger
 import re
+import pickle
 
 
 class EmailAttachmentDownloader:
@@ -39,68 +40,67 @@ class EmailAttachmentDownloader:
             ".pdf",
             ".jpg",
         ]  # Specify the extensions to ignore
-        try:
-            with imaplib.IMAP4_SSL('imap.gmail.com') as mail:
-                mail.login(self.email_user, self.email_password)
-                mail.select('inbox')
 
-                # Calculate the date 24 hours ago
-                date_since = (datetime.now() - timedelta(days=1)).strftime("%d-%b-%Y")
+        with imaplib.IMAP4_SSL('imap.gmail.com') as mail:
+            mail.login(self.email_user, self.email_password)
+            mail.select('inbox')
 
-                # Search for emails since the calculated date
-                result, data = mail.search(None, f'(SINCE "{date_since}")')
-                if result != "OK":
-                    logger.error("No messages found!")
-                    return
+            # Calculate the date 24 hours ago
+            date_since = (datetime.now() - timedelta(days=1)).strftime("%d-%b-%Y")
 
-                for uid in data[0].split():
-                    if uid in self.downloaded_uids:
-                        print(f'Already downloaded: UID {uid}')
+            # Search for emails since the calculated date
+            result, data = mail.search(None, f'(SINCE "{date_since}")')
+            if result != "OK":
+                logger.error("No messages found!")
+                return
+
+            for uid in data[0].split():
+                if uid in self.downloaded_uids:
+                    print(f'Already downloaded: UID {uid}')
+                    continue
+
+                result, email_data = mail.uid('fetch', uid, '(RFC822)')
+                if result != 'OK':
+                    print(f'Failed to fetch email UID {uid}')
+                    continue
+
+                msg = email.message_from_bytes(email_data[0][1])
+                print(f'Processing email UID {uid}')
+
+                # Iterate over email parts
+                for part in msg.walk():
+                    if (
+                        part.get_content_maintype() == 'multipart'
+                        or part.get('Content-Disposition') is None
+                    ):
                         continue
 
-                    result, email_data = mail.uid('fetch', uid, '(RFC822)')
-                    if result != 'OK':
-                        print(f'Failed to fetch email UID {uid}')
-                        continue
+                    filename = part.get_filename()
+                    if filename:
+                        decoded_header = decode_header(filename)
+                        filename, encoding = decoded_header[0]
+                        if isinstance(filename, bytes):
+                            filename = filename.decode(encoding or 'utf-8')
 
-                    msg = email.message_from_bytes(email_data[0][1])
-                    print(f'Processing email UID {uid}')
-
-                    # Iterate over email parts
-                    for part in msg.walk():
-                        if (
-                            part.get_content_maintype() == 'multipart'
-                            or part.get('Content-Disposition') is None
-                        ):
+                        # Check file extension and skip if it's in the ignored list
+                        file_extension = os.path.splitext(filename)[1].lower()
+                        if file_extension in ignored_extensions:
+                            logger.debug(f"Ignored: {filename}")
                             continue
 
-                        filename = part.get_filename()
-                        if filename:
-                            decoded_header = decode_header(filename)
-                            filename, encoding = decoded_header[0]
-                            if isinstance(filename, bytes):
-                                filename = filename.decode(encoding or 'utf-8')
+                        # Sanitize filename
+                        safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", filename)
+                        filepath = os.path.join(self.download_folder, safe_filename)
 
-                            # Check file extension and skip if it's in the ignored list
-                            file_extension = os.path.splitext(filename)[1].lower()
-                            if file_extension in ignored_extensions:
-                                logger.debug(f"Ignored: {filename}")
-                                continue
+                        with open(filepath, 'wb') as f:
+                            f.write(part.get_payload(decode=True))
+                        print(f'Downloaded: {safe_filename}')
 
-                            # Sanitize filename
-                            safe_filename = re.sub(r"[^a-zA-Z0-9_.-]", "_", filename)
-                            filepath = os.path.join(self.download_folder, safe_filename)
+                        self.downloaded_uids.add(uid)
+                        self.save_uid_status()
 
-                            with open(filepath, 'wb') as f:
-                                f.write(part.get_payload(decode=True))
-                            print(f'Downloaded: {safe_filename}')
+            mail.logout()
 
-                            self.downloaded_uids.add(uid)
-                            self.save_uid_status()
-
-                mail.logout()
-        except Exception as e:
-            logger.error(f"Error downloading attachments: {e}")
 
     def check_for_attachments(self):
         logger.info("Checking for new email attachments...")
