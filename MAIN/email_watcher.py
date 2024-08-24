@@ -56,16 +56,16 @@ class EmailAttachmentDownloader:
 
             for uid in data[0].split():
                 if uid in self.downloaded_uids:
-                    print(f'Already downloaded: UID {uid}')
+                    logger.info(f'Already downloaded: UID {uid}')
                     continue
 
                 result, email_data = mail.uid('fetch', uid, '(RFC822)')
                 if result != 'OK':
-                    print(f'Failed to fetch email UID {uid}')
+                    logger.info(f'Failed to fetch email UID {uid}')
                     continue
 
                 msg = email.message_from_bytes(email_data[0][1])
-                print(f'Processing email UID {uid}')
+                logger.info(f'Processing email UID {uid}')
 
                 # Iterate over email parts
                 for part in msg.walk():
@@ -94,7 +94,7 @@ class EmailAttachmentDownloader:
 
                         with open(filepath, 'wb') as f:
                             f.write(part.get_payload(decode=True))
-                        print(f'Downloaded: {safe_filename}')
+                        logger.info(f'Downloaded: {safe_filename}')
 
                         self.downloaded_uids.add(uid)
                         self.save_uid_status()
