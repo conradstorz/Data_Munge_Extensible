@@ -47,7 +47,7 @@ class EmailAttachmentDownloader:
                         continue
 
                     msg = email.message_from_bytes(email_data[0][1])
-                    logger.info(f"Processing email {num}")
+                    logger.debug(f"Processing email {num}")
 
                     # Iterate over email parts
                     for part in msg.walk():
@@ -67,7 +67,7 @@ class EmailAttachmentDownloader:
                             # Check file extension and skip if it's in the ignored list
                             file_extension = os.path.splitext(filename)[1].lower()
                             if file_extension in ignored_extensions:
-                                logger.info(f"Ignored: {filename}")
+                                logger.debug(f"Ignored: {filename}")
                                 continue
 
                             # Sanitize filename
