@@ -22,9 +22,17 @@ if __name__ == "__main__":
     from loguru import logger
     from pathlib import Path
     from dotenv import dotenv_values
+    import sys
+
+    # Remove the default handler
+    logger.remove()
+
+    # Add a handler for the console that logs messages at the INFO level and above
+    # Add the console handler with colorization enabled
+    logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
     logger.add("LOGS/file_processing.log", rotation="00:00", retention="9 days")
-
+    
     scripts_directory = Path.cwd() / "MAIN"
     directory_to_watch = Path("D:/Users/Conrad/Downloads/")
     secrets_directory = scripts_directory / Path(".env")
