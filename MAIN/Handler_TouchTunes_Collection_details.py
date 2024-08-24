@@ -1,4 +1,4 @@
-import pandas as pd
+import pandas as panda
 from loguru import logger
 from pathlib import Path
 
@@ -9,9 +9,9 @@ from dataframe_functions import print_pdf_using_os_subprocess
 
 from TouchTunes_Jukebox_Details import (
     jukebox_data_for_ID,
-)  # this is a dictionary constant of IDs and the associated details
+)  # this is a dictionary constant of IDs and the associated details for all known jukeboxes
 
-SYSTEM_PRINTER_NAME = "Canon TR8500 series"
+SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"
@@ -56,12 +56,14 @@ declaration = Declaration()
 
 @logger.catch
 def handler_process(file_path: Path):
-    # This is the standardized functioncall for the Data_Handler_Template
+    # This is the standardized functioncall for the Data_Handler_Template    
+    logger.info(f'Handler launched on file {file_path}')
+
     if not file_path.exists:
-        logger.error(f"File to process does not exist.")
+        logger.error(f"File '{file_path}' to process does not exist.")
         return False
 
-    logger.info(f"Looking for date string in: {file_path.stem}")
+    logger.debug(f"Looking for date string in: {file_path.stem}")
     filedates_list = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedates_list}")
 
@@ -77,18 +79,20 @@ def handler_process(file_path: Path):
 
     # launch the processing function
     try:
-        result = aquire_this_data(file_path, filedates_list, touchtunes_device)
+        logger.debug(f'Starting data aquisition.')
+        raw_dataframe = aquire_revenue_data(file_path, filedates_list, touchtunes_device)
     except Exception as e:
         logger.error(f"Failure processing dataframe: {e}")
         return False
-    if len(result) < 1:
+    if len(raw_dataframe) < 1:
         logger.error(f"No data found to process")
         return False
 
     # now generate the output dataframe
-    df_output = process_df(result)
+    logger.debug(f'Creating custom dataframe for output to printer.')
+    df_output = create_output_dataframe_from(raw_dataframe)
     if len(df_output) < 1:
-        logger.error(f"No data found to process")
+        logger.error(f"No data found to output")
         return False
 
     # processing done, send result to printer
@@ -101,24 +105,27 @@ def handler_process(file_path: Path):
         "Thank you for letting me serve you!",
         "Please find Commission check included.",
     ]
-    # save_results_and_print(output_file, df_output, file_path)
+    logger.debug(f'Format the data and save to Excel file.')
     outfilename = apply_formatting_and_save(output_file, df_output)
-    # xslx = convert_dataframe_to_excel_with_formatting_and_save(output_file, df_output)
-    outfilename = convert_xlsx_2_pdf(outfilename, header=headers, footer=footers)
-    print_pdf_using_os_subprocess(outfilename, SYSTEM_PRINTER_NAME)
-    logger.debug(f"Output is:\n{df_output}")
 
-    # all work complete
+    logger.debug(f'Creating PDF form final output from custom dataframe.')
+    outfilename = convert_xlsx_2_pdf(outfilename, header=headers, footer=footers)
+
+    logger.debug(f'Sending PDF to printer using SumatraPDF within Windows.')
+    print_pdf_using_os_subprocess(outfilename, SYSTEM_PRINTER_NAME)
+
+    logger.info(f"Output saved as {outfilename}")
+    # all jukebox revenue processing work complete
     return True
 
 
 @logger.catch
-def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
+def aquire_revenue_data(file_path: Path, dates_list, device_id) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
-    logger.debug(f"{device_id=}")
-    empty_df = pd.DataFrame()
+    logger.info(f"Attempting to aquire data for jukebox {device_id}")
+    empty_df = panda.DataFrame()
 
-    logger.info(
+    logger.debug(
         f"{file_path} with embeded date string {dates_list} readyness verified."
     )
     # this csv file is organized with descriptions in column 0 and values in column 1
@@ -142,18 +149,13 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
     #                                       ...
     # Read the CSV file with no headers
     try:
-        df = pd.read_csv(file_path, header=None)
+        df = panda.read_csv(file_path, header=None)
     except FileNotFoundError as e:
         return empty_df
+    logger.debug(f'Dataframe loaded.')
 
     # Rename the columns for better readability
     df.columns = ["Category", "Value"]
-
-    """ These values are not needed to be converted from strings for my current needs.
-    # Convert the 'Value' column from string to float
-    df['Value'] = df['Value'].replace('[\$,]', '', regex=True).astype(float)
-    """
-
     # Create a dictionary to track the occurrence of each category as we look for duplicate labels
     category_count = {}
 
@@ -169,34 +171,33 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
     # Apply the function to rename categories in the DataFrame
     df["Category"] = df["Category"].apply(rename_duplicate_categories)
 
-    logger.debug(f"{df}")
+    logger.debug(f"Renamed Dataframe:\n{df}")
 
     # Define the new rows as a list of dictionaries so we can add data to the bottom
     new_rows = [
         {"Category": "Device_ID", "Value": str(device_id)},
-        {
-            "Category": "Date",
-            "Value": dates_list[0],
-        },  # we only want the first date if more than 1 is provided
+        {"Category": "Date",  "Value": dates_list[0]},  # we only want the first date if more than 1 is provided
     ]
+    logger.debug(f'{new_rows=}')
 
     # Create a DataFrame from the new rows
-    new_df = pd.DataFrame(new_rows)
+    new_df = panda.DataFrame(new_rows)
+    logger.debug(f'{new_df=}')
 
     # Append the new DataFrame to the original DataFrame
-    df = pd.concat([df, new_df], ignore_index=True)
-
-    logger.debug(f"{df}")
+    df_appended = panda.concat([df, new_df], ignore_index=True)
+    logger.debug(f"{df_appended=}")
 
     # Set the first column as the index otherwise we would get the default index numbers as column headers when we rotate
-    df = df.set_index(df.columns[0])
+    df = df_appended.set_index(df.columns[0])
     # Rotate the DataFrame 90 degrees to the right
     rotated_df = df.transpose()
     # Reset the index
     rotated_df = rotated_df.reset_index(drop=True)
+    logger.debug(f'{rotated_df=}')
     logger.debug(f"{rotated_df.columns.to_list()=}")
 
-    # all work complete
+    # all dataframe customization complete
     return rotated_df
 
 
@@ -204,9 +205,11 @@ def aquire_this_data(file_path: Path, dates_list, device_id) -> bool:
 def ID_inside_filename(fn: Path):
     # unique to this data report the ID of the jukebox this data belongs to is only in the download filename
     # get the sub-string inside the parenthesis of the filename which is the jukebox ID
+    logger.info(f'Looking for Jukebox ID contained in filename.')
     file_name_string = fn.name
     logger.debug(f"{file_name_string=}")
-    parts = file_name_string.split("(")
+
+    parts = file_name_string.split("(")  # Juke ID is prefaced with a parenthesis
     logger.debug(f"{parts=}")
     if len(parts) > 1:
         subparts = parts[1].split(")")
@@ -223,8 +226,10 @@ def ID_inside_filename(fn: Path):
 
 
 @logger.catch()
-def process_df(df):
+def create_output_dataframe_from(df):
     # Remove un-needed columns
+    logger.info(f'Building the output dataframe.')
+
     cols_to_drop = [
         "1 Credit Jukebox",
         "Multi-Credit Jukebox",
@@ -248,6 +253,7 @@ def process_df(df):
         "Photobooth print",
         "Other fees",
     ]
+    
     # Check existing columns in the DataFrame
     existing_cols = df.columns.tolist()
     logger.debug(f"{existing_cols=}")
@@ -258,14 +264,25 @@ def process_df(df):
     df_dropped = df.drop(columns=cols_to_drop_filtered)
     logger.debug(f"{df_dropped.columns.tolist()=}")
     logger.debug(f"{df_dropped}")
+    
+    # some of the columns need better names
+    df_renamed = df_dropped.rename(columns={
+        'Mobile': 'Cellphone Revenue',
+        'Bill': 'Cash Money Revenue',
+        'Total fees': 'Music License Fees',
+        'Location split': 'Your Share',
+        'Operator split': 'Storz Share',
+    })    
+    
     # Add the Location details needed by referencing the Device_ID
     # Device IDs in the dictionary are left padded with 6 zeros
-    Dev_ID = df_dropped["Device_ID"].iloc[0]  # Extracts the first element
+    Dev_ID = df_renamed["Device_ID"].iloc[0]  # Don't understand why this is needed. Extracts the first element
     logger.debug(f"{Dev_ID=}")
-    logger.debug(f'"Date" field ={df_dropped["Date"].iloc[0]}')
+    logger.debug(f'"Date" field ={df_renamed["Date"].iloc[0]}')
+    # Juke IDs are 12 characters in the database but only 6 in the report
     Juke_ID = f"000000{Dev_ID}"
     logger.debug(f"{Juke_ID=}")
-    df_dropped["Location Name"] = jukebox_data_for_ID[Juke_ID]["Location name"]
+    df_renamed["Location Name"] = jukebox_data_for_ID[Juke_ID]["Location name"]
     # The location name is the only detail available currently from the jukebox details dictionary
-
-    return df_dropped
+    # work complete
+    return df_renamed
