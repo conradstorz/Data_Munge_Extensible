@@ -11,6 +11,7 @@ import pickle
 
 class EmailAttachmentDownloader:
     def __init__(self, email_user, email_password, download_folder, interval=600, uid_file='downloaded_uids.pkl'):
+        logger.debug('email INIT')
         self.email_user = email_user
         self.email_password = email_password
         self.download_folder = download_folder
@@ -20,6 +21,7 @@ class EmailAttachmentDownloader:
         self.downloaded_uids = self.load_uid_status()
 
     def load_uid_status(self):
+        logger.debug('load uid status')
         try:
             with open(self.uid_file, 'rb') as f:
                 return pickle.load(f)
@@ -27,10 +29,12 @@ class EmailAttachmentDownloader:
             return set()
 
     def save_uid_status(self):
+        logger.debug('saving uid status')
         with open(self.uid_file, 'wb') as f:
             pickle.dump(self.downloaded_uids, f)
 
     def download_attachments(self):
+        logger.debug('downloading attachements')
         ignored_extensions = [
             ".exe",
             ".bat",
@@ -44,12 +48,14 @@ class EmailAttachmentDownloader:
         with imaplib.IMAP4_SSL('imap.gmail.com') as mail:
             mail.login(self.email_user, self.email_password)
             mail.select('inbox')
-
+            logger.debug('accessing email')
             # Calculate the date 24 hours ago
             date_since = (datetime.now() - timedelta(days=1)).strftime("%d-%b-%Y")
 
             # Search for emails since the calculated date
             result, data = mail.search(None, f'(SINCE "{date_since}")')
+            logger.debug(f'{result=}')
+            logger.debug(f'{data=}')
             if result != "OK":
                 logger.error("No messages found!")
                 return
@@ -60,22 +66,31 @@ class EmailAttachmentDownloader:
                     continue
 
                 result, email_data = mail.uid('fetch', uid, '(RFC822)')
+                logger.debug(f'{result=}')
+                logger.debug(f'{email_data=}')
                 if result != 'OK':
                     logger.info(f'Failed to fetch email UID {uid}')
                     continue
 
-                msg = email.message_from_bytes(email_data[0][1])
-                logger.info(f'Processing email UID {uid}')
+                if email_data[0] != None:
+                    msg = email.message_from_bytes(email_data[0][1])
+                    logger.info(f'Processing email UID {uid}')
+                else:
+                    logger.error(f'email data empty.')
+                    continue
 
                 # Iterate over email parts
+                logger.debug('iterating over message parts')
                 for part in msg.walk():
                     if (
                         part.get_content_maintype() == 'multipart'
                         or part.get('Content-Disposition') is None
                     ):
+                        logger.info('message empty')
                         continue
 
                     filename = part.get_filename()
+                    logger.info(f'iterating filename "{filename}"')
                     if filename:
                         decoded_header = decode_header(filename)
                         filename, encoding = decoded_header[0]
@@ -98,7 +113,7 @@ class EmailAttachmentDownloader:
 
                         self.downloaded_uids.add(uid)
                         self.save_uid_status()
-
+            logger.debug('end email process')
             mail.logout()
 
 
