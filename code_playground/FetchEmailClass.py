@@ -1,6 +1,3 @@
-"""A class for monitoring email and saving JSON objects of email content.
-"""
-
 """A class for monitoring email and saving JSON objects of email content."""
 
 from imap_tools import MailBox, AND
@@ -14,6 +11,21 @@ from loguru import logger
 
 
 class EmailFetcher:
+    """
+    A class to fetch emails from an IMAP server and save their content as JSON files.
+
+    :param imap_server: The IMAP server address.
+    :type imap_server: str
+    :param username: The username to log in to the IMAP server.
+    :type username: str
+    :param password: The password to log in to the IMAP server.
+    :type password: str
+    :param mark_as_seen: Whether to mark emails as seen after fetching. Default is False.
+    :type mark_as_seen: bool
+    :param delay: The delay in seconds between each email fetching cycle. Default is 600 seconds.
+    :type delay: int
+    """
+
     def __init__(self, imap_server, username, password, mark_as_seen=False, delay=600):
         self.imap_server = imap_server
         self.username = username
@@ -26,7 +38,15 @@ class EmailFetcher:
 
     def sanitize_filename(self, filename):
         """
-        Sanitize the filename by removing or replacing invalid characters.
+        Sanitize a filename by removing or replacing invalid characters.
+
+        This method normalizes the filename, removes any non-alphanumeric characters,
+        and replaces spaces or hyphens with underscores.
+
+        :param filename: The original filename to sanitize.
+        :type filename: str
+        :return: The sanitized filename.
+        :rtype: str
         """
         logger.debug("Sanitizing filename: {}", filename)
         filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
@@ -36,6 +56,15 @@ class EmailFetcher:
         return filename
 
     def fetch_emails(self):
+        """
+        Fetch emails from the IMAP server based on the specified criteria.
+
+        Emails are fetched based on whether they are marked as seen or not,
+        depending on the `mark_as_seen` attribute. Each email is processed
+        individually after being fetched.
+
+        :raises Exception: If there is an error during the fetching process.
+        """
         try:
             with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                 logger.info("Logged in to IMAP server: {}", self.imap_server)
@@ -49,9 +78,19 @@ class EmailFetcher:
             logger.error("An error occurred while fetching emails: {}", str(e))
 
     def process_email(self, msg):
+        """
+        Process a single email message.
+
+        This method extracts the subject, sender, date, text, HTML content, and
+        attachments from the email. The email content is then saved as a JSON file
+        using a sanitized version of the email's subject as the filename.
+
+        :param msg: The email message to process.
+        :type msg: imap_tools.message.Message
+        :raises Exception: If there is an error during the processing of the email.
+        """
         try:
             logger.debug("Processing email: {}", msg.subject)
-            # Email processing logic here
             json_data = {
                 'subject': msg.subject,
                 'from': msg.from_,
@@ -67,6 +106,17 @@ class EmailFetcher:
             logger.error("An error occurred while processing email: {}", str(e))
 
     def save_json(self, data, filename):
+        """
+        Save the processed email data as a JSON file.
+
+        The JSON file is saved with the specified filename in the current directory.
+
+        :param data: The email data to save as JSON.
+        :type data: dict
+        :param filename: The filename to save the JSON data as.
+        :type filename: str
+        :raises Exception: If there is an error while saving the JSON file.
+        """
         try:
             filepath = Path(filename)
             with filepath.open('w', encoding='utf-8') as f:
@@ -76,6 +126,14 @@ class EmailFetcher:
             logger.error("An error occurred while saving JSON file: {}", str(e))
 
     def run(self):
+        """
+        Start the email fetching process.
+
+        This method starts an infinite loop that repeatedly fetches emails
+        at intervals specified by the `delay` attribute.
+
+        :raises KeyboardInterrupt: If the process is interrupted manually.
+        """
         logger.info("Starting email fetcher")
         while True:
             self.fetch_emails()
