@@ -7,14 +7,16 @@ import re
 from pathlib import Path
 from dotenv import dotenv_values
 import unicodedata
+import time
 
 
 class EmailFetcher:
-    def __init__(self, imap_server, username, password, mark_as_seen=False):
+    def __init__(self, imap_server, username, password, mark_as_seen=False, delay=600):
         self.imap_server = imap_server
         self.username = username
         self.password = password
         self.mark_as_seen = mark_as_seen
+        self.delay = delay
 
     def sanitize_filename(self, subject):
         """Sanitize the email subject to create a valid filename."""
@@ -22,7 +24,7 @@ class EmailFetcher:
         invalid_chars = r'[<>:"/\\|?*\x00-\x1F]'
         safe_subject = re.sub(invalid_chars, '', normalized_subject)
         safe_subject = re.sub(r'\s+', '_', safe_subject)  # Replace spaces with underscores
-        return safe_subject[:255]  # Limit filename length to avoid file system issues
+        return safe_subject[:128]  # Limit filename length to avoid file system issues
 
     def get_email(self):
         """Fetches unseen emails from the inbox."""
@@ -51,7 +53,8 @@ class EmailFetcher:
         try:
             while True:
                 self.get_email()
-                # Add any necessary delay or condition here
+                time.sleep(self.delay)
+                # Add any other necessary delay or condition here
         except KeyboardInterrupt:
             print("EmailFetcher stopped.")
 
