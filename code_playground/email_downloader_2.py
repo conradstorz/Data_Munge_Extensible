@@ -3,6 +3,7 @@ import email
 import json
 from email.header import decode_header
 import re
+import unicodedata
 from dotenv import dotenv_values
 from pathlib import Path
 
@@ -14,9 +15,11 @@ username = secrets["EMAIL_USER"]
 password = secrets["EMAIL_PASSWORD"]
 
 def sanitize_filename(subject):
+    # Normalize the string to NFKD form and encode it to ASCII bytes, ignoring errors
+    normalized_subject = unicodedata.normalize('NFKD', subject).encode('ascii', 'ignore').decode('ascii')
     # Define a regex pattern for invalid filename characters, including control characters
     invalid_chars = r'[<>:"/\\|?*\x00-\x1F]'
-    safe_subject = re.sub(invalid_chars, '', subject)  # Remove invalid characters
+    safe_subject = re.sub(invalid_chars, '', normalized_subject)  # Remove invalid characters
     safe_subject = re.sub(r'\s+', '_', safe_subject)  # Replace spaces with underscores
     return safe_subject[:255]  # Limit filename length to avoid file system issues
 
