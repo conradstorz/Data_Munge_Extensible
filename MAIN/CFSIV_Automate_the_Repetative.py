@@ -11,50 +11,49 @@ swaps these fields and removes extraneous words like 'ckcd', 'ach', 'pos', etc..
 I have worked with ChatGPT to create a framework for these scripts that will monitor my downloads directory and launch
 the proper script for processing the data that is incoming.
 
-TODO add a function that monitors my email and auto-downloads attachments for possible processing
 """
 
-if __name__ == "__main__":
-    from scripts_manager import ScriptManager
-    from file_processor import FileProcessor
-    from directory_watcher import monitor_download_directory
-    from email_watcher import EmailAttachmentDownloader
-    from loguru import logger
-    from pathlib import Path
-    from dotenv import dotenv_values
-    import sys
 
-    # Remove the default handler
-    logger.remove()
+from scripts_manager import ScriptManager
+from file_processor import FileProcessor
+from directory_watcher import monitor_download_directory
+from email_watcher import EmailAttachmentDownloader
+from loguru import logger
+from pathlib import Path
+from dotenv import dotenv_values
+import sys
 
-    # Add a handler for the console that logs messages at the INFO level and above
-    # Add the console handler with colorization enabled
-    logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
+# Remove the default handler
+logger.remove()
 
-    logger.add("LOGS/file_processing.log", rotation="00:00", retention="9 days")
-    
-    scripts_directory = Path.cwd() / "MAIN"
-    directory_to_watch = Path("D:/Users/Conrad/Downloads/")
-    secrets_directory = scripts_directory / Path(".env")
+# Add a handler for the console that logs messages at the INFO level and above
+# Add the console handler with colorization enabled
+logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
-    secrets = dotenv_values(secrets_directory)
+logger.add("LOGS/file_processing_{time:YYYY-MM-DD}.log", rotation="00:00", retention="9 days")
 
-    scripts_manager = ScriptManager(scripts_directory)
-    file_processor = FileProcessor(scripts_manager)
+scripts_directory = Path.cwd() / "MAIN"
+directory_to_watch = Path("D:/Users/Conrad/Downloads/")
 
-    email_downloader = EmailAttachmentDownloader(
-        email_user=secrets["EMAIL_USER"],
-        email_password=secrets["EMAIL_PASSWORD"],
-        download_folder=directory_to_watch,
-        interval=600,  # Check every 10 minutes
-    )
+scripts_manager = ScriptManager(scripts_directory)
+file_processor = FileProcessor(scripts_manager)
 
-    # Start the email attachment checking
-    email_downloader.start()
+secrets_directory = scripts_directory / Path(".env")
+secrets = dotenv_values(secrets_directory)
 
-    # This function will run until Keyboard Interrupt is detected
-    monitor_download_directory(directory_to_watch, file_processor, delay=10)
+email_downloader = EmailAttachmentDownloader(
+    email_user=secrets["EMAIL_USER"],
+    email_password=secrets["EMAIL_PASSWORD"],
+    download_folder=directory_to_watch,
+    interval=600,  # Check every 10 minutes
+)
 
-    print("directory watcher ended")
-    email_downloader.stop()
-    print("email watcher stopped")
+# Start the email attachment checking
+email_downloader.start()
+
+# This function will run until Keyboard Interrupt is detected
+monitor_download_directory(directory_to_watch, file_processor, delay=10)
+
+print("directory watcher ended")
+email_downloader.stop()
+print("email watcher stopped")
