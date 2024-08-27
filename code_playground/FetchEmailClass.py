@@ -33,8 +33,9 @@ class EmailFetcher:
         self.mark_as_seen = mark_as_seen
         self.delay = delay
 
-        logger.info("EmailFetcher initialized with server: {}, user: {}, mark_as_seen: {}, delay: {}",
-                    imap_server, username, mark_as_seen, delay)
+        logger.info(
+            f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {delay}"
+        )
 
     def sanitize_filename(self, filename):
         """
@@ -48,11 +49,11 @@ class EmailFetcher:
         :return: The sanitized filename.
         :rtype: str
         """
-        logger.debug("Sanitizing filename: {}", filename)
+        logger.debug(f"Sanitizing filename: {filename}")
         filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
         filename = re.sub(r'[^\w\s-]', '', filename).strip().lower()
         filename = re.sub(r'[-\s]+', '_', filename)
-        logger.debug("Sanitized filename: {}", filename)
+        logger.debug(f"Sanitized filename: {filename}")
         return filename
 
     def fetch_emails(self):
@@ -67,15 +68,15 @@ class EmailFetcher:
         """
         try:
             with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
-                logger.info("Logged in to IMAP server: {}", self.imap_server)
+                logger.info(f"Logged in to IMAP server: {self.imap_server}")
                 criteria = AND(seen=self.mark_as_seen)
-                logger.debug("Fetching emails with criteria: {}", criteria)
+                logger.debug(f"Fetching emails with criteria: {criteria}")
 
                 for msg in mailbox.fetch(criteria):
-                    logger.info("Email fetched: Subject: {}, From: {}", msg.subject, msg.from_)
+                    logger.info(f"Email fetched: Subject: {msg.subject}, From: {msg.from_}")
                     self.process_email(msg)
         except Exception as e:
-            logger.error("An error occurred while fetching emails: {}", str(e))
+            logger.error(f"An error occurred while fetching emails: {str(e)}")
 
     def process_email(self, msg):
         """
@@ -90,7 +91,7 @@ class EmailFetcher:
         :raises Exception: If there is an error during the processing of the email.
         """
         try:
-            logger.debug("Processing email: {}", msg.subject)
+            logger.debug(f"Processing email: {msg.subject}")
             json_data = {
                 'subject': msg.subject,
                 'from': msg.from_,
@@ -101,9 +102,9 @@ class EmailFetcher:
             }
             filename = self.sanitize_filename(msg.subject) + '.json'
             self.save_json(json_data, filename)
-            logger.info("Processed and saved email: {}", filename)
+            logger.info(f"Processed and saved email: {filename}")
         except Exception as e:
-            logger.error("An error occurred while processing email: {}", str(e))
+            logger.error(f"An error occurred while processing email: {str(e)}")
 
     def save_json(self, data, filename):
         """
@@ -121,9 +122,9 @@ class EmailFetcher:
             filepath = Path(filename)
             with filepath.open('w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=4)
-            logger.info("Saved JSON file: {}", filepath)
+            logger.info(f"Saved JSON file: {filepath}")
         except Exception as e:
-            logger.error("An error occurred while saving JSON file: {}", str(e))
+            logger.error(f"An error occurred while saving JSON file: {str(e)}")
 
     def run(self):
         """
@@ -137,7 +138,7 @@ class EmailFetcher:
         logger.info("Starting email fetcher")
         while True:
             self.fetch_emails()
-            logger.info("Sleeping for {} seconds", self.delay)
+            logger.info(f"Sleeping for {self.delay} seconds")
             time.sleep(self.delay)
 
 
