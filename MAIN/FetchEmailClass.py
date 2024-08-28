@@ -37,25 +37,6 @@ class EmailFetcher:
             f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {delay}"
         )
 
-    def sanitize_filename(self, filename):
-        """
-        Sanitize a filename by removing or replacing invalid characters.
-
-        This method normalizes the filename, removes any non-alphanumeric characters,
-        and replaces spaces or hyphens with underscores.
-
-        :param filename: The original filename to sanitize.
-        :type filename: str
-        :return: The sanitized filename.
-        :rtype: str
-        """
-        logger.debug(f"Sanitizing filename: {filename}")
-        filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
-        filename = re.sub(r'[^\w\s-]', '', filename).strip().lower()
-        filename = re.sub(r'[-\s]+', '_', filename)
-        logger.debug(f"Sanitized filename: {filename}")
-        return filename
-
     def fetch_emails(self):
         """
         Fetch emails from the IMAP server based on the specified criteria.

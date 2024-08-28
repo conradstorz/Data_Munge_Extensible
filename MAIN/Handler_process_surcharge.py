@@ -27,6 +27,8 @@ from loguru import logger
 from pathlib import Path
 from whenever import Instant
 from dataframe_functions import save_results_and_print
+from customize_dataframe_for_excel import set_custom_excel_formatting  # This function is probably in "generic_excel_functions.py" now
+
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
@@ -132,9 +134,6 @@ def custom_json_serializer(obj):
         return obj
     else:
         return str(obj)
-
-
-from customize_dataframe_for_excel import set_custom_excel_formatting
 
 
 def validate_value(value, min_value=0, max_value=float("inf")):

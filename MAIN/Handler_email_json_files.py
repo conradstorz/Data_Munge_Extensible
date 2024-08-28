@@ -94,6 +94,7 @@ def aquire_data(file_path, filedates_list):
     except FileNotFoundError as e:
         return empty_df
     logger.debug(f'Dataframe loaded.')
+    # TODO place pre-processing code here
     return df
 
 
