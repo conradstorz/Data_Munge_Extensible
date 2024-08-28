@@ -3,16 +3,14 @@ from pathlib import Path
 from loguru import logger
 import time
 import sys
+from datetime import datetime
 
 logger.catch()
-
-
 def get_first_new_file(directory_to_watch, pickle_file):
     """
-    Checks the download directory, removes missing filenames from pickle,
-    and returns the first new filename it finds. Updates the pickle file.
-        # NOTE: Edge Case: When my bank downloads data it uses the same name for all downloads on any given day and this stops the file from being processed.
-        as such the workaround will be to manually rename the file when it arrives.
+    Checks the download directory, renames new files by appending a timestamp,
+    removes missing filenames from pickle, and returns the first new filename it finds. 
+    Updates the pickle file.
 
     :param directory_to_watch: Directory to monitor for new files
     :type directory_to_watch: str or Path
@@ -24,32 +22,52 @@ def get_first_new_file(directory_to_watch, pickle_file):
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
 
-    # Load existing filenames from pickle file
+    # Load existing filenames from pickle
     if pickle_file.exists():
-        with open(pickle_file, "rb") as f:
-            existing_files = set(pickle.load(f))
+        with pickle_file.open('rb') as pf:
+            existing_files = pickle.load(pf)
     else:
         existing_files = set()
 
-    # Get current filenames in the directory
-    current_files = {f.name for f in directory_to_watch.iterdir() if f.is_file()}
-
-    # Find new files by comparing current files with existing files
+    # Update the list of files in the directory
+    current_files = set(directory_to_watch.iterdir())
     new_files = current_files - existing_files
 
-    if new_files:
-        # Pick the first new file
-        new_file = new_files.pop()
-
-        # Update pickle with the new file
-        existing_files.add(new_file)
-        with open(pickle_file, "wb") as f:
-            pickle.dump(existing_files, f)
-
-        return Path(new_file)
-    else:
+    if not new_files:
+        logger.info("No new files found.")
         return None
 
+    # Process the first new file
+    for new_file in new_files:
+        if new_file.is_file():
+            # Check for duplicate filenames and rename the file by appending a timestamp
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+            # If a file with the same name exists, append a timestamp to avoid conflicts
+            new_filename = f"{new_file.stem}_{timestamp}{new_file.suffix}"
+            new_file_path = directory_to_watch / new_filename
+            
+            # Loop to ensure no conflicts even after renaming
+            while new_file_path.exists():
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                new_filename = f"{new_file.stem}_{timestamp}{new_file.suffix}"
+                new_file_path = directory_to_watch / new_filename
+            
+            new_file.rename(new_file_path)
+            new_file = new_file_path
+    
+            new_filepath = new_file.with_name(new_filename)
+            new_file.rename(new_filepath)
+            logger.info(f"Renamed file: {new_file.name} -> {new_filename}")
+
+            # Update the pickle file
+            existing_files.add(new_filepath)
+            with pickle_file.open('wb') as pf:
+                pickle.dump(existing_files, pf)
+
+            return str(new_filepath)
+
+    return None
 
 @logger.catch()
 def monitor_download_directory(directory_to_watch, file_processor, delay=1):
