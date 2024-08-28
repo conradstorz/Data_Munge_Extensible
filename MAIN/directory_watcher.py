@@ -6,6 +6,7 @@ import sys
 from datetime import datetime
 
 logger.catch()
+
 def get_first_new_file(directory_to_watch, pickle_file):
     """
     Checks the download directory, renames new files by appending a timestamp,
@@ -71,9 +72,30 @@ def get_first_new_file(directory_to_watch, pickle_file):
 
 @logger.catch()
 def monitor_download_directory(directory_to_watch, file_processor, delay=1):
+    """
+    Monitors the specified directory for new files, processes them using the provided file_processor,
+    and logs the progress. Ignores certain file types.
+
+    :param directory_to_watch: Directory to monitor for new files
+    :type directory_to_watch: str or Path
+    :param file_processor: Object responsible for processing new files
+    :type file_processor: object
+    :param delay: Time delay between checks for new files, in seconds, defaults to 1
+    :type delay: int, optional
+    :return: True when the monitoring loop exits
+    :rtype: bool
+    """
 
     def indicate_progress(count):
-        count =+ 1
+        """
+        Displays progress by printing a dot to the console periodically.
+
+        :param count: Current progress count
+        :type count: int
+        :return: Updated progress count
+        :rtype: int
+        """
+        count = +1
         sys.stdout.write('.')
         sys.stdout.flush()    
         if count > 60:
