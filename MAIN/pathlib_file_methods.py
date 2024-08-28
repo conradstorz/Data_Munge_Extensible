@@ -4,6 +4,26 @@ from loguru import logger
 from pathlib import Path
 
 
+def sanitize_filename(self, filename):
+    """
+    Sanitize a filename by removing or replacing invalid characters.
+
+    This method normalizes the filename, removes any non-alphanumeric characters,
+    and replaces spaces or hyphens with underscores.
+
+    :param filename: The original filename to sanitize.
+    :type filename: str
+    :return: The sanitized filename.
+    :rtype: str
+    """
+    logger.debug(f"Sanitizing filename: {filename}")
+    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
+    filename = re.sub(r'[^\w\s-]', '', filename).strip().lower()
+    filename = re.sub(r'[-\s]+', '_', filename)
+    logger.debug(f"Sanitized filename: {filename}")
+    return filename
+
+
 @logger.catch()
 def delete_file_and_verify(file_path):
     try:
