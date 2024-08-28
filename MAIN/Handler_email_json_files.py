@@ -65,8 +65,6 @@ def handler_process(file_path: Path):
     filedates_list = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedates_list}")
 
-    
-
     output_file = Path(
         f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}"
     )
@@ -87,7 +85,6 @@ def handler_process(file_path: Path):
     return True
 
 
-
 @logger.catch
 def aquire_data(file_path, filedates_list):
     # load file into dataframe with needed pre-processing
@@ -106,7 +103,7 @@ def process_this_data(raw_dataframe, date_str, output_file) -> bool:
     empty_df = panda.DataFrame()
 
     # *** place custom code here ***
-
+    
     print(f"{output_file} with embeded date string {date_str} readyness verified.")
 
     # all work complete
