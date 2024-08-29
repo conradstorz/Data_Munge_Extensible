@@ -65,8 +65,20 @@ def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
 
 @logger.catch()
 def dataframe_contains(df, list):
-    """Examine dataframe for existance of columns named in list
-    and return list of columns from list that do exist.
+    """
+    Examine a DataFrame for the existence of columns named in the provided list and return a list of columns that do exist.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame to examine.
+    list : list of str
+        List of column names to check for in the DataFrame.
+
+    Returns
+    -------
+    list of str
+        A list of column names that exist in the DataFrame.
     """
     column_list = df.columns.tolist()
     matched_columns = [col for col in list if col in column_list]
@@ -75,7 +87,19 @@ def dataframe_contains(df, list):
 
 @logger.catch()
 def de_duplicate_header_names(df):
-    # Rename duplicate columns to ensure uniqueness
+    """
+    Rename duplicate column names in a DataFrame to ensure uniqueness.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame with potential duplicate column names.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The DataFrame with unique column names.
+    """
     new_columns = []
     column_count = {}
     for col in df.columns:
@@ -91,23 +115,23 @@ def de_duplicate_header_names(df):
 
 
 @logger.catch()
-def save_results_and_print(output_file, result, file_path):
-    # This wrapper function is to maintain compatabilitiy with existing code
-    save_results(output_file, result, file_path)
-
-
-@logger.catch()
-def save_results(outfile: Path, frame, input_filename: Path) -> bool:
+def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     """
     Save results to a file and manage file movement.
 
-    Args:
-        outfile (Path): Path to the output file.
-        frame (DataFrame): Data to be saved.
-        input_filename (Path): Original input file name.
+    Parameters
+    ----------
+    outfile : Path
+        Path to the output file.
+    frame : pandas.DataFrame
+        The DataFrame containing the data to be saved.
+    input_filename : Path
+        Original input file name.
 
-    Returns:
-        bool: True if successful, False otherwise.
+    Returns
+    -------
+    bool
+        True if the process was successful, False otherwise.
     """
     try:
         if len(frame) > 0:
