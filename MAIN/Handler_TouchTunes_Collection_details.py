@@ -23,7 +23,7 @@ FILENAME_STRINGS_TO_MATCH = [
 ARCHIVE_DIRECTORY_NAME = "TouchTunes_Collection_History"
 
 
-class Declaration:
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -50,8 +50,8 @@ class Declaration:
         return FILENAME_STRINGS_TO_MATCH
 
 
-# activate declaration below when script is ready
-declaration = Declaration()
+# activate file matcher
+declaration = FileMatcher()
 
 
 @logger.catch

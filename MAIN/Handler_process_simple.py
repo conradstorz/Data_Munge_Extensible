@@ -31,7 +31,7 @@ ARCHIVE_DIRECTORY_NAME = "SimpleTerminalData"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
 
 
-class Declaration:
+class FileMatcher
     """
     Declaration for matching files to the script.
 
@@ -59,7 +59,7 @@ class Declaration:
 
 
 # activate declaration
-declaration = Declaration()
+declaration = FileMatcher)
 
 
 @logger.catch

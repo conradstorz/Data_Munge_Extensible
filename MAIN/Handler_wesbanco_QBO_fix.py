@@ -13,7 +13,7 @@ FILE_EXTENSION = ".qbo"
 FILENAME_STRINGS_TO_MATCH = ["Export-", "dummy place holder"]
 
 
-class Declaration:
+class FileMatcher
     """
     Declaration for matching files to the script.
 
@@ -41,7 +41,7 @@ class Declaration:
 
 
 # activate declaration
-declaration = Declaration()
+declaration = FileMatcher)
 
 
 @logger.catch
