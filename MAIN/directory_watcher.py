@@ -24,7 +24,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     """
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
-    ignore_extensions = ignore_extensions or []
+    ignore_extensions = ignore_extensions or []  # This is a good way to avoid the mutable variable problem
 
     # Load existing filenames from pickle
     if pickle_file.exists():
@@ -34,7 +34,12 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
         existing_files = set()
 
     # Update the list of files in the directory
-    current_files = set(directory_to_watch.iterdir())
+    try:
+        current_files = set(directory_to_watch.iterdir())
+    except FileNotFoundError as e:
+        logger.error(f'Could not access directory: {e}')
+        sys.exit(0)
+
     new_files = {f for f in current_files if f.name not in existing_files}
 
     if not new_files:
@@ -107,17 +112,15 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
     loops = 0
     try:
         while True:
-            time.sleep(delay)  # Set the pace for how often to look for new files.
             loops = indicate_progress(loops)      
-            new_file = get_first_new_file(
-                directory_to_watch, "./download_history_file.pkl"
-            )
+            new_file = get_first_new_file(directory_to_watch, "./download_history_file.pkl")
             if new_file:
                 if Path(new_file).suffix in [".ini", ".tmp", ".png"]:
                     logger.debug(f"Ignoring file found: {new_file}")
                 else:                    
                     logger.info(f'File found to attempt processing {new_file}')
                     file_processor.process(directory_to_watch / new_file)
+            time.sleep(delay)  # Set the pace for how often to look for new files.
 
     except KeyboardInterrupt:
         logger.info(f"Keyboard interrupt detected.")
