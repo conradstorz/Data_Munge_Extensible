@@ -1,4 +1,5 @@
-"""Defines common functions for working with dataframes used throughout my code
+"""
+Defines common functions for working with dataframes used throughout my code
 """
 
 from loguru import logger
@@ -9,7 +10,19 @@ from generic_pathlib_file_methods import move_file_with_check
 
 @logger.catch()
 def data_from_csv(in_f):
-    """Import a CSV file into a datframe"""
+    """
+    Import a CSV file into a dataframe.
+
+    Parameters
+    ----------
+    in_f : str
+        Path to the CSV file to be loaded.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the data from the CSV file. Returns an empty DataFrame if the file cannot be loaded.
+    """
     empty_df = panda.DataFrame()
     # load csv file into dataframe
     logger.debug(f"Reading CSV data using Pandas on file {in_f}")
@@ -27,6 +40,21 @@ def data_from_csv(in_f):
 
 @logger.catch()
 def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
+    """
+    Load a CSV file into a DataFrame with optional headers.
+
+    Parameters
+    ----------
+    in_f : str
+        Path to the CSV file to be loaded.
+    headers : list of str, optional
+        List of column headers. If not provided, the headers will be inferred from the file.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the data from the CSV file. If the file cannot be loaded, an empty DataFrame is returned.
+    """
     # Set headers to empty list if it's an empty string
     if headers == "":
         headers = []
