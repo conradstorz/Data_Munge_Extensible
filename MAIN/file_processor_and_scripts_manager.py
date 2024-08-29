@@ -81,6 +81,10 @@ class ScriptManager:
         """
         logger.info(f"Attempting to match script to file: {filename}")
         for script_name, script in self.scripts.items():
+            logger.debug(f'{script_name=}')
+            logger.debug(f'{script=}')
+            logger.debug(f'{script["declaration"]=}')
+            logger.debug(f'{script["process"]=}')
             if script["declaration"].matches(filename):
                 logger.info(f"Script found: {script_name}")
                 return script["process"]
