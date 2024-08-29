@@ -20,33 +20,35 @@ class ScriptManager:
         """
         Loads all the scripts from the specified directory.
         """
+        logger.debug(f'Starting loading of scripts...')
         if not self.scripts_path.exists() or not self.scripts_path.is_dir():
             logger.error(f"Invalid scripts path: {self.scripts_path}")
             sys.exit(1)
 
         logger.info(f"Loading scripts from {self.scripts_path}")
-
-        for script_file in self.scripts_path.glob("*.py"):
+        files = list(self.scripts_path.glob("*.py"))
+        pretty_list_of_files = pprint.pformat(files, width=160)
+        logger.debug(f'{pretty_list_of_files=}')
+        
+        for script_file in files:
             script_name = script_file.stem
-            logger.info(f"Loading script: {script_name}")
-
-            try:
-                spec = importlib.util.spec_from_file_location(script_name, script_file)
-                module = importlib.util.module_from_spec(spec)
-                spec.loader.exec_module(module)
-
-                if hasattr(module, "declaration") and hasattr(module, "handler_process"):
-                    self.scripts[script_name] = {
-                        "declaration": module.declaration,
-                        "process": module.handler_process,
-                    }
-                else:
-                    logger.warning(
-                        f"Script {script_name} does not have both required 'declaration' and 'handler_process' attributes, will not implement handler."
-                    )
-
-            except Exception as e:
-                logger.error(f"Failed to load script {script_name}: {e}")
+            if "handler" in script_name.lower():
+                logger.info(f"Attempting to load handler {script_name}")
+                try:
+                    module = importlib.import_module(f"{script_name}")
+                except Exception as e:
+                    logger.error(f"Failed to import script {script_name}: {e}")
+                else:  # no exception during import, continue
+                    if hasattr(module, "declaration") and hasattr(
+                        module, "handler_process"
+                    ):
+                        self.scripts[script_name] = {
+                            "declaration": module.declaration,
+                            "process": module.handler_process,
+                        }
+                        logger.info(f"Loaded script: {script_name}")
+                    else:
+                        logger.warning(f"Script {script_name} does not have both required 'declaration' and 'handler_process' attributes, will not implement handler.")
 
         logger.info(f"{len(self.scripts)} data handling scripts loaded.")
         if len(self.scripts) < 1:
