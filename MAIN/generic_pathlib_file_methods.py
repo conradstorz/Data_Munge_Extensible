@@ -28,6 +28,7 @@ def sanitize_filename(filename):
 
 @logger.catch()
 def delete_file_and_verify(file_path):
+    logger.info(f'Attempting to delete file {file_path}')
     try:
         # Create a Path object
         file = Path(file_path)

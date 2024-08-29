@@ -53,8 +53,10 @@ def set_custom_excel_formatting(df, writer, details):
 @logger.catch()
 def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
     """Takes a dataframe and outputs to excel file."""
+    logger.info(f'Applying formatting rules to excel file...')
     apply_formatting_and_save(filename, frame)
     time.sleep(1)  # Allow time for file to save
+    logger.info(f'Sending excel file to printer...')
     print_excel_file(filename)
 
 
@@ -113,6 +115,7 @@ def apply_formatting_and_save(filename, frame):
     try:
         # Create a pandas ExcelWriter object
         logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
+        logger.debug(f'{frame=}')
         with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
             # Write the DataFrame to the Excel file
             logger.debug(f"Writing DataFrame to Excel file")
@@ -120,6 +123,7 @@ def apply_formatting_and_save(filename, frame):
             logger.debug(f"Applying custom column formatting")
             set_custom_excel_formatting(frame, writer, column_details)
             logger.info("All work done. Saving worksheet...")
+            logger.debug(f'{frame=}')
             # File creation ends here and is saved automatically.
 
     except Exception as e:
@@ -129,7 +133,7 @@ def apply_formatting_and_save(filename, frame):
 
 def print_excel_file(filename):
     # Now we print
-    logger.info("Send processed file to printer...")
+    logger.info("Send processed excel file to printer...")
     try:
         # this should launch the system spreadsheet program and trigger the print function.
         # A possible failure mode here is that the output goes to the same destination as the last

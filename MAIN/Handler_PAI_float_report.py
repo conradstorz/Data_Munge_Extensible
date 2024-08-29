@@ -9,8 +9,8 @@ from pathlib import Path
 from loguru import logger
 import pandas as panda
 import numpy as np
+from generic_dataframe_functions import convert_dataframe_to_excel_with_formatting_and_save
 from generic_munge_functions import extract_date_from_filename
-from generic_dataframe_functions import save_results_and_print
 from generic_dataframe_functions import data_from_csv
 from generic_dataframe_functions import dataframe_contains
 
@@ -80,7 +80,7 @@ def handler_process(file_path: Path):
             return False
         else:
             if len(result) > 0:
-                save_results_and_print(output_file, result, file_path)
+                convert_dataframe_to_excel_with_formatting_and_save(output_file, result)
             else:
                 logger.error(f"No data found to process")
                 return False
