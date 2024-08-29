@@ -13,47 +13,42 @@ the proper script for processing the data that is incoming.
 
 """
 
-
-from scripts_manager import ScriptManager
-from file_processor import FileProcessor
+from file_processor_and_scripts_manager import ScriptManager, FileProcessor
 from directory_watcher import monitor_download_directory
-from email_watcher import EmailAttachmentDownloader
+from FetchEmailClass import EmailFetcher
 from loguru import logger
 from pathlib import Path
 from dotenv import dotenv_values
 import sys
 
+# setup logging
 # Remove the default handler
 logger.remove()
-
 # Add a handler for the console that logs messages at the INFO level and above
 # Add the console handler with colorization enabled
 logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
-
 logger.add("LOGS/file_processing_{time:YYYY-MM-DD}.log", rotation="00:00", retention="9 days")
 
+# load data processing functions
 scripts_directory = Path.cwd() / "MAIN"
 directory_to_watch = Path("D:/Users/Conrad/Downloads/")
-
 scripts_manager = ScriptManager(scripts_directory)
+scripts_manager.load_scripts()
 file_processor = FileProcessor(scripts_manager)
+file_processor.process(directory_to_watch)
 
+# load email secrets
 secrets_directory = scripts_directory / Path(".env")
 secrets = dotenv_values(secrets_directory)
-
-email_downloader = EmailAttachmentDownloader(
-    email_user=secrets["EMAIL_USER"],
-    email_password=secrets["EMAIL_PASSWORD"],
-    download_folder=directory_to_watch,
-    interval=600,  # Check every 10 minutes
-)
-
-# Start the email attachment checking
-email_downloader.start()
+imap_server = "imap.gmail.com"
+# initiate class  (has optional flag 'mark_as_read' that defaults to False)
+email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=600)
+# start fetcher
+email_fetcher.run()
 
 # This function will run until Keyboard Interrupt is detected
 monitor_download_directory(directory_to_watch, file_processor, delay=10)
 
 print("directory watcher ended")
-email_downloader.stop()
+email_fetcher.stop()
 print("email watcher stopped")
