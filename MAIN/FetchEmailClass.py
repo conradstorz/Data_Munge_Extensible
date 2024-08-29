@@ -2,13 +2,11 @@
 
 from imap_tools import MailBox, AND
 import json
-import re
 from pathlib import Path
 from dotenv import dotenv_values
-import unicodedata
 import time
 from loguru import logger
-
+from generic_pathlib_file_methods import sanitize_filename
 
 class EmailFetcher:
     """
@@ -81,7 +79,7 @@ class EmailFetcher:
                 'html': msg.html,
                 'attachments': [att.filename for att in msg.attachments]
             }
-            filename = self.sanitize_filename(msg.subject) + '.json'
+            filename = sanitize_filename(msg.subject) + '.json'
             self.save_json(json_data, filename)
             logger.info(f"Processed and saved email: {filename}")
         except Exception as e:
