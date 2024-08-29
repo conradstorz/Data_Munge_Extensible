@@ -17,7 +17,7 @@ ARCHIVE_DIRECTORY_NAME = (
 )
 
 
-class Declaration:
+class FileMatcher
     """
     Declaration for matching files to the script.
 
@@ -45,7 +45,7 @@ class Declaration:
 
 
 # activate declaration below when script is ready
-# declaration = Declaration()
+# declaration = FileMatcher)
 
 
 @logger.catch

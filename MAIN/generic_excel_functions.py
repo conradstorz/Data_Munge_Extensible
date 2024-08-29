@@ -53,7 +53,7 @@ def set_custom_excel_formatting(df, writer, details):
 @logger.catch()
 def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
     """Takes a dataframe and outputs to excel file."""
-    logger.info(f'Applying formatting rules to excel file...')
+    logger.info(f'Applying formatting rules and write excel file...')
     apply_formatting_and_save(filename, frame)
     time.sleep(1)  # Allow time for file to save
     logger.info(f'Sending excel file to printer...')

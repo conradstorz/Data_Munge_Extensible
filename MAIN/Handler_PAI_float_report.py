@@ -9,10 +9,13 @@ from pathlib import Path
 from loguru import logger
 import pandas as panda
 import numpy as np
-from generic_dataframe_functions import convert_dataframe_to_excel_with_formatting_and_save
+import time
+from generic_excel_functions import apply_formatting_and_save
+from generic_excel_functions import print_excel_file
 from generic_munge_functions import extract_date_from_filename
 from generic_dataframe_functions import data_from_csv
 from generic_dataframe_functions import dataframe_contains
+
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
@@ -26,7 +29,7 @@ FILENAME_STRINGS_TO_MATCH = [
 ARCHIVE_DIRECTORY_NAME = "FloatReport"
 
 
-class Declaration:
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -53,14 +56,14 @@ class Declaration:
         return FILENAME_STRINGS_TO_MATCH
 
 
-# activate the daclaration
-declaration = Declaration()
+# activate the file matcher
+declaration = FileMatcher()
 
 
 @logger.catch
 def handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
-    if not file_path.exists:
+    if not file_path.exists():
         logger.error(f"File to process does not exist.")
         return False
     else:
@@ -80,7 +83,12 @@ def handler_process(file_path: Path):
             return False
         else:
             if len(result) > 0:
-                convert_dataframe_to_excel_with_formatting_and_save(output_file, result)
+                logger.info(f'Applying formatting rules and writing excel file...')
+                apply_formatting_and_save(output_file, result)
+                time.sleep(1)  # Allow time for file to save
+                logger.info(f'Sending excel file to printer...')
+                print_excel_file(output_file)
+                #convert_dataframe_to_excel_with_formatting_and_save(output_file, result)
             else:
                 logger.error(f"No data found to process")
                 return False

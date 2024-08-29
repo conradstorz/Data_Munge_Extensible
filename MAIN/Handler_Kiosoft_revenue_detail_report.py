@@ -16,7 +16,7 @@ FILENAME_STRINGS_TO_MATCH = [
 ARCHIVE_DIRECTORY_NAME = "KioSoft_History"
 
 
-class Declaration:
+class FileMatcher
     """
     Declaration for matching files to the script.
 
@@ -44,7 +44,7 @@ class Declaration:
 
 
 # activate declaration below when script is ready
-declaration = Declaration()
+declaration = FileMatcher)
 
 
 @logger.catch

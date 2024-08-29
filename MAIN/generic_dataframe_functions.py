@@ -1,4 +1,5 @@
-"""Defines common functions for working with dataframes used throughout my code
+"""
+Defines common functions for working with dataframes used throughout my code
 """
 
 from loguru import logger
@@ -9,7 +10,19 @@ from generic_pathlib_file_methods import move_file_with_check
 
 @logger.catch()
 def data_from_csv(in_f):
-    """Import a CSV file into a datframe"""
+    """
+    Import a CSV file into a dataframe.
+
+    Parameters
+    ----------
+    in_f : str
+        Path to the CSV file to be loaded.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the data from the CSV file. Returns an empty DataFrame if the file cannot be loaded.
+    """
     empty_df = panda.DataFrame()
     # load csv file into dataframe
     logger.debug(f"Reading CSV data using Pandas on file {in_f}")
@@ -27,6 +40,21 @@ def data_from_csv(in_f):
 
 @logger.catch()
 def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
+    """
+    Load a CSV file into a DataFrame with optional headers.
+
+    Parameters
+    ----------
+    in_f : str
+        Path to the CSV file to be loaded.
+    headers : list of str, optional
+        List of column headers. If not provided, the headers will be inferred from the file.
+
+    Returns
+    -------
+    pandas.DataFrame
+        A DataFrame containing the data from the CSV file. If the file cannot be loaded, an empty DataFrame is returned.
+    """
     # Set headers to empty list if it's an empty string
     if headers == "":
         headers = []
@@ -65,8 +93,20 @@ def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
 
 @logger.catch()
 def dataframe_contains(df, list):
-    """Examine dataframe for existance of columns named in list
-    and return list of columns from list that do exist.
+    """
+    Examine a DataFrame for the existence of columns named in the provided list and return a list of columns that do exist.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame to examine.
+    list : list of str
+        List of column names to check for in the DataFrame.
+
+    Returns
+    -------
+    list of str
+        A list of column names that exist in the DataFrame.
     """
     column_list = df.columns.tolist()
     matched_columns = [col for col in list if col in column_list]
@@ -75,7 +115,19 @@ def dataframe_contains(df, list):
 
 @logger.catch()
 def de_duplicate_header_names(df):
-    # Rename duplicate columns to ensure uniqueness
+    """
+    Rename duplicate column names in a DataFrame to ensure uniqueness.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        The DataFrame with potential duplicate column names.
+
+    Returns
+    -------
+    pandas.DataFrame
+        The DataFrame with unique column names.
+    """
     new_columns = []
     column_count = {}
     for col in df.columns:
@@ -91,23 +143,23 @@ def de_duplicate_header_names(df):
 
 
 @logger.catch()
-def save_results_and_print(output_file, result, file_path):
-    # This wrapper function is to maintain compatabilitiy with existing code
-    save_results(output_file, result, file_path)
-
-
-@logger.catch()
-def save_results(outfile: Path, frame, input_filename: Path) -> bool:
+def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     """
     Save results to a file and manage file movement.
 
-    Args:
-        outfile (Path): Path to the output file.
-        frame (DataFrame): Data to be saved.
-        input_filename (Path): Original input file name.
+    Parameters
+    ----------
+    outfile : Path
+        Path to the output file.
+    frame : pandas.DataFrame
+        The DataFrame containing the data to be saved.
+    input_filename : Path
+        Original input file name.
 
-    Returns:
-        bool: True if successful, False otherwise.
+    Returns
+    -------
+    bool
+        True if the process was successful, False otherwise.
     """
     try:
         if len(frame) > 0:
@@ -127,26 +179,48 @@ def save_results(outfile: Path, frame, input_filename: Path) -> bool:
 
 
 def send_dataframe_to_file(outfile: Path, frame):
-    # Save the dataframe to a file
+    """
+    Save the DataFrame to a file.
+
+    Args:
+        outfile (Path): The path where the DataFrame will be saved.
+        frame (DataFrame): The DataFrame to be saved.
+
+    Returns:
+        None
+    """
     frame.to_csv(outfile, index=False)
     logger.info(f"Dataframe saved to {outfile}")
 
 
 def print_dataframe(frame):
-    # Print the dataframe
+    """
+    Print the DataFrame to the console.
+
+    Args:
+        frame (DataFrame): The DataFrame to be printed.
+
+    Returns:
+        None
+    """
     logger.info(frame)
     logger.info("Dataframe printed to console")
 
 
-def Send_dataframe_to_file_and_print(outfile: Path, frame):
+def send_dataframe_to_file_and_print(outfile: Path, frame):
     """
-    Save the dataframe to a file and print it.
+    Save the DataFrame to a file and print it.
+
+    This function saves the provided DataFrame to the specified file path and
+    prints the DataFrame to the console.
 
     Args:
-        outfile (Path): Path to the output file.
-        frame (DataFrame): Data to be saved and printed.
+        outfile (Path): The path where the DataFrame will be saved.
+        frame (DataFrame): The DataFrame to be saved and printed.
+
+    Returns:
+        None
     """
     convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
     send_dataframe_to_file(outfile, frame)
     print_dataframe(frame)
-

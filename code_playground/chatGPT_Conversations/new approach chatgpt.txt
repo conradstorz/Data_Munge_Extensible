@@ -100,14 +100,14 @@ Each script should declare which files it can process. Define a standard interfa
 Example of a script (`scripts/example_script.py`):
 
 ```python
-class Declaration:
+class FileMatcher
     def matches(self, filename):
         return filename.endswith('.txt') or 'example' in filename
 
 def process(file_path):
     print(f"Processing {file_path} with example_script")
 
-declaration = Declaration()
+declaration = FileMatcher)
 ```
 
 ### Full Integration

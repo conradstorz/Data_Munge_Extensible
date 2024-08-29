@@ -1,11 +1,7 @@
 import pandas as panda
 from loguru import logger
 from pathlib import Path
-from generic_munge_functions import extract_date_from_filename_using_regularExpressions
-from generic_munge_functions import extract_date_from_filename
-from generic_dataframe_functions import save_results_and_print
-from generic_dataframe_functions import data_from_csv
-from generic_dataframe_functions import dataframe_contains
+from generic_munge_functions import extract_dates
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
@@ -21,7 +17,7 @@ ARCHIVE_DIRECTORY_NAME = (
 )
 
 
-class Declaration:
+class FileMatcher
     """
     Declaration for matching files to the script.
 
@@ -49,7 +45,7 @@ class Declaration:
 
 
 # activate declaration below when script is ready
-# declaration = Declaration()
+# declaration = FileMatcher)
 
 
 @logger.catch

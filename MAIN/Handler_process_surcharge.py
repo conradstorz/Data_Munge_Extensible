@@ -47,7 +47,7 @@ REPORT_DEFINITIONS_FILE = (
 )  # this dictionary will contain information about individual reports layouts
 
 
-class Declaration:
+class FileMatcher
     """
     Declaration for matching files to the script.
 
@@ -75,7 +75,7 @@ class Declaration:
 
 
 # activate declaration below when script is ready
-declaration = Declaration()
+declaration = FileMatcher)
 
 
 @logger.catch
