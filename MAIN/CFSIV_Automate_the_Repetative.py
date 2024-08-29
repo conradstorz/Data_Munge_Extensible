@@ -42,7 +42,10 @@ secrets_directory = scripts_directory / Path(".env")
 secrets = dotenv_values(secrets_directory)
 imap_server = "imap.gmail.com"
 # initiate class  (has optional flag 'mark_as_read' that defaults to False)
-email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=600)
+try:
+    email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=600)
+except KeyError as e:
+    logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
 # start fetcher
 #email_fetcher.run()
 
