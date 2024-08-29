@@ -125,10 +125,11 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
     logger.info(f"All processes ended.")
     return True
 
-
+"""
 # Example usage
 new_file = get_first_new_file("./", "./pickle_file.pkl")
 if new_file:
     print(f"New file detected: {new_file}")
 else:
     print("No new files detected.")
+"""
