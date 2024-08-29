@@ -125,9 +125,7 @@ def aquire_revenue_data(file_path: Path, dates_list, device_id) -> bool:
     logger.info(f"Attempting to aquire data for jukebox {device_id}")
     empty_df = panda.DataFrame()
 
-    logger.debug(
-        f"{file_path} with embeded date string {dates_list} readyness verified."
-    )
+    logger.debug(f"{file_path} with embeded date string {dates_list} readyness verified.")
     # this csv file is organized with descriptions in column 0 and values in column 1
     """The default download format includes duplicate headers after rotation
         ['1 Credit Jukebox', 'Multi-Credit Jukebox', 'Mobile', 'Karaoke', 'Photobooth', 'Unused credits', 'Cleared credits', 
