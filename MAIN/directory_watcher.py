@@ -7,21 +7,24 @@ from datetime import datetime
 
 logger.catch()
 
-def get_first_new_file(directory_to_watch, pickle_file):
+def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     """
     Checks the download directory, renames new files by appending a timestamp,
-    removes missing filenames from pickle, and returns the first new filename it finds. 
+    removes missing filenames from pickle, and returns the first new filename it finds.
     Updates the pickle file.
 
     :param directory_to_watch: Directory to monitor for new files
     :type directory_to_watch: str or Path
     :param pickle_file: Path to the pickle file for storing filenames
     :type pickle_file: str or Path
+    :param ignore_extensions: List of file extensions to ignore (e.g., ['.tmp', '.part'])
+    :type ignore_extensions: list of str or None
     :return: The first new filename found, or None if no new files
     :rtype: str or None
     """
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
+    ignore_extensions = ignore_extensions or []
 
     # Load existing filenames from pickle
     if pickle_file.exists():
@@ -32,7 +35,7 @@ def get_first_new_file(directory_to_watch, pickle_file):
 
     # Update the list of files in the directory
     current_files = set(directory_to_watch.iterdir())
-    new_files = current_files - existing_files
+    new_files = {f for f in current_files if f.name not in existing_files}
 
     if not new_files:
         logger.info("No new files found.")
@@ -40,7 +43,7 @@ def get_first_new_file(directory_to_watch, pickle_file):
 
     # Process the first new file
     for new_file in new_files:
-        if new_file.is_file():
+        if new_file.is_file() and new_file.suffix not in ignore_extensions:
             # Check for duplicate filenames and rename the file by appending a timestamp
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
 
@@ -53,20 +56,16 @@ def get_first_new_file(directory_to_watch, pickle_file):
                 timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
                 new_filename = f"{new_file.stem}_{timestamp}{new_file.suffix}"
                 new_file_path = directory_to_watch / new_filename
-            
+
             new_file.rename(new_file_path)
-            new_file = new_file_path
-    
-            new_filepath = new_file.with_name(new_filename)
-            new_file.rename(new_filepath)
             logger.info(f"Renamed file: {new_file.name} -> {new_filename}")
 
-            # Update the pickle file
-            existing_files.add(new_filepath)
+            # Update the pickle file with the new filename
+            existing_files.add(new_filename)
             with pickle_file.open('wb') as pf:
                 pickle.dump(existing_files, pf)
 
-            return str(new_filepath)
+            return str(new_file_path)
 
     return None
 
