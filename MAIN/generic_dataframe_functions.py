@@ -1,18 +1,10 @@
 """Defines common functions for working with dataframes used throughout my code
 """
 
-from fpdf import FPDF
-import subprocess
-import re
-from datetime import datetime
-from dateutil.parser import parse, ParserError
-import os
-import time
 from loguru import logger
 import pandas as panda
 from pathlib import Path
-import pathlib_file_methods as plfh
-
+from 
 
 @logger.catch()
 def data_from_csv(in_f):
