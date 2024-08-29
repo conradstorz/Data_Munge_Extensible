@@ -2,9 +2,11 @@
 
 from loguru import logger
 from pathlib import Path
+import re
+import unicodedata
 
 
-def sanitize_filename(self, filename):
+def sanitize_filename(filename):
     """
     Sanitize a filename by removing or replacing invalid characters.
 
