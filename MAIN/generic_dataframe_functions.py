@@ -4,7 +4,8 @@
 from loguru import logger
 import pandas as panda
 from pathlib import Path
-from 
+from generic_excel_functions import convert_dataframe_to_excel_with_formatting_and_save
+from generic_pathlib_file_methods import move_file_with_check
 
 @logger.catch()
 def data_from_csv(in_f):
@@ -120,7 +121,7 @@ def save_results(outfile: Path, frame, input_filename: Path) -> bool:
         return False
 
     if input_filename:
-        move_original_file(input_filename, outfile)
+        move_file_with_check(input_filename, outfile)
 
     return True
 

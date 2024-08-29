@@ -26,8 +26,8 @@ import json
 from loguru import logger
 from pathlib import Path
 from whenever import Instant
-from dataframe_functions import save_results_and_print
-from customize_dataframe_for_excel import set_custom_excel_formatting  # This function is probably in "generic_excel_functions.py" now
+from generic_dataframe_functions import save_results_and_print
+from generic_excel_functions import set_custom_excel_formatting, convert_dataframe_to_excel_with_formatting_and_save  # This function is probably in "generic_excel_functions.py" now
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project

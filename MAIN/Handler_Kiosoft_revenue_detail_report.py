@@ -1,10 +1,10 @@
 import pandas as panda
 from loguru import logger
 from pathlib import Path
-from dataframe_functions import extract_dates
-from dataframe_functions import save_results_and_print
-from dataframe_functions import data_from_csv
-from dataframe_functions import dataframe_contains
+from generic_dataframe_functions import extract_dates
+from generic_dataframe_functions import save_results_and_print
+from generic_dataframe_functions import data_from_csv
+from generic_dataframe_functions import dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"

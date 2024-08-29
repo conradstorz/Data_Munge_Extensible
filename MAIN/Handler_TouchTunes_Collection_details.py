@@ -2,10 +2,10 @@ import pandas as panda
 from loguru import logger
 from pathlib import Path
 
-from dataframe_functions import extract_dates
-from dataframe_functions import apply_formatting_and_save
-from dataframe_functions import convert_xlsx_2_pdf
-from dataframe_functions import print_pdf_using_os_subprocess
+from generic_dataframe_functions import extract_dates
+from generic_dataframe_functions import apply_formatting_and_save
+from generic_dataframe_functions import convert_xlsx_2_pdf
+from generic_dataframe_functions import print_pdf_using_os_subprocess
 
 from TouchTunes_Jukebox_Details import (
     jukebox_data_for_ID,

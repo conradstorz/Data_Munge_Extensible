@@ -20,7 +20,7 @@ import pandas as panda
 import json
 from loguru import logger
 from pathlib import Path
-from dataframe_functions import save_results_and_print
+from generic_dataframe_functions import save_results_and_print
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project

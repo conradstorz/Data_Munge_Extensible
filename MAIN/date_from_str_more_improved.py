@@ -1,8 +1,8 @@
 import re
 from datetime import datetime
-from dataframe_functions import is_date_valid
-from dataframe_functions import extract_dates
-from dataframe_functions import extract_date_from_filename_using_regularExpressions
+from generic_dataframe_functions import is_date_valid
+from generic_dataframe_functions import extract_dates
+from generic_dataframe_functions import extract_date_from_filename_using_regularExpressions
 import pytest
 
 
