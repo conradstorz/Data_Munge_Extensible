@@ -9,7 +9,7 @@ from pathlib import Path
 from loguru import logger
 import pandas as panda
 import numpy as np
-from generic_dataframe_functions import extract_date_from_filename
+from generic_munge_functions import extract_date_from_filename
 from generic_dataframe_functions import save_results_and_print
 from generic_dataframe_functions import data_from_csv
 from generic_dataframe_functions import dataframe_contains
@@ -21,7 +21,8 @@ FILENAME_STRINGS_TO_MATCH = [
     "Terminal Status(w_FLOAT)automated",
     "TerminalStatuswFLOATautomated",
     "Terminal_Status_w_FLOAT_automated",
-]
+    ]
+
 ARCHIVE_DIRECTORY_NAME = "FloatReport"
 
 

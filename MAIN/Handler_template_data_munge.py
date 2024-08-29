@@ -1,7 +1,7 @@
 import pandas as panda
 from loguru import logger
 from pathlib import Path
-from generic_dataframe_functions import extract_dates
+from generic_munge_functions import extract_dates
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
