@@ -1,3 +1,10 @@
+import pandas as panda
+import os
+from pathlib import Path
+from loguru import logger
+import time
+import generic_pathlib_file_methods as plfh
+from fpdf import FPDF
 
 @logger.catch()
 def set_custom_excel_formatting(df, writer, details):
