@@ -179,26 +179,48 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
 
 
 def send_dataframe_to_file(outfile: Path, frame):
-    # Save the dataframe to a file
+    """
+    Save the DataFrame to a file.
+
+    Args:
+        outfile (Path): The path where the DataFrame will be saved.
+        frame (DataFrame): The DataFrame to be saved.
+
+    Returns:
+        None
+    """
     frame.to_csv(outfile, index=False)
     logger.info(f"Dataframe saved to {outfile}")
 
 
 def print_dataframe(frame):
-    # Print the dataframe
+    """
+    Print the DataFrame to the console.
+
+    Args:
+        frame (DataFrame): The DataFrame to be printed.
+
+    Returns:
+        None
+    """
     logger.info(frame)
     logger.info("Dataframe printed to console")
 
 
-def Send_dataframe_to_file_and_print(outfile: Path, frame):
+def send_dataframe_to_file_and_print(outfile: Path, frame):
     """
-    Save the dataframe to a file and print it.
+    Save the DataFrame to a file and print it.
+
+    This function saves the provided DataFrame to the specified file path and
+    prints the DataFrame to the console.
 
     Args:
-        outfile (Path): Path to the output file.
-        frame (DataFrame): Data to be saved and printed.
+        outfile (Path): The path where the DataFrame will be saved.
+        frame (DataFrame): The DataFrame to be saved and printed.
+
+    Returns:
+        None
     """
     convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
     send_dataframe_to_file(outfile, frame)
     print_dataframe(frame)
-
