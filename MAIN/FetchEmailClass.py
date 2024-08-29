@@ -26,15 +26,15 @@ class EmailFetcher:
     :type delay: int
     """
 
-    def __init__(self, imap_server, username, password, mark_as_seen=False, delay=600):
+    def __init__(self, imap_server, username, password, mark_as_seen=False, interval=600):
         self.imap_server = imap_server
         self.username = username
         self.password = password
         self.mark_as_seen = mark_as_seen
-        self.delay = delay
+        self.delay = interval
 
         logger.info(
-            f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {delay}"
+            f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {interval}"
         )
 
     def fetch_emails(self):
