@@ -118,9 +118,7 @@ class FileProcessor:
         """
         file_path = Path(file_path)
         if not file_path.exists():
-            logger.error(
-                f"Function 'process' called with invalid file reference {file_path}."
-            )
+            logger.error(f"Function 'process' called with invalid file reference {file_path}.")
             return False
 
         logger.info(f"Processing file: {file_path}")

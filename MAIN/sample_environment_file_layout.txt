@@ -1,0 +1,11 @@
+# This is an example file to define the items needed to run the Automate_the_repetative script.
+#
+# This file when customized should be saved as atr.env which the script will look for when run.
+#
+{
+    imap_server: "imap.gmail.com",
+    directory_to_watch: "C:/Downloads/",
+    scripts_directory: "MAIN",  # scripts directory is expected to be located within the current working directory of the running script
+    EMAIL_USER: "place your email user name here",
+    EMAIL_PASSWORD: "This should be the password for the user above",
+}
