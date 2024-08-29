@@ -44,10 +44,10 @@ imap_server = "imap.gmail.com"
 # initiate class  (has optional flag 'mark_as_read' that defaults to False)
 email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=600)
 # start fetcher
-email_fetcher.run()
+#email_fetcher.run()
 
 # This function will run until Keyboard Interrupt is detected
-monitor_download_directory(directory_to_watch, file_processor, delay=10)
+monitor_download_directory(directory_to_watch, file_processor, delay=1)
 
 print("directory watcher ended")
 email_fetcher.stop()
