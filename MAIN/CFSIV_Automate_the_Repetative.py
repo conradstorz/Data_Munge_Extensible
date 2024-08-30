@@ -48,11 +48,11 @@ try:
 except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
 # start fetcher
-email_fetcher.run()
+email_fetcher.start()
 
 # This function will run until Keyboard Interrupt is detected
 monitor_download_directory(directory_to_watch, file_processor, delay=1)
 
 print("directory watcher ended")
-#email_fetcher.stop()  # currently not implemented
+email_fetcher.stop()
 print("email watcher stopped")
