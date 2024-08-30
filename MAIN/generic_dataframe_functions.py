@@ -4,6 +4,7 @@ Defines common functions for working with dataframes used throughout my code
 
 from loguru import logger
 import pandas as pd
+import json
 from pathlib import Path
 from generic_excel_functions import convert_dataframe_to_excel_with_formatting_and_save
 from generic_pathlib_file_methods import move_file_with_check
@@ -53,7 +54,7 @@ def load_json_to_dataframe(file_path):
         print(f"An unexpected error occurred: {e}")
         return pd.DataFrame()
     
-    
+
 @logger.catch()
 def data_from_csv(in_f):
     """
