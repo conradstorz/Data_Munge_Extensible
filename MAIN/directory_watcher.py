@@ -125,8 +125,8 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
     except KeyboardInterrupt:
         logger.info(f"Keyboard interrupt detected.")
         logger.info("Directory watcher stopped")
-    logger.info(f"All processes ended.")
     return True
+
 
 """
 # Example usage
