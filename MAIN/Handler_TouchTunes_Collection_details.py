@@ -78,6 +78,7 @@ def data_handler_process(file_path: Path):
     )
     logger.debug(f"Output filename: {output_file}")
 
+    # TODO move this section
     # launch the custom data processing function
     try:
         logger.debug(f'Starting data aquisition.')
@@ -89,6 +90,7 @@ def data_handler_process(file_path: Path):
         logger.error(f"No data found to process")
         return False
 
+    # TODO move this section
     # now generate the output dataframe
     logger.debug(f'Creating custom dataframe for output to printer.')
     df_output = create_output_dataframe_from(raw_dataframe)
@@ -96,6 +98,7 @@ def data_handler_process(file_path: Path):
         logger.error(f"No data found to output")
         return False
 
+    # TODO move this section
     # processing done, send result to printer
     headers = [
         "Storz Amusements LLC, Jeffersonville, 812-557-7095",
