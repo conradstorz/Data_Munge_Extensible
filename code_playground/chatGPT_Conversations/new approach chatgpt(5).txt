@@ -193,7 +193,7 @@ Example of a script (`scripts/example_script.py`):
 ```python
 from loguru import logger
 
-class FileMatcher
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -215,7 +215,7 @@ def process(file_path):
     logger.info(f"Processing {file_path} with example_script")
     print(f"Processing {file_path} with example_script")
 
-declaration = FileMatcher)
+declaration = FileMatcher()
 ```
 
 ### Explanation

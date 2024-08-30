@@ -26,7 +26,7 @@ REPORT_DEFINITIONS_FILE = (
 )  # this dictionary will contain information about individual reports layouts
 
 
-class FileMatcher
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -54,11 +54,11 @@ class FileMatcher
 
 
 # activate declaration below when script is ready
-declaration = FileMatcher)
+declaration = FileMatcher()
 
 
 @logger.catch
-def handler_process(file_path: Path):
+def data_handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
     if not file_path.exists:
         logger.error(f"File to process does not exist.")

@@ -17,7 +17,7 @@ ARCHIVE_DIRECTORY_NAME = (
 )
 
 
-class FileMatcher
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -45,11 +45,11 @@ class FileMatcher
 
 
 # activate declaration below when script is ready
-# declaration = FileMatcher)
+# declaration = FileMatcher()
 
 
 @logger.catch
-def handler_process(file_path: Path):
+def data_handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template    
     logger.info(f'Handler launched on file {file_path}')
 

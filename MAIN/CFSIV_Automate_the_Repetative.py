@@ -28,6 +28,7 @@ logger.remove()
 # Add the console handler with colorization enabled
 logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
 logger.add("LOGS/file_processing_{time:YYYY-MM-DD}.log", rotation="00:00", retention="9 days")
+logger.info(f'Program Start: {__name__}')
 
 # load data processing functions
 scripts_directory = Path.cwd() / "MAIN"
@@ -35,7 +36,7 @@ directory_to_watch = Path("D:/Users/Conrad/Downloads/")
 scripts_manager = ScriptManager(scripts_directory)
 scripts_manager.load_scripts()
 file_processor = FileProcessor(scripts_manager)
-file_processor.process(directory_to_watch)
+# file_processor.process(directory_to_watch)  # This was a mistake i made after combining scripts and processors
 
 # load email secrets
 secrets_directory = scripts_directory / Path(".env")
@@ -43,15 +44,15 @@ secrets = dotenv_values(secrets_directory)
 imap_server = "imap.gmail.com"
 # initiate class  (has optional flag 'mark_as_read' that defaults to False)
 try:
-    email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=600)
+    email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=6)
 except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
 # start fetcher
-#email_fetcher.run()
+email_fetcher.run()
 
 # This function will run until Keyboard Interrupt is detected
 monitor_download_directory(directory_to_watch, file_processor, delay=1)
 
 print("directory watcher ended")
-email_fetcher.stop()
+#email_fetcher.stop()  # currently not implemented
 print("email watcher stopped")

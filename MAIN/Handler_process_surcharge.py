@@ -47,7 +47,7 @@ REPORT_DEFINITIONS_FILE = (
 )  # this dictionary will contain information about individual reports layouts
 
 
-class FileMatcher
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -75,11 +75,11 @@ class FileMatcher
 
 
 # activate declaration below when script is ready
-declaration = FileMatcher)
+declaration = FileMatcher()
 
 
 @logger.catch
-def handler_process(file_path: Path) -> bool:
+def data_handler_process(file_path: Path) -> bool:
     # This is the standardized function call for the Data_Handler_Template
     result = empty_df = panda.DataFrame()
     if not file_path.exists:

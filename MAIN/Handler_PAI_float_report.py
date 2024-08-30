@@ -61,7 +61,7 @@ declaration = FileMatcher()
 
 
 @logger.catch
-def handler_process(file_path: Path):
+def data_handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
     if not file_path.exists():
         logger.error(f"File to process does not exist.")

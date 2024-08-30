@@ -16,7 +16,7 @@ FILENAME_STRINGS_TO_MATCH = [
 ARCHIVE_DIRECTORY_NAME = "KioSoft_History"
 
 
-class FileMatcher
+class FileMatcher:
     """
     Declaration for matching files to the script.
 
@@ -44,11 +44,11 @@ class FileMatcher
 
 
 # activate declaration below when script is ready
-declaration = FileMatcher)
+declaration = FileMatcher()
 
 
 @logger.catch
-def handler_process(file_path: Path):
+def data_handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
     if not file_path.exists:
         logger.error(f"File to process does not exist.")

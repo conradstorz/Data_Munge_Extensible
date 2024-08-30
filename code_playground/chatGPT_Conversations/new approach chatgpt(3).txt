@@ -122,14 +122,14 @@ Each script should declare its processing logic and the criteria it matches.
 Example of a script (`scripts/example_script.py`):
 
 ```python
-class FileMatcher
+class FileMatcher:
     def matches(self, filename):
         return filename.endswith('.txt') or 'example' in filename
 
 def process(file_path):
     print(f"Processing {file_path} with example_script")
 
-declaration = FileMatcher)
+declaration = FileMatcher()
 ```
 
 ### Explanation

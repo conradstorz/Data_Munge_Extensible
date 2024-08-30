@@ -4,6 +4,9 @@ from pathlib import Path
 
 from generic_munge_functions import extract_dates
 from generic_excel_functions import apply_formatting_and_save
+from generic_excel_functions import convert_xlsx_2_pdf
+from generic_munge_functions import print_pdf_using_os_subprocess
+
 
 from TouchTunes_Jukebox_Details import (
     jukebox_data_for_ID,
@@ -53,7 +56,7 @@ declaration = FileMatcher()
 
 
 @logger.catch
-def handler_process(file_path: Path):
+def data_handler_process(file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template    
     logger.info(f'Handler launched on file {file_path}')
 
@@ -75,7 +78,7 @@ def handler_process(file_path: Path):
     )
     logger.debug(f"Output filename: {output_file}")
 
-    # launch the processing function
+    # launch the custom data processing function
     try:
         logger.debug(f'Starting data aquisition.')
         raw_dataframe = aquire_revenue_data(file_path, filedates_list, touchtunes_device)
