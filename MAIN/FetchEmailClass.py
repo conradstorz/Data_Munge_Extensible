@@ -7,6 +7,7 @@ from dotenv import dotenv_values
 import time
 from loguru import logger
 from generic_pathlib_file_methods import sanitize_filename
+import threading
 
 class EmailFetcher:
     """
@@ -30,6 +31,8 @@ class EmailFetcher:
         self.password = password
         self.mark_as_seen = mark_as_seen
         self.delay = interval
+        self.running = False
+        self.thread = None
 
         logger.info(
             f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {interval}"
@@ -45,96 +48,68 @@ class EmailFetcher:
 
         :raises Exception: If there is an error during the fetching process.
         """
-        try:
-            with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
-                logger.info(f"Logged in to IMAP server: {self.imap_server}")
-                criteria = AND(seen=self.mark_as_seen)
-                logger.debug(f"Fetching emails with criteria: {criteria}")
-
-                for msg in mailbox.fetch(criteria):
-                    logger.info(f"Email fetched: Subject: {msg.subject}, From: {msg.from_}")
-                    self.process_email(msg)
-        except Exception as e:
-            logger.error(f"An error occurred while fetching emails: {str(e)}")
+        while self.running:
+            try:
+                with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
+                    logger.info(f"Logged in to IMAP server: {self.imap_server}")
+                    criteria = AND(seen=self.mark_as_seen)
+                    logger.debug(f"Fetching emails with criteria: {criteria}")
+                    for msg in mailbox.fetch(criteria):
+                        self.process_email(msg)
+                logger.info(f"Sleeping for {self.delay} seconds before the next fetch cycle.")
+                time.sleep(self.delay)
+            except Exception as e:
+                logger.error(f"Error fetching emails: {str(e)}")
 
     def process_email(self, msg):
         """
-        Process a single email message.
+        Process each email fetched from the server.
 
-        This method extracts the subject, sender, date, text, HTML content, and
-        attachments from the email. The email content is then saved as a JSON file
-        using a sanitized version of the email's subject as the filename.
+        The email content is sanitized and saved as a JSON file.
 
-        :param msg: The email message to process.
+        :param msg: The email message object.
         :type msg: imap_tools.message.Message
-        :raises Exception: If there is an error during the processing of the email.
         """
-        try:
-            logger.debug(f"Processing email: {msg.subject}")
-            json_data = {
-                'subject': msg.subject,
-                'from': msg.from_,
-                'date': msg.date.isoformat(),
-                'text': msg.text,
-                'html': msg.html,
-                'attachments': [att.filename for att in msg.attachments]
-            }
-            filename = sanitize_filename(msg.subject) + '.json'
-            self.save_json(json_data, filename)
-            logger.info(f"Processed and saved email: {filename}")
-        except Exception as e:
-            logger.error(f"An error occurred while processing email: {str(e)}")
+        # Example processing code - this should be replaced with actual processing logic
+        email_subject = sanitize_filename(msg.subject)
+        email_body = msg.text or msg.html
 
-    def save_json(self, data, filename):
-        """
-        Save the processed email data as a JSON file.
+        # Example: Save the email content as a JSON file
+        email_data = {
+            "subject": email_subject,
+            "body": email_body,
+            "from": msg.from_,
+            "date": msg.date.isoformat(),
+        }
+        output_file = Path(f"emails/{email_subject}.json")
+        with open(output_file, 'w') as f:
+            json.dump(email_data, f, indent=4)
 
-        The JSON file is saved with the specified filename in the current directory.
+        logger.info(f"Processed and saved email: {email_subject}")
 
-        :param data: The email data to save as JSON.
-        :type data: dict
-        :param filename: The filename to save the JSON data as.
-        :type filename: str
-        :raises Exception: If there is an error while saving the JSON file.
-        """
-        try:
-            filepath = Path(filename)
-            with filepath.open('w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=4)
-            logger.info(f"Saved JSON file: {filepath}")
-        except Exception as e:
-            logger.error(f"An error occurred while saving JSON file: {str(e)}")
+    def start(self):
+        """Start the email fetching process in a separate thread."""
+        if not self.running:
+            self.running = True
+            self.thread = threading.Thread(target=self.fetch_emails)
+            self.thread.start()
+            logger.info(f"Started email fetching for {self.username}")
 
-    def run(self):
-        """
-        Start the email fetching process.
-
-        This method starts an infinite loop that repeatedly fetches emails
-        at intervals specified by the `delay` attribute.
-
-        :raises KeyboardInterrupt: If the process is interrupted manually.
-        """
-        logger.info("Starting email fetcher")
-        while True:
-            self.fetch_emails()
-            logger.info(f"Sleeping for {self.delay} seconds")
-            time.sleep(self.delay)
+    def stop(self):
+        """Stop the email fetching process."""
+        if self.running:
+            self.running = False
+            if self.thread is not None:
+                self.thread.join()  # Wait for the thread to finish
+            logger.info(f"Stopped email fetching for {self.username}")
 
 
-
-# example useage
+# Example usage (this part can be outside of the class in your script)
 if __name__ == "__main__":
-    imap_server = "imap.gmail.com"
-    # Email account credentials
-    secrets_directory = Path(".env")
-    secrets = dotenv_values(secrets_directory)
+    email_fetcher = EmailFetcher("imap.server.com", "your_email@example.com", "password", mark_as_seen=False, interval=600)
+    email_fetcher.start()
 
-    username = secrets["EMAIL_USER"]
-    password = secrets["EMAIL_PASSWORD"]
+    # Do other processing here
 
-    # initiate class
-    email_fetcher = EmailFetcher(imap_server, username, password)
-    
-    # start fetcher
-    email_fetcher.run()
-
+    # To stop the email fetching process:
+    email_fetcher.stop()
