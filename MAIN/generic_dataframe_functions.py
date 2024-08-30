@@ -3,10 +3,48 @@ Defines common functions for working with dataframes used throughout my code
 """
 
 from loguru import logger
-import pandas as panda
+import pandas as pd
 from pathlib import Path
 from generic_excel_functions import convert_dataframe_to_excel_with_formatting_and_save
 from generic_pathlib_file_methods import move_file_with_check
+
+def load_json_to_dataframe(file_path):
+    """
+    Loads a JSON file into a pds DataFrame.
+
+    Parameters:
+    - file_path (str or Path): The path to the JSON file.
+
+    Returns:
+    - pd.DataFrame: The DataFrame containing the JSON data, or an empty DataFrame if an error occurs.
+    """
+    try:
+        # Convert file_path to a Path object
+        file_path = Path(file_path)
+
+        # Check if the file exists
+        if not file_path.exists():
+            print(f"Error: The file {file_path} does not exist.")
+            return pd.DataFrame()
+
+        # Check if the file is a valid JSON file
+        if file_path.suffix != '.json':
+            print("Error: The file does not have a .json extension.")
+            return pd.DataFrame()
+
+        # Read the JSON file directly with pds
+        df = pd.read_json(file_path)
+
+        print(f"Successfully loaded JSON file: {file_path}")
+        return df
+
+    except ValueError as e:  # Handles JSON decode errors, empty data, and other ValueError cases
+        print(f"Error: Could not load the JSON file {file_path}. {e}")
+        return pd.DataFrame()
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+        return pd.DataFrame()
 
 @logger.catch()
 def data_from_csv(in_f):
@@ -20,14 +58,14 @@ def data_from_csv(in_f):
 
     Returns
     -------
-    pandas.DataFrame
+    pds.DataFrame
         A DataFrame containing the data from the CSV file. Returns an empty DataFrame if the file cannot be loaded.
     """
-    empty_df = panda.DataFrame()
+    empty_df = pd.DataFrame()
     # load csv file into dataframe
     logger.debug(f"Reading CSV data using Pandas on file {in_f}")
     try:
-        df = panda.read_csv(in_f)
+        df = pd.read_csv(in_f)
     except Exception as e:
         logger.error(f"Problem using pandas: {e}")
         return empty_df
@@ -39,7 +77,7 @@ def data_from_csv(in_f):
 
 
 @logger.catch()
-def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
+def load_csv_with_optional_headers(in_f: str, headers="") -> pd.DataFrame:
     """
     Load a CSV file into a DataFrame with optional headers.
 
@@ -61,12 +99,12 @@ def load_csv_with_optional_headers(in_f: str, headers="") -> panda.DataFrame:
     else:
         if not isinstance(headers, list):
             logger.error("optional headers field must be a list of strings")
-            return panda.DataFrame()  # Return empty DataFrame
+            return pd.DataFrame()  # Return empty DataFrame
 
-    empty_df = panda.DataFrame()
+    empty_df = pd.DataFrame()
     # Load CSV file into DataFrame
     try:
-        df = panda.read_csv(in_f, header=None if not headers else 0)
+        df = pd.read_csv(in_f, header=None if not headers else 0)
     except Exception as e:
         logger.error(f"Problem using pandas: {e}")
         return empty_df
@@ -98,7 +136,7 @@ def dataframe_contains(df, list):
 
     Parameters
     ----------
-    df : pandas.DataFrame
+    df : pds.DataFrame
         The DataFrame to examine.
     list : list of str
         List of column names to check for in the DataFrame.
@@ -120,7 +158,7 @@ def de_duplicate_header_names(df):
 
     Parameters
     ----------
-    df : pandas.DataFrame
+    df : pds.DataFrame
         The DataFrame with potential duplicate column names.
 
     Returns
