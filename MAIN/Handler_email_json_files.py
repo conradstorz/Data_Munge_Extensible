@@ -2,20 +2,20 @@ import pandas as panda
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
+from generic_munge_functions import move_original_file
+from generic_dataframe_functions import send_dataframe_to_file
+from generic_dataframe_functions import load_json_to_dataframe
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = ".xlsx"  # if this handler will output a different file type
+INPUT_DATA_FILE_EXTENSION = ".json"
+OUTPUT_FILE_EXTENSION = ".json"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
-    "dummy_first_filename_string",
+    "_CFSIV_email_",
     "dummy place holder for more matches in future when there are more than one filename that contains same data",
 ]
-ARCHIVE_DIRECTORY_NAME = (
-    "DirectoryNameUsedAsSubDirectoryWhereDataFileIsMovedToAfterProcessing"
-)
-
+ARCHIVE_DIRECTORY_NAME = ("eMail_history")
 
 class FileMatcher:
     """
@@ -45,7 +45,7 @@ class FileMatcher:
 
 
 # activate declaration below when script is ready
-# declaration = FileMatcher()
+declaration = FileMatcher()
 
 
 @logger.catch
@@ -61,9 +61,7 @@ def data_handler_process(file_path: Path):
     filedates_list = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedates_list}")
 
-    output_file = Path(
-        f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}"
-    )
+    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
     logger.debug(f"Output filename: {output_file}")
 
     # launch the processing function
@@ -84,12 +82,8 @@ def data_handler_process(file_path: Path):
 @logger.catch
 def aquire_data(file_path, filedates_list):
     # load file into dataframe with needed pre-processing
-    empty_df = panda.DataFrame()    
-    try:
-        df = panda.read_csv(file_path, header=None)
-    except FileNotFoundError as e:
-        return empty_df
-    logger.debug(f'Dataframe loaded.')
+    df = load_json_to_dataframe(file_path)
+    logger.debug(f'Dataframe loaded. {df=}')
     # TODO place pre-processing code here
     return df
 
@@ -100,6 +94,10 @@ def process_this_data(raw_dataframe, date_str, output_file) -> bool:
     empty_df = panda.DataFrame()
 
     # *** place custom code here ***
+
+    df_file = send_dataframe_to_file(raw_dataframe)
+
+    move_original_file(df_file, output_file)
     
     print(f"{output_file} with embeded date string {date_str} readyness verified.")
 
