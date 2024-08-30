@@ -25,12 +25,13 @@ class EmailFetcher:
     :type delay: int
     """
 
-    def __init__(self, imap_server, username, password, mark_as_seen=False, interval=600):
+    def __init__(self, imap_server, username, password, mark_as_seen=False, interval=600, dld=""):
         self.imap_server = imap_server
         self.username = username
         self.password = password
         self.mark_as_seen = mark_as_seen
         self.delay = interval
+        self.email_download_directory = dld
         self.running = False
         self.thread = None
 
@@ -56,8 +57,11 @@ class EmailFetcher:
                     logger.debug(f"Fetching emails with criteria: {criteria}")
                     for msg in mailbox.fetch(criteria):
                         self.process_email(msg)
-                logger.info(f"Sleeping for {self.delay} seconds before the next fetch cycle.")
-                time.sleep(self.delay)
+                logger.info(f"Pausing for {self.delay} seconds before the next fetch cycle.")
+                loop = int(self.delay)
+                while loop > 0:
+                    time.sleep(1)
+                    loop -= 1
             except Exception as e:
                 logger.error(f"Error fetching emails: {str(e)}")
 
@@ -80,8 +84,11 @@ class EmailFetcher:
             "body": email_body,
             "from": msg.from_,
             "date": msg.date.isoformat(),
+            # TODO ensure that all parts of email like any attachements are also saved
         }
-        output_file = Path(f"emails/{email_subject}.json")
+
+        output_file = Path(f"{self.email_download_directory}\{'_CFSIV_email_'}{email_subject}.json")
+        logger.debug(f'saving JSON file: {output_file}')
         with open(output_file, 'w') as f:
             json.dump(email_data, f, indent=4)
 
