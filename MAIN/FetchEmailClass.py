@@ -79,6 +79,7 @@ class EmailFetcher:
         email_body = msg.text or msg.html
 
         # Example: Save the email content as a JSON file
+        # TODO could this section save the data in a JSON format more compatible with pandas?
         email_data = {
             "subject": email_subject,
             "body": email_body,
