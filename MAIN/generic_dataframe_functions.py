@@ -10,13 +10,14 @@ from generic_pathlib_file_methods import move_file_with_check
 
 def load_json_to_dataframe(file_path):
     """
-    Loads a JSON file into a pds DataFrame.
+    Loads a JSON file into a pandas DataFrame or Series.
 
     Parameters:
     - file_path (str or Path): The path to the JSON file.
 
     Returns:
-    - pd.DataFrame: The DataFrame containing the JSON data, or an empty DataFrame if an error occurs.
+    - pd.DataFrame or pd.Series: The DataFrame/Series containing the JSON data,
+                                 or an empty DataFrame if an error occurs.
     """
     try:
         # Convert file_path to a Path object
@@ -32,20 +33,27 @@ def load_json_to_dataframe(file_path):
             print("Error: The file does not have a .json extension.")
             return pd.DataFrame()
 
-        # Read the JSON file directly with pds
-        df = pd.read_json(file_path)
+        # Try loading the JSON as a DataFrame
+        try:
+            df = pd.read_json(file_path)
+            print(f"Successfully loaded JSON file as DataFrame: {file_path}")
+            return df
 
-        print(f"Successfully loaded JSON file: {file_path}")
-        return df
+        except ValueError as e:
+            print(f"Error: Could not load as DataFrame, trying Series. {e}")
+            
+            # If the JSON cannot be loaded as a DataFrame, try loading it as a Series
+            with file_path.open('r') as file:
+                data = pd.Series(json.load(file))
 
-    except ValueError as e:  # Handles JSON decode errors, empty data, and other ValueError cases
-        print(f"Error: Could not load the JSON file {file_path}. {e}")
-        return pd.DataFrame()
+            print(f"Successfully loaded JSON file as Series: {file_path}")
+            return data.to_frame()  # Convert Series to DataFrame for consistency
 
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         return pd.DataFrame()
-
+    
+    
 @logger.catch()
 def data_from_csv(in_f):
     """
