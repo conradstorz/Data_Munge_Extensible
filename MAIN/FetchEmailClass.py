@@ -1,3 +1,4 @@
+
 """A class for monitoring email and saving JSON objects of email content."""
 
 from imap_tools import MailBox, AND
@@ -49,21 +50,27 @@ class EmailFetcher:
 
         :raises Exception: If there is an error during the fetching process.
         """
-        while self.running:
-            try:
+        try:
+            while self.running:
                 with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                     logger.info(f"Logged in to IMAP server: {self.imap_server}")
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
                     for msg in mailbox.fetch(criteria):
                         self.process_email(msg)
-                logger.info(f"Pausing for {self.delay} seconds before the next fetch cycle.")
-                loop = int(self.delay)
-                while loop > 0:
-                    time.sleep(1)
-                    loop -= 1
-            except Exception as e:
-                logger.error(f"Error fetching emails: {str(e)}")
+
+                # Instead of sleeping for the full delay, sleep in short intervals
+                sleep_interval = 1  # seconds
+                elapsed_time = 0
+
+                while elapsed_time < self.delay:
+                    if not self.running:
+                        break
+                    time.sleep(sleep_interval)
+                    elapsed_time += sleep_interval
+
+        except Exception as e:
+            logger.error(f"Error fetching emails: {str(e)}")
 
     def process_email(self, msg):
         """
@@ -79,14 +86,15 @@ class EmailFetcher:
         email_body = msg.text or msg.html
 
         # Example: Save the email content as a JSON file
-        # TODO could this section save the data in a JSON format more compatible with pandas?
-        email_data = {
+        email_data = [
+            {
             "subject": email_subject,
             "body": email_body,
             "from": msg.from_,
             "date": msg.date.isoformat(),
             # TODO ensure that all parts of email like any attachements are also saved
-        }
+            }
+        ]
 
         output_file = Path(f"{self.email_download_directory}\{'_CFSIV_email_'}{email_subject}.json")
         logger.debug(f'saving JSON file: {output_file}')
@@ -110,7 +118,6 @@ class EmailFetcher:
             if self.thread is not None:
                 self.thread.join()  # Wait for the thread to finish
             logger.info(f"Stopped email fetching for {self.username}")
-
 
 # Example usage (this part can be outside of the class in your script)
 if __name__ == "__main__":
