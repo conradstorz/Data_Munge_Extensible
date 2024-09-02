@@ -15,7 +15,7 @@ FILENAME_STRINGS_TO_MATCH = [
     "_CFSIV_email_",
     "dummy place holder for more matches in future when there are more than one filename that contains same data",
 ]
-ARCHIVE_DIRECTORY_NAME = ("eMail_history")
+ARCHIVE_DIRECTORY_NAME = "eMail_history"
 
 class FileMatcher:
     """
@@ -61,8 +61,12 @@ def data_handler_process(file_path: Path):
     filedates_list = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedates_list}")
 
-    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
-    logger.debug(f"Output filename: {output_file}")
+    new_source_data_filename = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.name
+    # ensure that the target directory exists
+    new_source_data_filename.parent.mkdir(parents=True, exist_ok=True)
+
+    archive_output_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.stem + OUTPUT_FILE_EXTENSION
+    logger.debug(f"Archive filename is: {archive_output_file}")
 
     # launch the processing function
     try:
@@ -75,7 +79,12 @@ def data_handler_process(file_path: Path):
         logger.error(f"No data found to process")
         return False
 
-    process_this_data(raw_dataframe, filedates_list, output_file)
+    processed_dataframe = process_this_data(raw_dataframe, filedates_list, file_path)
+
+    send_dataframe_to_file(archive_output_file, raw_dataframe)
+
+    move_original_file(file_path, new_source_data_filename)
+
     return True
 
 
@@ -89,17 +98,12 @@ def aquire_data(file_path, filedates_list):
 
 
 @logger.catch
-def process_this_data(raw_dataframe, date_str, output_file) -> bool:
+def process_this_data(raw_dataframe, date_str_list, output_file) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
     empty_df = panda.DataFrame()
 
+    print(f"{output_file} with embeded date string {date_str_list} readyness verified.")
     # *** place custom code here ***
 
-    df_file = send_dataframe_to_file(raw_dataframe)
-
-    move_original_file(df_file, output_file)
-    
-    print(f"{output_file} with embeded date string {date_str} readyness verified.")
-
     # all work complete
-    return empty_df
+    return raw_dataframe
