@@ -236,6 +236,7 @@ def send_dataframe_to_file(outfile: Path, frame):
     Returns:
         None
     """
+    logger.debug(f'{frame=}')
     frame.to_csv(outfile, index=False)
     logger.info(f"Dataframe saved to {outfile}")
 
