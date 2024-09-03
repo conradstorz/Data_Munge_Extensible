@@ -190,7 +190,7 @@ def de_duplicate_header_names(df):
 
 
 @logger.catch()
-def save_results_and_logger.info(outfile: Path, frame, input_filename: Path) -> bool:
+def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     """
     Save results to a file and manage file movement.
 
@@ -255,7 +255,7 @@ def print_dataframe(frame):
     logger.debug("Dataframe printed to console")
 
 
-def send_dataframe_to_file_and_logger.info(outfile: Path, frame):
+def send_dataframe_to_file_and_print(outfile: Path, frame):
     """
     Save the DataFrame to a file and print it.
 
