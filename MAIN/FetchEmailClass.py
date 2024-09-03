@@ -90,17 +90,39 @@ class EmailFetcher:
         # Save email content as JSON
         email_subject = sanitize_filename(msg.subject)
         email_body = msg.text or msg.html
+        attachments = []
 
-        # Example: Save the email content as a JSON file
-        email_data = [
-            {
+        # Process attachments
+        for att in msg.attachments:
+            att_extension = att.filename.split(".")[-1].lower()
+            if att_extension not in self.ignore_file_types:
+                sanitized_filename = sanitize_filename(att.filename)
+                attachment_path = Path(f"emails/attachments/{sanitized_filename}")
+                attachment_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(attachment_path, 'wb') as f:
+                    f.write(att.payload)
+                logger.info(f"Downloaded attachment: {sanitized_filename}")
+                attachments.append({
+                    "filename": sanitized_filename,
+                    "content_type": att.content_type,
+                    "size": att.size,
+                    "saved_to": str(attachment_path)
+                })
+            else:
+                logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
+
+        # Construct the email data
+        email_data = [ {
             "subject": email_subject,
             "body": email_body,
             "from": msg.from_,
+            "to": msg.to,
+            "cc": msg.cc,
+            "bcc": msg.bcc,
             "date": msg.date.isoformat(),
-            # TODO ensure that all parts of email like any attachements are also saved
-            }
-        ]
+            "headers": dict(msg.headers),  # Capturing all headers
+            "attachments": attachments  # Include attachment details
+        } ]
 
         output_file = Path(f"{self.email_download_directory}\{'_CFSIV_email_'}{email_subject}.json")
         logger.debug(f'saving JSON file: {output_file}')
