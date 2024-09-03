@@ -101,7 +101,7 @@ def process_simple_summary_csv(in_f: Path):  # returns a dataframe
         logger.error(f"Problem using pandas: {e}")
         return empty_df
 
-    logger.info(f"Reading formatting file..")
+    logger.debug(f"Reading formatting file..")
     with open(FORMATTING_FILE) as json_data:
         column_details = json.load(json_data)
     # this dictionary will contain information about individual column data type

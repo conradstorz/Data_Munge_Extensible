@@ -12,9 +12,9 @@ def set_custom_excel_formatting(df, writer, details):
     Optionally a list of strings defining formats for alpha, numeric, currency or percentage
     may be specified per column. example: ['A','#','$','%'] would set the first 4 columns.
     """
-    logger.info("formatting column widths and styles...")
+    logger.debug("formatting column widths and styles...")
 
-    logger.info("Trying to create a formatted worksheet...")
+    logger.debug("Trying to create a formatted worksheet...")
     # Indicate workbook and worksheet for formatting
     workbook = writer.book
     worksheet = writer.sheets["Sheet1"]
@@ -45,7 +45,7 @@ def set_custom_excel_formatting(df, writer, details):
             if details[col] == "%":
                 worksheet.set_column(i, i, column_width, percntg)
         else:  # just set the width of the column
-            logger.info(f"No detailed column formating instructions found for: {col}")
+            logger.debug(f"No detailed column formating instructions found for: {col}")
             worksheet.set_column(i, i, column_width)
     return True
 
@@ -53,10 +53,10 @@ def set_custom_excel_formatting(df, writer, details):
 @logger.catch()
 def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
     """Takes a dataframe and outputs to excel file."""
-    logger.info(f'Applying formatting rules and write excel file...')
+    logger.debug(f'Applying formatting rules and write excel file...')
     apply_formatting_and_save(filename, frame)
     time.sleep(1)  # Allow time for file to save
-    logger.info(f'Sending excel file to printer...')
+    logger.debug(f'Sending excel file to printer...')
     print_excel_file(filename)
 
 
@@ -110,7 +110,7 @@ def apply_formatting_and_save(filename, frame):
         "Sales($)": "$",
     }
     # clean up any old output file that exists
-    logger.info(f"Cleanup any old file left over from previous runs.")
+    logger.debug(f"Cleanup any old file left over from previous runs.")
     plfh.delete_file_and_verify(filename)
     try:
         # Create a pandas ExcelWriter object
@@ -122,7 +122,7 @@ def apply_formatting_and_save(filename, frame):
             frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
             logger.debug(f"Applying custom column formatting")
             set_custom_excel_formatting(frame, writer, column_details)
-            logger.info("All work done. Saving worksheet...")
+            logger.debug("All work done. Saving worksheet...")
             logger.debug(f'{frame=}')
             # File creation ends here and is saved automatically.
 
@@ -133,7 +133,7 @@ def apply_formatting_and_save(filename, frame):
 
 def print_excel_file(filename):
     # Now we print
-    logger.info("Send processed excel file to printer...")
+    logger.debug("Send processed excel file to printer...")
     try:
         # this should launch the system spreadsheet program and trigger the print function.
         # A possible failure mode here is that the output goes to the same destination as the last
@@ -230,6 +230,6 @@ def convert_xlsx_2_pdf(fname, header=None, footer=None):
     pdf_output_path = fname.with_suffix(".pdf")
     pdf.output(pdf_output_path)
 
-    logger.info(f"PDF generated successfully at: {pdf_output_path}")
+    logger.debug(f"PDF generated successfully at: {pdf_output_path}")
     return pdf_output_path
 

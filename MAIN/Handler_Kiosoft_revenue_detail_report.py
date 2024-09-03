@@ -54,7 +54,7 @@ def data_handler_process(file_path: Path):
         logger.error(f"File to process does not exist.")
         return False
 
-    logger.info(f"Looking for date string in: {file_path.stem}")
+    logger.debug(f"Looking for date string in: {file_path.stem}")
     filedate_list = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedate_list}")
     output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
@@ -91,7 +91,7 @@ def aquire_this_data(file_path: Path, filedates: list) -> bool:
     # first date should in the list should be the earlier date and the second date the end date for the reporting period.
     empty_df = panda.DataFrame()  # this is what we reutrn if data connot be imported
 
-    logger.info(f"{file_path} with embeded date string {filedates} readyness verified.")
+    logger.debug(f"{file_path} with embeded date string {filedates} readyness verified.")
     # this csv file is organized with descriptions in row 0 and values in row 1-n
     """The default download format:
     ["Date Time","Ultra S/N",Machine,"Machine ID","Location ID","Bank Card Number","Card Type",Location,

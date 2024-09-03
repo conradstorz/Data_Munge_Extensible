@@ -43,7 +43,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     new_files = {f for f in current_files if f.name not in existing_files}
 
     if not new_files:
-        logger.info("No new files found.")
+        logger.debug("No new files found.")
         return None
 
     # Process the first new file
@@ -63,7 +63,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
                 new_file_path = directory_to_watch / new_filename
 
             new_file.rename(new_file_path)
-            logger.info(f"Renamed file: {new_file.name} -> {new_filename}")
+            logger.debug(f"Renamed file: {new_file.name} -> {new_filename}")
 
             # Update the pickle file with the new filename
             existing_files.add(new_filename)

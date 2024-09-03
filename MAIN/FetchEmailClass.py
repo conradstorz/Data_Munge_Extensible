@@ -58,13 +58,13 @@ class EmailFetcher:
         try:
             while self.running:
                 with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
-                    logger.info(f"Logged in to IMAP server: {self.imap_server}")
+                    logger.info("Checking eMail")
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
                     for msg in mailbox.fetch(criteria):
                         self.process_email(msg)
-
-                # Instead of sleeping for the full delay, sleep in short intervals
+                    logger.debug('IMAP connection closed.')
+                # Instead of sleeping for the full delay, sleep in short intervals to avoid blocking behaviour
                 sleep_interval = 1  # seconds
                 elapsed_time = 0
 
@@ -88,6 +88,7 @@ class EmailFetcher:
         :type msg: imap_tools.message.Message
         """
         # Save email content as JSON
+        logger.info(f"Incoming eMail {msg.subject}")
         email_subject = sanitize_filename(msg.subject)
         email_body = msg.text or msg.html
         attachments = []

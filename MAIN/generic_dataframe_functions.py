@@ -81,7 +81,7 @@ def data_from_csv(in_f):
     else:
         logger.debug(f"imported file processed by pandas okay.")
         DF_LAST_ROW = len(df)
-        logger.info(f"file imported into dataframe with {DF_LAST_ROW} rows.")
+        logger.debug(f"file imported into dataframe with {DF_LAST_ROW} rows.")
         return df
 
 
@@ -210,7 +210,7 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     """
     try:
         if len(frame) > 0:
-            logger.info(f"Sending Float Report to file/print...")
+            logger.debug(f"Sending Float Report to file/print...")
             convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
         else:
             logger.error(f"Dataframe {input_filename} is empty.")
@@ -238,7 +238,7 @@ def send_dataframe_to_file(outfile: Path, frame):
     """
     logger.debug(f'{frame=}')
     frame.to_csv(outfile, index=False)
-    logger.info(f"Dataframe saved to {outfile}")
+    logger.debug(f"Dataframe saved to {outfile}")
 
 
 def print_dataframe(frame):
@@ -251,8 +251,8 @@ def print_dataframe(frame):
     Returns:
         None
     """
-    logger.info(frame)
-    logger.info("Dataframe printed to console")
+    logger.debug(frame)
+    logger.debug("Dataframe printed to console")
 
 
 def send_dataframe_to_file_and_print(outfile: Path, frame):

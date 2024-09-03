@@ -64,7 +64,7 @@ def data_handler_process(file_path: Path):
         logger.error(f"File to process does not exist.")
         return False
 
-    logger.info(f"Looking for date string in: {file_path.stem}")
+    logger.debug(f"Looking for date string in: {file_path.stem}")
     filedate = extract_date_from_filename(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedate}")
     output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
@@ -125,7 +125,7 @@ def process_commission_report(input_file, runday):
         )
         return panda.DataFrame()  # empty frame
 
-    logger.info(f"Data contained all expected fields.")
+    logger.debug(f"Data contained all expected fields.")
 
     # Tack on the date of this report extracted from the filename
     df.at[len(df), "Location"] = f"Report ran: {runday}"

@@ -118,7 +118,7 @@ def data_handler_process(file_path: Path):
     logger.debug(f'Sending PDF to printer using SumatraPDF within Windows.')
     print_pdf_using_os_subprocess(outfilename, SYSTEM_PRINTER_NAME)
 
-    logger.info(f"Output saved as {outfilename}")
+    logger.debug(f"Output saved as {outfilename}")
     # all jukebox revenue processing work complete
     return True
 
@@ -126,7 +126,7 @@ def data_handler_process(file_path: Path):
 @logger.catch
 def aquire_revenue_data(file_path: Path, dates_list, device_id) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
-    logger.info(f"Attempting to aquire data for jukebox {device_id}")
+    logger.debug(f"Attempting to aquire data for jukebox {device_id}")
     empty_df = panda.DataFrame()
 
     logger.debug(f"{file_path} with embeded date string {dates_list} readyness verified.")
@@ -207,7 +207,7 @@ def aquire_revenue_data(file_path: Path, dates_list, device_id) -> bool:
 def ID_inside_filename(fn: Path):
     # unique to this data report the ID of the jukebox this data belongs to is only in the download filename
     # get the sub-string inside the parenthesis of the filename which is the jukebox ID
-    logger.info(f'Looking for Jukebox ID contained in filename.')
+    logger.debug(f'Looking for Jukebox ID contained in filename.')
     file_name_string = fn.name
     logger.debug(f"{file_name_string=}")
 
@@ -230,7 +230,7 @@ def ID_inside_filename(fn: Path):
 @logger.catch()
 def create_output_dataframe_from(df):
     # Remove un-needed columns
-    logger.info(f'Building the output dataframe.')
+    logger.debug(f'Building the output dataframe.')
 
     cols_to_drop = [
         "1 Credit Jukebox",

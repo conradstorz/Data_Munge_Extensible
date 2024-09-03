@@ -67,7 +67,7 @@ def data_handler_process(file_path: Path):
         logger.error(f"File to process does not exist.")
         return False
     else:
-        logger.info(f"Looking for date string in: {file_path.stem}")
+        logger.debug(f"Looking for date string in: {file_path.stem}")
         filedate = extract_date_from_filename(
             file_path.stem
         )  # filename without extension
@@ -83,10 +83,10 @@ def data_handler_process(file_path: Path):
             return False
         else:
             if len(result) > 0:
-                logger.info(f'Applying formatting rules and writing excel file...')
+                logger.debug(f'Applying formatting rules and writing excel file...')
                 apply_formatting_and_save(output_file, result)
                 time.sleep(1)  # Allow time for file to save
-                logger.info(f'Sending excel file to printer...')
+                logger.debug(f'Sending excel file to printer...')
                 print_excel_file(output_file)
                 #convert_dataframe_to_excel_with_formatting_and_save(output_file, result)
             else:
@@ -116,7 +116,7 @@ def process_floatReport_csv(in_f, RUNDATE):
         )
         return empty_df
 
-    logger.info(f"Data contained all expected fields.")
+    logger.debug(f"Data contained all expected fields.")
 
     # tack on the date of this report extracted from the filename
     df.at[len(df), "Location"] = f"Report ran: {RUNDATE}"

@@ -262,7 +262,7 @@ def read_base_file(input_file):
     """read_base_file(Pathlib_Object)
     Return a list of lines contained in base_file.
     """
-    logger.info(f"Attempting to open input file {input_file.name}")
+    logger.debug(f"Attempting to open input file {input_file.name}")
     try:
         with open(input_file) as IN_FILE:
             file_contents = IN_FILE.readlines()
@@ -271,5 +271,5 @@ def read_base_file(input_file):
         logger.warning(str(e))
         file_contents = []
     if file_contents != []:
-        logger.info(f"File contents read successfully. {len(file_contents)} lines.")
+        logger.debug(f"File contents read successfully. {len(file_contents)} lines.")
     return file_contents

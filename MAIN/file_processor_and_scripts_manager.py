@@ -62,7 +62,7 @@ class ScriptManager:
                 except Exception as e:
                     logger.error(f"SCRIPT: {script_name}\n{e}")
             pretty_list_of_handlers = pprint.pformat(filename_substrings, width=160)
-            logger.info(f"These are the templates and filename sub-strings being monitored during this run:\n{pretty_list_of_handlers}")
+            logger.debug(f"These are the templates and filename sub-strings being monitored during this run:\n{pretty_list_of_handlers}")
 
 
     def get_script_for_file(self, filename):

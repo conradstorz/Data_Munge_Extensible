@@ -107,7 +107,7 @@ def data_handler_process(file_path: Path) -> bool:
                 Input_df, terminal_details, column_details
             )
             if len(new_df) > 0:
-                logger.info(f"Send dataframe to be made into various reports")
+                logger.debug(f"Send dataframe to be made into various reports")
                 frames = generate_multiple_report_dataframes(
                     column_details, new_df, INPUTDF_TOTAL_ROWS, LOCATION_TAG
                 )
@@ -162,8 +162,8 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     DAYS = 30  # most months are 30 days and report covers a month
     # TODO not all reports are 30 days. Some are 90 days. Try to determine actual number of days.
     OPERATING_LABOR = 25  # estimated labor per visit in dollars.
-    logger.info("Beginning process of monthly report.")
-    logger.info(f"File: {input_file}")
+    logger.debug("Beginning process of monthly report.")
+    logger.debug(f"File: {input_file}")
 
     def moveLast2first(df):
         cols = df.columns.tolist()
@@ -180,7 +180,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
 
     INPUTDF_TOTAL_ROWS = len(Input_df)
 
-    logger.info(f"csv file imported into dataframe with {INPUTDF_TOTAL_ROWS} rows.")
+    logger.debug(f"csv file imported into dataframe with {INPUTDF_TOTAL_ROWS} rows.")
     logger.debug(Input_df.columns)
 
     # TODO combine entries that reference the same terminal in different months.
@@ -191,7 +191,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
 
     INPUTDF_TOTAL_ROWS = len(Input_df)
 
-    logger.info(
+    logger.debug(
         f"{INPUTDF_TOTAL_ROWS} rows remain after combining identical locations."
     )
 
@@ -211,7 +211,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
     pretty_json = json.dumps(terminal_details, default=custom_json_serializer, indent=4)
     logger.debug(f"Printer details report:\n{pretty_json}")
 
-    logger.info(f"Reading formatting file..")
+    logger.debug(f"Reading formatting file..")
     # TODO needs try/except for missing file detection
     with open(FORMATTING_FILE) as json_data:
         column_details = json.load(json_data)
@@ -423,9 +423,9 @@ def generate_multiple_report_dataframes(
                 frames[fn][column] = Input_df[column]
             except KeyError as e:
                 logger.error(f"Key Error: {e} column {column} not added")
-        logger.info(f"Dataframe with {len(frames[fn])} items created.")
+        logger.debug(f"Dataframe with {len(frames[fn])} items created.")
         logger.debug(f"Frame name: {fn}\nFrame data:\n{frames[fn]}")
         # insert name of report into dataframe past the last row
         frames[fn].at[INPUTDF_TOTAL_ROWS + 1, LOCATION_TAG] = report
-    logger.info(f"Finished creating {len(frames)} reports as dataframes.")
+    logger.debug(f"Finished creating {len(frames)} reports as dataframes.")
     return frames

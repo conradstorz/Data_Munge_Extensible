@@ -30,7 +30,7 @@ def archive_original_file(input_filename: Path, outfile: Path):
     """
     # move the file
     plfh.move_file_with_check(input_filename, outfile, exist_ok=True)
-    logger.info(f"Moved original file from {input_filename} to {outfile}")
+    logger.debug(f"Moved original file from {input_filename} to {outfile}")
 
 
 
@@ -109,7 +109,7 @@ def extract_date_from_filename(fname):
     # TODO return a list of all dates found in filename
     """
     datestring = "xxxxxxxx"
-    logger.info("Processing: " + str(fname))
+    logger.debug("Processing: " + str(fname))
     parts = str(fname).replace("_", "-").split("-")
     logger.debug(f"fname split result: {parts}")
     for part in parts:
@@ -132,7 +132,7 @@ def extract_date_from_filename_using_regularExpressions(fname):
     # Extract and return the date string.
 
     datestring = "xxxxxxxx"
-    logger.info("Processing: " + str(fname))
+    logger.debug("Processing: " + str(fname))
 
     # Regular expression patterns for different date formats
     date_patterns = [
