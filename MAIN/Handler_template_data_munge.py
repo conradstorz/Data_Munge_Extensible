@@ -103,7 +103,7 @@ def process_this_data(raw_dataframe, date_str, output_file) -> bool:
 
     # *** place custom code here ***
 
-    print(f"{output_file} with embeded date string {date_str} readyness verified.")
+    logger.info(f"{output_file} with embeded date string {date_str} readyness verified.")
 
     # all work complete
     return empty_df

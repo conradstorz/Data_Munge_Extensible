@@ -26,32 +26,32 @@ def load_json_to_dataframe(file_path):
 
         # Check if the file exists
         if not file_path.exists():
-            print(f"Error: The file {file_path} does not exist.")
+            logger.info(f"Error: The file {file_path} does not exist.")
             return pd.DataFrame()
 
         # Check if the file is a valid JSON file
         if file_path.suffix != '.json':
-            print("Error: The file does not have a .json extension.")
+            logger.info("Error: The file does not have a .json extension.")
             return pd.DataFrame()
 
         # Try loading the JSON as a DataFrame
         try:
             df = pd.read_json(file_path)
-            print(f"Successfully loaded JSON file as DataFrame: {file_path}")
+            logger.info(f"Successfully loaded JSON file as DataFrame: {file_path}")
             return df
 
         except ValueError as e:
-            print(f"Error: Could not load as DataFrame, trying Series. {e}")
+            logger.info(f"Error: Could not load as DataFrame, trying Series. {e}")
             
             # If the JSON cannot be loaded as a DataFrame, try loading it as a Series
             with file_path.open('r') as file:
                 data = pd.Series(json.load(file))
 
-            print(f"Successfully loaded JSON file as Series: {file_path}")
+            logger.info(f"Successfully loaded JSON file as Series: {file_path}")
             return data.to_frame()  # Convert Series to DataFrame for consistency
 
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
+        logger.info(f"An unexpected error occurred: {e}")
         return pd.DataFrame()
     
 
@@ -190,7 +190,7 @@ def de_duplicate_header_names(df):
 
 
 @logger.catch()
-def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
+def save_results_and_logger.info(outfile: Path, frame, input_filename: Path) -> bool:
     """
     Save results to a file and manage file movement.
 
@@ -255,7 +255,7 @@ def print_dataframe(frame):
     logger.debug("Dataframe printed to console")
 
 
-def send_dataframe_to_file_and_print(outfile: Path, frame):
+def send_dataframe_to_file_and_logger.info(outfile: Path, frame):
     """
     Save the DataFrame to a file and print it.
 

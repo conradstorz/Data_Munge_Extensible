@@ -116,7 +116,7 @@ def process_simple_summary_csv(in_f: Path):  # returns a dataframe
 
     When the report has MULTIPLE lines for each LOCATION then each line contains a datestring. These datestrings
     can be converted to datetimes and sorted to find the earliest and latest dates in the report.
-    print(dft2) # sample dataframe of timestamps
+    logger.info(dft2) # sample dataframe of timestamps
 0    2019-12-01
 1    2019-12-02
 2    2019-12-03

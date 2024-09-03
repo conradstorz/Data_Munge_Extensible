@@ -53,6 +53,6 @@ email_fetcher.start()
 # This function will run until Keyboard Interrupt is detected
 monitor_download_directory(directory_to_watch, file_processor, delay=1)
 
-print("directory watcher ended")
+logger.info("directory watcher ended")
 email_fetcher.stop()
-print("email watcher stopped")
+logger.info("email watcher stopped")
