@@ -102,7 +102,7 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
         count = +1
         sys.stdout.write('.')
         sys.stdout.flush()    
-        if count > 60:
+        if count > 30:
             sys.stdout.write('\n')
             sys.stdout.flush()            
             count = 0              

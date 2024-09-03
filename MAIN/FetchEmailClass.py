@@ -8,6 +8,7 @@ import time
 from loguru import logger
 from generic_pathlib_file_methods import sanitize_filename
 import threading
+import sys
 
 class EmailFetcher:
     """
@@ -58,6 +59,7 @@ class EmailFetcher:
         try:
             while self.running:
                 with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
+                    sys.stdout.write('\n')  # Start a newline on the console (to ensure next output is at the first character position)
                     logger.info("Checking eMail")
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
@@ -73,7 +75,7 @@ class EmailFetcher:
                         break
                     time.sleep(sleep_interval)
                     elapsed_time += sleep_interval
-
+                
         except Exception as e:
             logger.error(f"Error fetching emails: {str(e)}")
 
