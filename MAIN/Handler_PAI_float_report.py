@@ -22,8 +22,8 @@ FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = [
     "Terminal Status(w_FLOAT)automated",
-    "TerminalStatuswFLOATautomated",
-    "Terminal_Status_w_FLOAT_automated",
+    "floatautomated_3_",
+    "terminal_statuswfloatautomated",
     ]
 
 ARCHIVE_DIRECTORY_NAME = "FloatReport"
