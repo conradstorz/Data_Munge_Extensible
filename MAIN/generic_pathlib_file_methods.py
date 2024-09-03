@@ -18,12 +18,14 @@ def sanitize_filename(filename):
     :return: The sanitized filename.
     :rtype: str
     """
+    filepath = Path(filename)
+    filename = filepath.stem
     logger.debug(f"Sanitizing filename: {filename}")
     filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
     filename = re.sub(r'[^\w\s-]', '', filename).strip().lower()
     filename = re.sub(r'[-\s]+', '_', filename)
     logger.debug(f"Sanitized filename: {filename}")
-    return filename
+    return f"{filename}{filepath.suffix}"  # ensure that file extension doesn't get changed
 
 
 @logger.catch()
