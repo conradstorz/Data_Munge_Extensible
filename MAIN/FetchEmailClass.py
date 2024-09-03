@@ -92,21 +92,21 @@ class EmailFetcher:
         email_body = msg.text or msg.html
         attachments = []
 
-        # Process attachments
+        # Process and download attachments
         for att in msg.attachments:
             att_extension = att.filename.split(".")[-1].lower()
             if att_extension not in self.ignore_file_types:
                 sanitized_filename = sanitize_filename(att.filename)
-                attachment_path = Path(f"{self.email_download_directory}/{sanitized_filename}")
-                attachment_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(attachment_path, 'wb') as f:
+                attachment_destination = Path(f"{self.email_download_directory}/{sanitized_filename}")
+                attachment_destination.parent.mkdir(parents=True, exist_ok=True)
+                with open(attachment_destination, 'wb') as f:
                     f.write(att.payload)
-                logger.info(f"Downloaded attachment: {sanitized_filename}")
+                logger.info(f"Processed and downloaded attachment: {str(attachment_destination)}")
                 attachments.append({
                     "filename": sanitized_filename,
                     "content_type": att.content_type,
                     "size": att.size,
-                    "saved_to": str(attachment_path)
+                    "saved_to": str(attachment_destination)
                 })
             else:
                 logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
@@ -131,18 +131,6 @@ class EmailFetcher:
 
         logger.info(f"Processed and saved email: {email_subject}")
 
-        # Download attachments
-        for att in msg.attachments:
-            att_extension = att.filename.split(".")[-1].lower()
-            if att_extension not in self.ignore_file_types:
-                sanitized_filename = sanitize_filename(att.filename)
-                attachment_path = Path(f"emails/attachments/{sanitized_filename}")
-                attachment_path.parent.mkdir(parents=True, exist_ok=True)
-                with open(attachment_path, 'wb') as f:
-                    f.write(att.payload)
-                logger.info(f"Downloaded attachment: {sanitized_filename}")
-            else:
-                logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
 
     def start(self):
         """Start the email fetching process in a separate thread."""
