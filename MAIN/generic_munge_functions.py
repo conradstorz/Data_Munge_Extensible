@@ -20,7 +20,7 @@ def print_pdf_using_os_subprocess(file_path, printer_name):
 
 
 
-def move_original_file(input_filename: Path, outfile: Path):
+def archive_original_file(input_filename: Path, outfile: Path):
     """
     Move the original file to a new location.
 
@@ -28,16 +28,9 @@ def move_original_file(input_filename: Path, outfile: Path):
         input_filename (Path): Original input file name.
         outfile (Path): Path to the output file.
     """
-    # Original path to the file
-    old_file_path = input_filename
-    # New path where to move the file
-    new_file_path = (
-        old_file_path.parent / f"{outfile.stem}_history" / old_file_path.name
-    )
-
     # move the file
-    plfh.move_file_with_check(old_file_path, new_file_path, exist_ok=True)
-    logger.info(f"Moved original file from {old_file_path} to {new_file_path}")
+    plfh.move_file_with_check(input_filename, outfile, exist_ok=True)
+    logger.info(f"Moved original file from {input_filename} to {outfile}")
 
 
 
