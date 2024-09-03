@@ -10,7 +10,7 @@ SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printe
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".json"
-OUTPUT_FILE_EXTENSION = ".json"  # if this handler will output a different file type
+OUTPUT_FILE_EXTENSION = ".csv"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "_CFSIV_email_",
     "dummy place holder for more matches in future when there are more than one filename that contains same data",
