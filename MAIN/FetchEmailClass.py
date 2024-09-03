@@ -1,4 +1,3 @@
-
 """A class for monitoring email and saving JSON objects of email content."""
 
 from imap_tools import MailBox, AND
@@ -24,20 +23,26 @@ class EmailFetcher:
     :type mark_as_seen: bool
     :param delay: The delay in seconds between each email fetching cycle. Default is 600 seconds.
     :type delay: int
+    :param ignore_file_types: A list of file extensions to ignore when downloading attachments.
+    :type ignore_file_types: list
     """
 
-    def __init__(self, imap_server, username, password, mark_as_seen=False, interval=600, dld=""):
+    def __init__(self, imap_server, username, password, mark_as_seen=False, interval=600, ignore_file_types=None, dld=""):
+        if ignore_file_types is None:
+            ignore_file_types = ["gif"]
+        
         self.imap_server = imap_server
         self.username = username
         self.password = password
         self.mark_as_seen = mark_as_seen
         self.delay = interval
         self.email_download_directory = dld
+        self.ignore_file_types = [ext.lower() for ext in ignore_file_types]
         self.running = False
         self.thread = None
 
         logger.info(
-            f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {interval}"
+            f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {interval}, ignore_file_types: {self.ignore_file_types}"
         )
 
     def fetch_emails(self):
@@ -76,12 +81,13 @@ class EmailFetcher:
         """
         Process each email fetched from the server.
 
-        The email content is sanitized and saved as a JSON file.
+        The email content is sanitized and saved as a JSON file. Attachments are downloaded
+        if they do not match the ignore file types list.
 
         :param msg: The email message object.
         :type msg: imap_tools.message.Message
         """
-        # Example processing code - this should be replaced with actual processing logic
+        # Save email content as JSON
         email_subject = sanitize_filename(msg.subject)
         email_body = msg.text or msg.html
 
@@ -103,6 +109,19 @@ class EmailFetcher:
 
         logger.info(f"Processed and saved email: {email_subject}")
 
+        # Download attachments
+        for att in msg.attachments:
+            att_extension = att.filename.split(".")[-1].lower()
+            if att_extension not in self.ignore_file_types:
+                sanitized_filename = sanitize_filename(att.filename)
+                attachment_path = Path(f"emails/attachments/{sanitized_filename}")
+                attachment_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(attachment_path, 'wb') as f:
+                    f.write(att.payload)
+                logger.info(f"Downloaded attachment: {sanitized_filename}")
+            else:
+                logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
+
     def start(self):
         """Start the email fetching process in a separate thread."""
         if not self.running:
@@ -121,7 +140,14 @@ class EmailFetcher:
 
 # Example usage (this part can be outside of the class in your script)
 if __name__ == "__main__":
-    email_fetcher = EmailFetcher("imap.server.com", "your_email@example.com", "password", mark_as_seen=False, interval=600)
+    email_fetcher = EmailFetcher(
+        "imap.server.com", 
+        "your_email@example.com", 
+        "password", 
+        mark_as_seen=False, 
+        interval=600, 
+        ignore_file_types=["gif", "bmp"]
+    )
     email_fetcher.start()
 
     # Do other processing here
