@@ -2,7 +2,7 @@ import pandas as panda
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
-from generic_munge_functions import move_original_file
+from generic_munge_functions import archive_original_file
 from generic_dataframe_functions import send_dataframe_to_file
 from generic_dataframe_functions import load_json_to_dataframe
 
@@ -59,14 +59,15 @@ def data_handler_process(file_path: Path):
 
     logger.debug(f"Looking for date string in: {file_path.stem}")
     filedates_list = extract_dates(file_path.stem)  # filename without extension
-    logger.debug(f"Found Date: {filedates_list}")
+    logger.debug(f"Found Date(s): {filedates_list}")
 
     new_source_data_filename = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.name
+    logger.debug(f'New path for data archive: {new_source_data_filename}')
     # ensure that the target directory exists
     new_source_data_filename.parent.mkdir(parents=True, exist_ok=True)
 
-    archive_output_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.stem + OUTPUT_FILE_EXTENSION
-    logger.debug(f"Archive filename is: {archive_output_file}")
+    archive_output_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.stem}{OUTPUT_FILE_EXTENSION}")
+    logger.debug(f"Archive for processed file path is: {archive_output_file}")
 
     # launch the processing function
     try:
@@ -79,11 +80,14 @@ def data_handler_process(file_path: Path):
         logger.error(f"No data found to process")
         return False
 
+    logger.debug(f"sending data file to be processed.")
     processed_dataframe = process_this_data(raw_dataframe, filedates_list, file_path)
 
-    send_dataframe_to_file(archive_output_file, raw_dataframe)
+    logger.debug(f"sending dataframe to storage.")
+    send_dataframe_to_file(archive_output_file, processed_dataframe)
 
-    move_original_file(file_path, new_source_data_filename)
+    logger.debug(f"moving incoming json file to new location.")
+    archive_original_file(file_path, new_source_data_filename)
 
     return True
 
