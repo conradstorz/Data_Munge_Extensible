@@ -97,7 +97,7 @@ class EmailFetcher:
             att_extension = att.filename.split(".")[-1].lower()
             if att_extension not in self.ignore_file_types:
                 sanitized_filename = sanitize_filename(att.filename)
-                attachment_path = Path(f"emails/attachments/{sanitized_filename}")
+                attachment_path = Path(f"{self.email_download_directory}/{sanitized_filename}")
                 attachment_path.parent.mkdir(parents=True, exist_ok=True)
                 with open(attachment_path, 'wb') as f:
                     f.write(att.payload)
