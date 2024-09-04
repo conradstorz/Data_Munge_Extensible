@@ -5,22 +5,28 @@ from pathlib import Path
 import re
 import unicodedata
 
+# List of valid extensions (expand as needed)
+VALID_EXTENSIONS = {'.txt', '.pdf', '.jpg', '.png', '.docx', '.xlsx'}
+
 
 def sanitize_filename(filename):
     """
     Sanitize a filename by removing or replacing invalid characters.
-
     This method normalizes the filename, removes any non-alphanumeric characters,
     and replaces spaces or hyphens with underscores. It also ensures that no
-    periods are present in the filename, while keeping the file extension intact.
-
+    periods are present in the filename unless it's part of a valid file extension.
+    
+    If no valid file extension is detected, the entire string is treated as the filename.
+    
     :param filename: The original filename to sanitize.
     :type filename: str
     :return: The sanitized filename.
     :rtype: str
     """
     filepath = Path(filename)
-    base_filename = filepath.stem
+    file_extension = filepath.suffix if filepath.suffix in VALID_EXTENSIONS else ''
+    base_filename = filepath.stem if file_extension else filepath.name
+    
     logger.debug(f"Sanitizing filename: {base_filename}")
     
     # Normalize and sanitize the base filename
@@ -33,8 +39,9 @@ def sanitize_filename(filename):
     
     logger.debug(f"Sanitized filename: {base_filename}")
     
-    # Return the sanitized filename with the original file extension
-    return f"{base_filename}{filepath.suffix}"
+    # Return the sanitized filename with the valid file extension if one exists
+    return f"{base_filename}{file_extension}"
+
 
 @logger.catch()
 def delete_file_and_verify(file_path):
