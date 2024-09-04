@@ -80,6 +80,7 @@ class EmailFetcher:
         except Exception as e:
             logger.error(f"Error fetching emails: {str(e)}")
 
+
     def process_email(self, msg):
         """
         Process each email fetched from the server.
@@ -90,55 +91,62 @@ class EmailFetcher:
         :param msg: The email message object.
         :type msg: imap_tools.message.Message
         """
-        # Save email content as JSON
-        logger.info(f"Incoming eMail {msg.subject}. Sanitizing...")
-        email_subject = sanitize_filename(msg.subject)
-        logger.debug(f'Sanitized: "{email_subject}"')
-        email_body = msg.text or msg.html
-        attachments = []
+        try:
+            # Save email content as JSON
+            logger.info(f"Incoming eMail {msg.subject}. Sanitizing...")
+            email_subject = sanitize_filename(msg.subject)
+            logger.debug(f'Sanitized: "{email_subject}"')
+            email_body = msg.text or msg.html
+            attachments = []
 
-        # Process and download attachments
-        for att in msg.attachments:
-            logger.debug(f'Processing attachment {att=}')
-            att_extension = att.filename.split(".")[-1].lower()
-            if att_extension not in self.ignore_file_types:
-                logger.debug(f'Sanitizing attachment filename: "{att.filename=}"')
-                sanitized_filename = sanitize_filename(att.filename)
-                attachment_destination = Path(self.email_download_directory) / Path(sanitized_filename)
-                attachment_destination.parent.mkdir(parents=True, exist_ok=True)
-                logger.debug(f'Saving attachment to: "{attachment_destination}"')
-                with open(attachment_destination, 'wb') as f:
-                    f.write(att.payload)
-                logger.info(f"Processed and downloaded attachment: {str(attachment_destination)}")
-                attachments.append({
-                    "filename": sanitized_filename,
-                    "content_type": att.content_type,
-                    "size": att.size,
-                    "saved_to": str(attachment_destination)
-                })
-            else:
-                logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
+            # Process and download attachments
+            for att in msg.attachments:
+                logger.debug(f'Processing attachment: {att=}')
+                att_extension = att.filename.split(".")[-1].lower()
+                
+                if att_extension not in self.ignore_file_types:
+                    logger.debug(f'Sanitizing attachment filename: "{att.filename}"')
+                    sanitized_filename = sanitize_filename(att.filename)
+                    attachment_destination = Path(self.email_download_directory) / sanitized_filename
+                    attachment_destination.parent.mkdir(parents=True, exist_ok=True)
+                    
+                    logger.debug(f'Saving attachment to: "{attachment_destination}"')
+                    with attachment_destination.open('wb') as f:
+                        f.write(att.payload)
+                    
+                    logger.info(f"Processed and downloaded attachment: {attachment_destination}")
+                    attachments.append({
+                        "filename": sanitized_filename,
+                        "content_type": att.content_type,
+                        "size": att.size,
+                        "saved_to": str(attachment_destination)
+                    })
+                else:
+                    logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
 
-        # Construct the email data
-        email_data = [ {
-            "subject": email_subject,
-            "body": email_body,
-            "from": msg.from_,
-            "to": msg.to,
-            "cc": msg.cc,
-            "bcc": msg.bcc,
-            "date": msg.date.isoformat(),
-            "headers": dict(msg.headers),  # Capturing all headers
-            "attachments": attachments  # Include attachment details
-        } ]
+            # Construct the email data
+            email_data = [ {
+                "subject": email_subject,
+                "body": email_body,
+                "from": msg.from_,
+                "to": msg.to,
+                "cc": msg.cc,
+                "bcc": msg.bcc,
+                "date": msg.date.isoformat(),
+                "headers": dict(msg.headers),
+                "attachments": attachments
+            } ]
 
-        output_file = Path(f"{self.email_download_directory}\{'_CFSIV_email_'}{email_subject}.json")
-        logger.debug(f'saving JSON file: {output_file}')
-        with open(output_file, 'w') as f:
-            json.dump(email_data, f, indent=4)
+            # Save email content as JSON
+            output_file = Path(self.email_download_directory) / f"_CFSIV_email_{email_subject}.json"
+            logger.debug(f'Saving JSON file: {output_file}')
+            with output_file.open('w') as f:
+                json.dump(email_data, f, indent=4)
+            
+            logger.info(f"Processed and saved email: {email_subject}")
 
-        logger.info(f"Processed and saved email: {email_subject}")
-
+        except Exception as e:
+            logger.error(f"Error processing email {msg.subject}: {e}")
 
     def start(self):
         """Start the email fetching process in a separate thread."""
