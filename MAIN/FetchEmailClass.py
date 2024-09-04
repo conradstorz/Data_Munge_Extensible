@@ -75,7 +75,7 @@ class EmailFetcher:
                         break
                     time.sleep(sleep_interval)
                     elapsed_time += sleep_interval
-                logger.debug(f"Completed eMail rest period {elapsed_time} in {sleep_interval} increments.")
+                logger.debug(f"Completed eMail rest period {elapsed_time} seconds in {sleep_interval} second increments.")
                 
         except Exception as e:
             logger.error(f"Error fetching emails: {str(e)}")
@@ -95,13 +95,13 @@ class EmailFetcher:
             # Save email content as JSON
             logger.info(f"Incoming eMail {msg.subject}. Sanitizing...")
             email_subject = sanitize_filename(msg.subject)
-            logger.debug(f'Sanitized: "{email_subject}"')
+            logger.debug(f'Sanitized eMail subject: "{email_subject}"')
             email_body = msg.text or msg.html
             attachments = []
 
             # Process and download attachments
             for att in msg.attachments:
-                logger.debug(f'Processing attachment: {att=}')
+                logger.debug(f'Processing attachment: {att.filename=}')
                 att_extension = att.filename.split(".")[-1].lower()
                 
                 if att_extension not in self.ignore_file_types:
@@ -148,6 +148,7 @@ class EmailFetcher:
         except Exception as e:
             logger.error(f"Error processing email {msg.subject}: {e}")
 
+
     def start(self):
         """Start the email fetching process in a separate thread."""
         if not self.running:
@@ -156,6 +157,7 @@ class EmailFetcher:
             self.thread.start()
             logger.info(f"Started email fetching for {self.username}")
 
+
     def stop(self):
         """Stop the email fetching process."""
         if self.running:
@@ -163,6 +165,7 @@ class EmailFetcher:
             if self.thread is not None:
                 self.thread.join()  # Wait for the thread to finish
             logger.info(f"Stopped email fetching for {self.username}")
+
 
 # Example usage (this part can be outside of the class in your script)
 if __name__ == "__main__":
