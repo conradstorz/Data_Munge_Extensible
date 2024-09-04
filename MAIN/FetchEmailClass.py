@@ -75,6 +75,7 @@ class EmailFetcher:
                         break
                     time.sleep(sleep_interval)
                     elapsed_time += sleep_interval
+                logger.debug(f"Completed eMail rest period {elapsed_time} in {sleep_interval} increments.")
                 
         except Exception as e:
             logger.error(f"Error fetching emails: {str(e)}")
@@ -90,18 +91,22 @@ class EmailFetcher:
         :type msg: imap_tools.message.Message
         """
         # Save email content as JSON
-        logger.info(f"Incoming eMail {msg.subject}")
+        logger.info(f"Incoming eMail {msg.subject}. Sanitizing...")
         email_subject = sanitize_filename(msg.subject)
+        logger.debug(f'Sanitized: "{email_subject}"')
         email_body = msg.text or msg.html
         attachments = []
 
         # Process and download attachments
         for att in msg.attachments:
+            logger.debug(f'Processing attachment {att=}')
             att_extension = att.filename.split(".")[-1].lower()
             if att_extension not in self.ignore_file_types:
+                logger.debug(f'Sanitizing attachment filename: "{att.filename=}"')
                 sanitized_filename = sanitize_filename(att.filename)
-                attachment_destination = Path(f"{self.email_download_directory}/{sanitized_filename}")
+                attachment_destination = Path(self.email_download_directory) / Path(sanitized_filename)
                 attachment_destination.parent.mkdir(parents=True, exist_ok=True)
+                logger.debug(f'Saving attachment to: "{attachment_destination}"')
                 with open(attachment_destination, 'wb') as f:
                     f.write(att.payload)
                 logger.info(f"Processed and downloaded attachment: {str(attachment_destination)}")
