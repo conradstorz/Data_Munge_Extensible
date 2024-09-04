@@ -11,7 +11,8 @@ def sanitize_filename(filename):
     Sanitize a filename by removing or replacing invalid characters.
 
     This method normalizes the filename, removes any non-alphanumeric characters,
-    and replaces spaces or hyphens with underscores.
+    and replaces spaces or hyphens with underscores. It also ensures that no
+    periods are present in the filename, while keeping the file extension intact.
 
     :param filename: The original filename to sanitize.
     :type filename: str
@@ -19,14 +20,21 @@ def sanitize_filename(filename):
     :rtype: str
     """
     filepath = Path(filename)
-    filename = filepath.stem
-    logger.debug(f"Sanitizing filename: {filename}")
-    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore').decode('ascii')
-    filename = re.sub(r'[^\w\s-]', '', filename).strip().lower()
-    filename = re.sub(r'[-\s]+', '_', filename)
-    logger.debug(f"Sanitized filename: {filename}")
-    return f"{filename}{filepath.suffix}"  # ensure that file extension doesn't get changed
-
+    base_filename = filepath.stem
+    logger.debug(f"Sanitizing filename: {base_filename}")
+    
+    # Normalize and sanitize the base filename
+    base_filename = unicodedata.normalize('NFKD', base_filename).encode('ascii', 'ignore').decode('ascii')
+    base_filename = re.sub(r'[^\w\s-]', '', base_filename).strip().lower()
+    base_filename = re.sub(r'[-\s]+', '_', base_filename)
+    
+    # Remove any periods from the sanitized filename
+    base_filename = base_filename.replace('.', '')
+    
+    logger.debug(f"Sanitized filename: {base_filename}")
+    
+    # Return the sanitized filename with the original file extension
+    return f"{base_filename}{filepath.suffix}"
 
 @logger.catch()
 def delete_file_and_verify(file_path):
