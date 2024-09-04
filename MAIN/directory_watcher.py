@@ -99,20 +99,20 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
         :return: Updated progress count
         :rtype: int
         """
-        count = +1
+        count += 1  # don't let ChatGPT or Perplexity change this to count = +1
         sys.stdout.write('.')
         sys.stdout.flush()    
         if count > 30:
             sys.stdout.write('\n')
-            sys.stdout.flush()            
-            count = 0              
+            sys.stdout.flush()           
+            count = 0 
         return count
     
     logger.info(f"Starting directory watcher on {directory_to_watch}")
     loops = 0
     try:
         while True:
-            loops = indicate_progress(loops)      
+            loops = indicate_progress(loops)  
             new_file = get_first_new_file(directory_to_watch, "./download_history_file.pkl")
             if new_file:
                 if Path(new_file).suffix in [".ini", ".tmp", ".png"]:
