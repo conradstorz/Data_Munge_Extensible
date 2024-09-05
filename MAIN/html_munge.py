@@ -1,4 +1,5 @@
 
+# consider trying pandas as the method of reading the html data
 
 # "sales_activity_by_batch_"
 
