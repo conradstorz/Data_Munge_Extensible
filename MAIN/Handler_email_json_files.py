@@ -13,7 +13,7 @@ INPUT_DATA_FILE_EXTENSION = ".json"
 OUTPUT_FILE_EXTENSION = ".csv"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "_CFSIV_email_",
-    "dummy place holder for more matches in future when there are more than one filename that contains same data",
+    "dummy place holder",
 ]
 ARCHIVE_DIRECTORY_NAME = "eMail_history"
 
