@@ -53,7 +53,8 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     for new_file in new_files:
         if (new_file.is_file() and new_file.suffix not in ignore_extensions):
             # Check for duplicate filenames and rename the file by appending a timestamp
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            timestamp = datetime.now().strftime("%d%M%S")
+            timestamp = f"({timestamp})"
 
             # If a file with the same name exists, append a timestamp to avoid conflicts
             new_filename = f"{new_file.stem}_{timestamp}{new_file.suffix}"
