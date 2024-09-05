@@ -92,12 +92,33 @@ class EmailFetcher:
         :type msg: imap_tools.message.Message
         """
         try:
-            # Save email content as JSON
+            # gather email details and sanitize strings
             logger.info(f"Incoming eMail {msg.subject}. Sanitizing...")
             email_subject = sanitize_filename(msg.subject)
             logger.debug(f'Sanitized eMail subject: "{email_subject}"')
+            email_sender = sanitize_filename(msg.from_)
+            logger.debug(f'Sanitized sender name: {email_sender}')
             email_body = msg.text or msg.html
             attachments = []
+
+            # Construct the email data
+            email_data = [ {
+                "subject": email_subject,
+                "body": email_body,
+                "from": msg.from_,
+                "to": msg.to,
+                "cc": msg.cc,
+                "bcc": msg.bcc,
+                "date": msg.date.isoformat(),
+                "headers": dict(msg.headers),
+                "attachments": attachments
+            } ]
+
+            # Save email content as JSON
+            output_file = Path(self.email_download_directory) / Path(f"_CFSIV_email_{email_subject}.json")
+            logger.debug(f'Saving JSON file: {output_file}')
+            with output_file.open('w') as f:
+                json.dump(email_data, f, indent=4)
 
             # Process and download attachments
             for att in msg.attachments:
@@ -106,8 +127,8 @@ class EmailFetcher:
                 
                 if att_extension not in self.ignore_file_types:
                     logger.debug(f'Sanitizing attachment filename: "{att.filename}"')
-                    sanitized_filename = sanitize_filename(att.filename)
-                    attachment_destination = Path(self.email_download_directory) / sanitized_filename
+                    sanitized_filename = f"{email_sender}_{sanitize_filename(att.filename)}"
+                    attachment_destination = Path(self.email_download_directory) / Path(sanitized_filename)
                     attachment_destination.parent.mkdir(parents=True, exist_ok=True)
                     
                     logger.debug(f'Saving attachment to: "{attachment_destination}"')
@@ -124,24 +145,6 @@ class EmailFetcher:
                 else:
                     logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
 
-            # Construct the email data
-            email_data = [ {
-                "subject": email_subject,
-                "body": email_body,
-                "from": msg.from_,
-                "to": msg.to,
-                "cc": msg.cc,
-                "bcc": msg.bcc,
-                "date": msg.date.isoformat(),
-                "headers": dict(msg.headers),
-                "attachments": attachments
-            } ]
-
-            # Save email content as JSON
-            output_file = Path(self.email_download_directory) / f"_CFSIV_email_{email_subject}.json"
-            logger.debug(f'Saving JSON file: {output_file}')
-            with output_file.open('w') as f:
-                json.dump(email_data, f, indent=4)
             
             logger.info(f"Processed and saved email: {email_subject}")
 
