@@ -39,14 +39,10 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(
-            FILE_EXTENSION
-        ):
-            # match found
-            return True
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+            return True  # match found
         else:
-            # no match
-            return False
+            return False  # no match
 
     def get_filename_strings_to_match(self):
         """Returns the list of filename strings to match"""

@@ -23,17 +23,13 @@ class FileMatcher:
     :rtype: bool
     """
 
-    @logger.catch
+    @logger.catch()
     def matches(self, filename: Path) -> bool:
-
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(
-            FILE_EXTENSION
-        ):
-            # match found
-            return True
+        """Define how to match data files"""
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+            return True  # match found
         else:
-            # no match
-            return False
+            return False  # no match
 
     def get_filename_strings_to_match(self):
         """Returns the list of filename strings to match"""
