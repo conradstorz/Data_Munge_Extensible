@@ -9,7 +9,7 @@ from loguru import logger
 """ This is a pervious iteration new version found below
 def set_custom_excel_formatting(worksheet, workbook, df, details):
 
-    logger.info("Formatting column widths and styles...")
+    logger.debug("Formatting column widths and styles...")
     currency_format = workbook.add_format({"num_format": "$#,##0.00"})
     number_format = workbook.add_format({"num_format": "#,##0"})
     percentage_format = workbook.add_format({"num_format": "0%"})
@@ -44,13 +44,13 @@ def send_dataframes_to_file(frames, FORMATTING_FILE):
             workbook = writer.book
             worksheet = writer.sheets["Sheet1"]
             set_custom_excel_formatting(worksheet, workbook, frame, column_details)
-            logger.info("Worksheet formatted successfully.")
+            logger.debug("Worksheet formatted successfully.")
 
-        logger.info("Worksheet saved successfully.")
+        logger.debug("Worksheet saved successfully.")
 
         # Handling printing if applicable
         if len(args) > 1 and args[1] == "-np":
-            logger.info("Bypassing print option due to '-np' option.")
+            logger.debug("Bypassing print option due to '-np' option.")
         else:
             logger.info("Sending processed file to printer...")
             try:
@@ -70,9 +70,9 @@ def set_custom_excel_formatting(df, writer, details):
     Optionally a list of strings defining formats for alpha, numeric, currency or percentage
     may be specified per column. example: ['A','#','$','%'] would set the first 4 columns.
     """
-    logger.info("formatting column widths and styles...")
+    logger.debug("formatting column widths and styles...")
 
-    logger.info("Trying to create a formatted worksheet...")
+    logger.debug("Trying to create a formatted worksheet...")
     # Indicate workbook and worksheet for formatting
     workbook = writer.book
     worksheet = writer.sheets["Sheet1"]

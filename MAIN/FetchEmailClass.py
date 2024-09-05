@@ -42,7 +42,7 @@ class EmailFetcher:
         self.running = False
         self.thread = None
 
-        logger.info(
+        logger.debug(
             f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {interval}, ignore_file_types: {self.ignore_file_types}"
         )
 
@@ -135,7 +135,7 @@ class EmailFetcher:
                     with attachment_destination.open('wb') as f:
                         f.write(att.payload)
                     
-                    logger.info(f"Processed and downloaded attachment: {attachment_destination}")
+                    logger.debug(f"Processed and downloaded attachment: {attachment_destination}")
                     attachments.append({
                         "filename": sanitized_filename,
                         "content_type": att.content_type,
@@ -143,7 +143,7 @@ class EmailFetcher:
                         "saved_to": str(attachment_destination)
                     })
                 else:
-                    logger.info(f"Ignored attachment with extension '{att_extension}': {att.filename}")
+                    logger.debug(f"Ignored attachment with extension '{att_extension}': {att.filename}")
 
             
             logger.info(f"Processed and saved email: {email_subject}")
@@ -158,7 +158,7 @@ class EmailFetcher:
             self.running = True
             self.thread = threading.Thread(target=self.fetch_emails)
             self.thread.start()
-            logger.info(f"Started email fetching for {self.username}")
+            logger.debug(f"Started email fetching for {self.username}")
 
 
     def stop(self):
@@ -167,7 +167,7 @@ class EmailFetcher:
             self.running = False
             if self.thread is not None:
                 self.thread.join()  # Wait for the thread to finish
-            logger.info(f"Stopped email fetching for {self.username}")
+            logger.debug(f"Stopped email fetching for {self.username}")
 
 
 # Example usage (this part can be outside of the class in your script)

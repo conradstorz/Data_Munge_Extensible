@@ -125,7 +125,7 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
                     new_file_path = Path(ARCHIVE_FOLDER) / Path(new_file.name)
                     move_file_with_check(new_file, new_file_path)                    
                 else:                    
-                    logger.info(f'File found to attempt processing {new_file}')
+                    logger.debug(f'File found to attempt processing {new_file}')
                     file_processor.process(directory_to_watch / new_file)
             time.sleep(delay)  # Set the pace for how often to look for new files.
 

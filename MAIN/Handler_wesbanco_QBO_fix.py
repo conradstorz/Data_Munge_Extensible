@@ -85,7 +85,7 @@ def modify_QBO(QBO_records_list):
     modified_qbo, file_date, acct_number = process_qbo_lines(QBO_records_list)
     # Attempt to write results to cleanfile
     fname = "".join([file_date, "_", acct_number, FILE_EXTENSION])
-    logger.info(f"Attempting to output modified lines to file name: {fname}")
+    logger.debug(f"Attempting to output modified lines to file name: {fname}")
     clean_output_file = Path(QBO_MODIFIED_DIRECTORY, fname)
     try:
         with open(clean_output_file, "w") as f:
@@ -252,7 +252,7 @@ def process_qbo_lines(lines):
         else:
             # Lines not part of a transaction are added directly to the output
             modified_lines.append(line)
-    logger.info(f"{xacts_found} transactions found.")
+    logger.debug(f"{xacts_found} transactions found.")
     logger.debug(modified_lines)  # TODO make this output more log friendly
     return modified_lines, qbo_file_date, account_number
 

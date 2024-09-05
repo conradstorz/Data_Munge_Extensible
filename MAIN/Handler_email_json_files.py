@@ -106,7 +106,7 @@ def process_this_data(raw_dataframe, date_str_list, output_file) -> bool:
     # This is the customized procedures used to process this data. Should return a dataframe.
     empty_df = panda.DataFrame()
 
-    logger.info(f"{output_file} with embeded date string {date_str_list} readyness verified.")
+    logger.debug(f"{output_file} with embeded date string {date_str_list} readyness verified.")
     # *** place custom code here ***
 
     # all work complete

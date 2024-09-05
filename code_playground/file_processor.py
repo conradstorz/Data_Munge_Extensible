@@ -33,7 +33,7 @@ class FileProcessor:
             )
             return False
 
-        logger.info(f"Processing file: {file_path}")
+        logger.debug(f"Processing file: {file_path}")
         process_func = self.script_manager.get_script_for_file(file_path.name)
         if not process_func:
             logger.warning(f"No matching script found for file: {file_path}")

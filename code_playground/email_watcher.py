@@ -62,19 +62,19 @@ class EmailAttachmentDownloader:
 
             for uid in data[0].split():
                 if uid in self.downloaded_uids:
-                    logger.info(f'Already downloaded: UID {uid}')
+                    logger.debug(f'Already downloaded: UID {uid}')
                     continue
 
                 result, email_data = mail.uid('fetch', uid, '(RFC822)')
                 logger.debug(f'{result=}')
                 logger.debug(f'{email_data=}')
                 if result != 'OK':
-                    logger.info(f'Failed to fetch email UID {uid}')
+                    logger.debug(f'Failed to fetch email UID {uid}')
                     continue
 
                 if email_data[0] != None:
                     msg = email.message_from_bytes(email_data[0][1])
-                    logger.info(f'Processing email UID {uid}')
+                    logger.debug(f'Processing email UID {uid}')
                 else:
                     logger.error(f'email data empty.')
                     continue
@@ -86,11 +86,11 @@ class EmailAttachmentDownloader:
                         part.get_content_maintype() == 'multipart'
                         or part.get('Content-Disposition') is None
                     ):
-                        logger.info('message empty')
+                        logger.debug('message empty')
                         continue
 
                     filename = part.get_filename()
-                    logger.info(f'iterating filename "{filename}"')
+                    logger.debug(f'iterating filename "{filename}"')
                     if filename:
                         decoded_header = decode_header(filename)
                         filename, encoding = decoded_header[0]
@@ -118,7 +118,7 @@ class EmailAttachmentDownloader:
 
 
     def check_for_attachments(self):
-        logger.info("Checking for new email attachments...")
+        logger.debug("Checking for new email attachments...")
         self.download_attachments()
         self.timer = Timer(self.interval, self.check_for_attachments)
         self.timer.start()
@@ -203,14 +203,14 @@ class EmailTextDownloader:
                     with open(filepath, "w", encoding="utf-8") as f:
                         f.write(body)
 
-                    logger.info(f"Downloaded email text: {filepath}")
+                    logger.debug(f"Downloaded email text: {filepath}")
 
                 mail.logout()
         except Exception as e:
             logger.error(f"Error downloading email text: {e}")
 
     def check_for_emails(self):
-        logger.info("Checking for new emails from the specified sender...")
+        logger.debug("Checking for new emails from the specified sender...")
         self.download_text_from_sender()
         self.timer = Timer(self.interval, self.check_for_emails)
         self.timer.start()

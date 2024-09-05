@@ -77,7 +77,7 @@ class ScriptManager:
         :return: Processing function if a matching script is found, None otherwise
         :rtype: function or None
         """
-        logger.info(f"Attempting to match script to file: {filename}")
+        logger.debug(f"Attempting to match script to file: {filename}")
         for script_name, script in self.scripts.items():
             if script["declaration"].matches(filename):
                 logger.info(f"Script found: {script_name}")
@@ -115,7 +115,7 @@ class FileProcessor:
             logger.error(f"Function 'process' called with invalid file reference {file_path}.")
             return False
 
-        logger.info(f"Processing file: {file_path}")
+        logger.debug(f"Processing file: {file_path}")
         process_func = self.script_manager.get_script_for_file(file_path.name)
         if not process_func:
             logger.warning(f"No matching script found for file: {file_path}")
