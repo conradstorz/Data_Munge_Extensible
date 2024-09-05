@@ -4,6 +4,9 @@ from loguru import logger
 import time
 import sys
 from datetime import datetime
+from generic_pathlib_file_methods import move_file_with_check
+
+ARCHIVE_FOLDER = Path("D:/Users/Conrad/Downloads/Archive_misc/")  # for files that are ignored
 
 logger.catch()
 
@@ -117,6 +120,9 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
             if new_file:
                 if Path(new_file).suffix in [".ini", ".tmp", ".png"]:
                     logger.debug(f"Ignoring file found: {new_file}")
+                    # Lets move this file to misc storage folder
+                    new_file_path = Path(ARCHIVE_FOLDER) / Path(new_file.name)
+                    move_file_with_check(new_file, new_file_path)                    
                 else:                    
                     logger.info(f'File found to attempt processing {new_file}')
                     file_processor.process(directory_to_watch / new_file)
