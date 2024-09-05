@@ -6,7 +6,9 @@ from loguru import logger
 import sys
 import importlib
 import pprint
+from generic_pathlib_file_methods import move_file_with_check
 
+ARCHIVE_FOLDER = Path("D:/Users/Conrad/Downloads/Archive_misc/")  # for files without a handler
 class ScriptManager:
     """
     Manages loading and retrieving scripts for processing data.
@@ -117,6 +119,9 @@ class FileProcessor:
         process_func = self.script_manager.get_script_for_file(file_path.name)
         if not process_func:
             logger.warning(f"No matching script found for file: {file_path}")
+            # Lets move this file to misc storage folder
+            new_file_path = Path(ARCHIVE_FOLDER) / Path(file_path.name)
+            move_file_with_check(file_path, new_file_path)
             return False
         else:
             try:
