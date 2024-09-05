@@ -86,13 +86,15 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
 
         # Move the file
         source.replace(destination)
-        logger.debug(f"Successfully moved {source} to {destination}")
+        logger.debug(f"Moved {source} to {destination}")
 
         # Verify the move
         if destination.exists() and not source.exists():
             logger.debug(f"Move verified: {source} is now at {destination}")
+            return True
         else:
             logger.debug("Move verification failed.")
+            return False
 
     except FileNotFoundError:
         logger.error(f"Error: The source file {source} does not exist.")
