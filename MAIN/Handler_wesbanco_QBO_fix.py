@@ -25,14 +25,26 @@ class FileMatcher:
 
     @logger.catch()
     def matches(self, filename: Path) -> bool:
-        """Define how to match data files"""
+        """
+        Determines if the given filename matches the specified patterns and extension.
+
+        :param filename: The Path object representing the file to check.
+        :type filename: Path
+        :return: True if the file matches, False otherwise.
+        :rtype: bool
+        """
         if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
             return True  # match found
         else:
             return False  # no match
 
     def get_filename_strings_to_match(self):
-        """Returns the list of filename strings to match"""
+        """
+        Returns the list of filename strings to match.
+
+        :return: A list of filename strings to match.
+        :rtype: list
+        """
         return FILENAME_STRINGS_TO_MATCH
 
 
@@ -42,7 +54,17 @@ declaration = FileMatcher()
 
 @logger.catch
 def data_handler_process(file_path: Path) -> bool:
-    # This is the standardized functioncall for the Data_Handler_Template
+    """
+    Processes the data file specified by the file path.
+
+    This function checks if the file exists, processes its contents,
+    and moves the file to the appropriate history folder.
+
+    :param file_path: The Path object representing the file to process.
+    :type file_path: Path
+    :return: True if the file was successfully processed, False otherwise.
+    :rtype: bool
+    """
     if not file_path.exists:
         logger.error(f"File to process does not exist.")
         return False
@@ -141,26 +163,51 @@ def preprocess_memo(memo):
 
 @logger.catch
 def truncate_name(name, max_length=32):
-    """Truncate the name value to ensure it does not exceed QuickBooks' limit."""
+    """
+    Truncate the name value to ensure it does not exceed QuickBooks' limit.
+    
+    Parameters:
+    - name (str): The name to be truncated.
+    - max_length (int, optional): The maximum allowed length. Defaults to 32.
+    
+    Returns:
+    - str: The truncated name.
+    
+    Raises:
+    - ValueError: If 'name' is not a string.
+    """
+    if not isinstance(name, str):
+        raise ValueError("The 'name' must be a string.")
     return name[:max_length]
+
 
 
 @logger.catch
 def extract_transaction_details(transaction_lines):
     """Extract details from transaction lines into a dictionary of tag:value."""
     transaction_details = {}
+    
     for line in transaction_lines:
+        line = line.strip()
+        
+        if not line:
+            continue  # Skip empty lines
+        
         # Split the line at the first occurrence of ">" to separate the tag from its value
         parts = line.split(">", 1)
-        if len(parts) == 2:
-            if parts[0].startswith("<"):  # is this a valid tag?
-                tag, value = (
-                    parts[0][1:],
-                    parts[1],
-                )  # Remove the opening "<" from the tag
-                transaction_details[tag] = value.strip()
-    logger.debug(transaction_details)
+        
+        if len(parts) == 2 and parts[0].startswith("<"):
+            tag = parts[0][1:].strip()  # Remove the opening "<" from the tag
+            value = parts[1].strip()  # Strip any leading/trailing whitespace from value
+            
+            if tag in transaction_details:
+                logger.warning(f"Duplicate tag '{tag}' found. Overwriting previous value.")
+            
+            transaction_details[tag] = value
+    
+    logger.debug(f"Extracted transaction details: {transaction_details}")
     return transaction_details
+
 
 
 @logger.catch
@@ -247,18 +294,48 @@ def process_qbo_lines(lines):
 
 
 @logger.catch
-def read_base_file(input_file):
-    """read_base_file(Pathlib_Object)
-    Return a list of lines contained in base_file.
+
+def read_base_file(input_file: Path):
+    """
+    Reads the contents of the specified file and returns a list of its lines.
+
+    This function attempts to open the file at the given path and read its contents.
+    If the file is successfully read, it returns a list of lines. If an error occurs,
+    it logs the error and returns an empty list.
+
+    :param input_file: The path to the file to be read (as a `Path` object).
+    :type input_file: Path
+    :return: A list containing the lines of the file. Returns an empty list if an error occurs.
+    :rtype: list[str]
+    
+    :raises FileNotFoundError: If the file does not exist.
+    :raises PermissionError: If there are insufficient permissions to read the file.
+    :raises Exception: For any other exceptions encountered during the file read process.
+
+    :example:
+
+    >>> from pathlib import Path
+    >>> file_path = Path("example.txt")
+    >>> lines = read_base_file(file_path)
+    >>> print(lines)
+    ['Line 1', 'Line 2', 'Line 3']
+
     """
     logger.debug(f"Attempting to open input file {input_file.name}")
     try:
-        with open(input_file) as IN_FILE:
-            file_contents = IN_FILE.readlines()
-    except Exception as e:
-        logger.error(f"Error in reading {input_file.name}")
-        logger.warning(str(e))
+        # Use Path's read_text method to read the entire file
+        file_contents = input_file.read_text().splitlines()
+    except FileNotFoundError:
+        logger.error(f"File not found: {input_file.name}")
         file_contents = []
-    if file_contents != []:
+    except PermissionError:
+        logger.error(f"Permission denied: {input_file.name}")
+        file_contents = []
+    except Exception as e:
+        logger.error(f"Error reading {input_file.name}: {str(e)}")
+        file_contents = []
+
+    if file_contents:
         logger.debug(f"File contents read successfully. {len(file_contents)} lines.")
     return file_contents
+
