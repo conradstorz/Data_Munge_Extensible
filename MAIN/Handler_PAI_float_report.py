@@ -42,14 +42,10 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(
-            FILE_EXTENSION
-        ):
-            # match found
-            return True
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+            return True  # match found
         else:
-            # no match
-            return False
+            return False  # no match
 
     def get_filename_strings_to_match(self):
         """Returns the list of filename strings to match"""
@@ -66,32 +62,29 @@ def data_handler_process(file_path: Path):
     if not file_path.exists():
         logger.error(f"File to process does not exist.")
         return False
-    else:
-        logger.debug(f"Looking for date string in: {file_path.stem}")
-        filedate = extract_date_from_filename(
-            file_path.stem
-        )  # filename without extension
-        logger.debug(f"Found Date: {filedate}")
-        output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
-        logger.debug(f"Output filename: {output_file}")
-        # launch the processing function
-        try:
-            result = process_floatReport_csv(file_path, filedate)
-            # processing done, send result to printer
-        except Exception as e:
-            logger.error(f"Failure processing dataframe: {e}")
-            return False
-        else:
-            if len(result) > 0:
-                logger.debug(f'Applying formatting rules and writing excel file...')
-                apply_formatting_and_save(output_file, result)
-                time.sleep(1)  # Allow time for file to save
-                logger.debug(f'Sending excel file to printer...')
-                print_excel_file(output_file)
-                #convert_dataframe_to_excel_with_formatting_and_save(output_file, result)
-            else:
-                logger.error(f"No data found to process")
-                return False
+
+    logger.debug(f"Looking for date string in: {file_path.stem}")
+    filedate = extract_date_from_filename(file_path.stem)  # filename without extension
+    logger.debug(f"Found Date: {filedate}")
+    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+    logger.debug(f"Output filename: {output_file}")
+    # launch the processing function
+    try:
+        result = process_floatReport_csv(file_path, filedate)
+        # basic processing done, continue with further processing
+    except Exception as e:
+        logger.error(f"Failure processing dataframe: {e}")
+        return False
+
+    if len(result) < 1:
+        logger.error(f"No data found to process")
+        return False
+            
+    logger.debug(f'Applying formatting rules and writing excel file...')
+    apply_formatting_and_save(output_file, result)
+    time.sleep(1)  # Allow time for file to save
+    logger.debug(f'Sending excel file to printer...')
+    print_excel_file(output_file)
     # all work complete
     return True
 
@@ -111,9 +104,7 @@ def process_floatReport_csv(in_f, RUNDATE):
     ]
     actual_columns_found = dataframe_contains(df, expected_fields_list)
     if not (actual_columns_found == expected_fields_list):
-        logger.debug(
-            f"Data was expected to contain: {expected_fields_list}\n but only these fileds found: {actual_columns_found}"
-        )
+        logger.debug(f"Data was expected to contain: {expected_fields_list}\n but only these fileds found: {actual_columns_found}")
         return empty_df
 
     logger.debug(f"Data contained all expected fields.")
