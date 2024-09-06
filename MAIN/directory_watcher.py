@@ -123,7 +123,7 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
                 if Path(new_file).suffix in [".ini", ".png"]:
                     logger.debug(f"Ignoring file found: {new_file}")
                     # Lets move this file to misc storage folder
-                    new_file_path = Path(ARCHIVE_FOLDER) / Path(new_file.name)
+                    new_file_path = Path(ARCHIVE_FOLDER) / Path(new_file)
                     move_file_with_check(new_file, new_file_path)                    
                 else:                    
                     logger.debug(f'File found to attempt processing {new_file}')
