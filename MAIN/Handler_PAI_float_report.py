@@ -18,7 +18,7 @@ from generic_dataframe_functions import dataframe_contains
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-FILE_EXTENSION = ".csv"
+INPUT_DATA_FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = [
     "Terminal Status(w_FLOAT)automated",
@@ -42,7 +42,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
             return True  # match found
         else:
             return False  # no match
