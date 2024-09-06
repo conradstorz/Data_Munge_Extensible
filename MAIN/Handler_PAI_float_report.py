@@ -15,6 +15,7 @@ from generic_excel_functions import print_excel_file
 from generic_munge_functions import extract_date_from_filename
 from generic_dataframe_functions import data_from_csv
 from generic_dataframe_functions import dataframe_contains
+from generic_munge_functions import archive_original_file
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
@@ -58,35 +59,74 @@ declaration = FileMatcher()
 
 @logger.catch
 def data_handler_process(file_path: Path):
-    # This is the standardized functioncall for the Data_Handler_Template
+    # This is the standardized function call for the Data_Handler_Template
     if not file_path.exists():
-        logger.error(f"File to process does not exist.")
+        logger.error(f"File to process does not exist: {file_path}")
         return False
 
+    file_size = file_path.stat().st_size
+    logger.info(f"Starting processing for file: {file_path}, Size: {file_size} bytes")
+
     logger.debug(f"Looking for date string in: {file_path.stem}")
-    filedate = extract_date_from_filename(file_path.stem)  # filename without extension
-    logger.debug(f"Found Date: {filedate}")
-    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
-    logger.debug(f"Output filename: {output_file}")
-    # launch the processing function
     try:
-        result = process_floatReport_csv(file_path, filedate)
-        # basic processing done, continue with further processing
+        filedate = extract_date_from_filename(file_path.stem)  # filename without extension
+        logger.info(f"Extracted Date: {filedate} from filename")
     except Exception as e:
-        logger.error(f"Failure processing dataframe: {e}")
+        logger.error(f"Error extracting date from filename: {file_path.stem}, Error: {e}")
+        return False
+
+    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+    logger.debug(f"Output filename will be: {output_file}")
+
+    archive_input_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.name}")
+    logger.debug(f"Archive for processed file path is: {archive_input_file}")
+
+    # Launch the processing function
+    try:
+        logger.debug(f"Starting CSV processing for file: {file_path} with date: {filedate}")
+        result = process_floatReport_csv(file_path, filedate)
+        logger.info(f"CSV processing completed successfully, {len(result)} records found")
+    except Exception as e:
+        logger.error(f"Failure processing dataframe for file: {file_path}, Error: {e}")
         return False
 
     if len(result) < 1:
-        logger.error(f"No data found to process")
+        logger.error(f"No data found to process for file: {file_path}")
         return False
-            
-    logger.debug(f'Applying formatting rules and writing excel file...')
-    apply_formatting_and_save(output_file, result)
-    time.sleep(1)  # Allow time for file to save
-    logger.debug(f'Sending excel file to printer...')
-    print_excel_file(output_file)
-    # all work complete
+
+    # Apply formatting rules and save Excel file
+    try:
+        logger.debug(f"Applying formatting rules to result with {len(result)} records")
+        apply_formatting_and_save(output_file, result)
+        logger.info(f"Successfully saved formatted data to: {output_file}")
+    except Exception as e:
+        logger.error(f"Error applying formatting or saving the file: {output_file}, Error: {e}")
+        return False
+
+    # Introduce a small delay (could be replaced with more reliable checks in the future)
+    time.sleep(1)
+    
+    # Sending file to printer
+    try:
+        logger.debug(f"Sending Excel file to printer: {output_file}")
+        print_excel_file(output_file)
+        logger.info(f"Excel file {output_file} sent to printer successfully")
+    except Exception as e:
+        logger.error(f"Error printing file: {output_file}, Error: {e}")
+        return False
+
+    # Archive the original file
+    try:
+        logger.debug(f"Archiving original file from {file_path} to {archive_input_file}")
+        archive_original_file(file_path, archive_input_file)
+        logger.info(f"Successfully archived file: {file_path} to {archive_input_file}")
+    except Exception as e:
+        logger.error(f"Error archiving file: {file_path}, Error: {e}")
+        return False
+
+    logger.info(f"All processing for file: {file_path} completed successfully")
     return True
+
 
 
 @logger.catch
