@@ -13,7 +13,7 @@ OUTPUT_FILE_EXTENSION = ".pdf"  # if this handler will output a different file t
 
 FILENAME_STRINGS_TO_MATCH = [
     "sales_activity_by_batch_",
-    "dummy place holder",
+    "seedlivereportscantaloupecom_pending_payment_summary_",
 ]
 
 ARCHIVE_DIRECTORY_NAME = (
