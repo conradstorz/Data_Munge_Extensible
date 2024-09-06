@@ -93,7 +93,7 @@ class EmailFetcher:
         """
         try:
             # gather email details and sanitize strings
-            logger.info(f"Incoming eMail {msg.subject}. Sanitizing...")
+            logger.info(f"Incoming eMail: '{msg.subject}' Sanitizing...")
             email_subject = sanitize_filename(msg.subject)
             logger.debug(f'Sanitized eMail subject: "{email_subject}"')
             email_sender = sanitize_filename(msg.from_)
