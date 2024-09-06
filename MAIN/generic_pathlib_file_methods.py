@@ -6,7 +6,35 @@ import re
 import unicodedata
 
 # List of valid extensions (expand as needed)
-VALID_EXTENSIONS = {'.txt', '.pdf', '.jpg', '.png', '.docx', '.xlsx'}
+VALID_EXTENSIONS = {
+    # Document formats
+    '.txt', '.pdf', '.doc', '.docx', '.odt', '.rtf', '.tex', '.wpd',
+
+    # Spreadsheet formats
+    '.xls', '.xlsx', '.ods', '.csv',
+
+    # Presentation formats
+    '.ppt', '.pptx', '.odp',
+
+    # Image formats
+    '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg',
+
+    # Audio formats
+    '.mp3', '.wav', '.aac', '.flac', '.ogg',
+
+    # Video formats
+    '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv',
+
+    # Archive formats
+    '.zip', '.tar', '.gz', '.rar', '.7z',
+
+    # Code and markup formats
+    '.html', '.css', '.js', '.py', '.java', '.c', '.cpp', '.xml', '.json', '.yml',
+
+    # Other common formats
+    '.iso', '.exe', '.dll'
+}
+
 
 
 def sanitize_filename(filename):
@@ -23,11 +51,15 @@ def sanitize_filename(filename):
     :return: The sanitized filename.
     :rtype: str
     """
+    if not filename:
+        logger.error("Filename is empty or None.")
+        return None
+
     filepath = Path(filename)
     file_extension = filepath.suffix if filepath.suffix in VALID_EXTENSIONS else ''
     base_filename = filepath.stem if file_extension else filepath.name
     
-    logger.debug(f"Sanitizing filename: {base_filename}")
+    logger.debug(f"Sanitizing string: {base_filename}")
     
     # Normalize and sanitize the base filename
     base_filename = unicodedata.normalize('NFKD', base_filename).encode('ascii', 'ignore').decode('ascii')
@@ -37,7 +69,7 @@ def sanitize_filename(filename):
     # Remove any periods from the sanitized filename
     base_filename = base_filename.replace('.', '')
     
-    logger.debug(f"Sanitized filename: {base_filename}")
+    logger.debug(f"Sanitized string: {base_filename}")
     
     # Return the sanitized filename with the valid file extension if one exists
     return f"{base_filename}{file_extension}"
