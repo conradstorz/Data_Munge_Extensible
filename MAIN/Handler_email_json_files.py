@@ -83,7 +83,7 @@ def data_handler_process(file_path: Path):
     send_dataframe_to_file(archive_output_file, processed_dataframe)
 
     logger.debug(f"moving incoming json file to new location.")
-    archive_original_file(file_path, new_source_data_filename)
+    archive_original_file(file_path, archive_output_file)
 
     return True
 
