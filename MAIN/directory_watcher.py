@@ -120,10 +120,12 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
             new_file = get_first_new_file(directory_to_watch, "./download_history_file.pkl", ignore_extensions=['.download', '.tmp', '.part', '.crdownload'])
             if new_file:
                 time.sleep(1)  # allow the filesystem to settle before proceeding
-                if Path(new_file).suffix in [".ini", ".png"]:
-                    logger.debug(f"Ignoring file found: {new_file}")
+                new_file = Path(new_file)
+                if new_file.suffix in [".ini", ".png"]:
+                    logger.debug(f"Ignoring file found: {new_file=}")
                     # Lets move this file to misc storage folder
-                    new_file_path = Path(ARCHIVE_FOLDER) / Path(new_file)
+                    new_file_path = Path(ARCHIVE_FOLDER) / new_file.stem
+                    logger.debug(f"New destination: {new_file_path=}")
                     move_file_with_check(new_file, new_file_path)                    
                 else:                    
                     logger.debug(f'File found to attempt processing {new_file}')
