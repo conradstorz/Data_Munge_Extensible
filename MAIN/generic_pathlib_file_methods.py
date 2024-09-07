@@ -104,33 +104,67 @@ def delete_file_and_verify(file_path):
         logger.error(f"An unexpected error occurred: {e}")
 
 
+@logger.catch()
 def move_file_with_check(source_path, destination_path, exist_ok=True):
     # move file to a new location
-    logger.debug(f"Attempting to move {source.name} to {destination}")    
+    logger.debug(f"Attempting to move {source_path} to {destination_path}")    
     # Create Path objects
     source = Path(source_path)
     destination = Path(destination_path)
     try:
         # Ensure the destination directory exists
         destination.parent.mkdir(parents=True, exist_ok=exist_ok)
+        
+        # Check if destination exists and handle based on exist_ok flag
+        if destination.exists() and not exist_ok:
+            logger.error(f"Error: Destination file {destination} already exists.")
+            return False
+        
         # Move the file
         source.replace(destination)
         logger.debug(f"Moved {source} to {destination}")
-        # Verify the move
+        
     except FileNotFoundError:
         logger.error(f"Error: The source file {source} does not exist.")
+        return False
     except PermissionError:
         logger.error(f"Error: Permission denied. Unable to move {source} to {destination}.")
+        return False
     except IsADirectoryError:
         logger.error(f"Error: {source} is a directory, not a file.")
+        return False
     except OSError as e:
         logger.error(f"Error: An OS error occurred: {e}")
+        return False
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
+        return False
     # verify move took place and log any failures
     if destination.exists() and not source.exists():
         logger.debug(f"Move verified: {source} is now at {destination}")
         return True
     else:
         logger.debug("Move verification failed.")
+        
+        # Check if source file still exists
+        if source.exists():
+            logger.error(f"Verification failed: Source file {source} still exists, move did not occur.")
+        
+        # Check if destination file does not exist
+        if not destination.exists():
+            logger.error(f"Verification failed: Destination file {destination} does not exist.")
+        
+        # Check for partial move by comparing file sizes if source and destination both exist
+        if source.exists() and destination.exists():
+            source_size = os.path.getsize(source)
+            destination_size = os.path.getsize(destination)
+            if source_size != destination_size:
+                logger.error(f"Verification failed: File sizes differ. Source: {source_size} bytes, Destination: {destination_size} bytes.")
+            else:
+                logger.error("Verification failed: Unknown issue, but sizes match. Further investigation needed.")
+        
+        # Additional check if destination exists but source does not (could indicate permission issues)
+        if not source.exists() and not destination.exists():
+            logger.error("Verification failed: Neither source nor destination exist. Possible permission or deletion issue.")
+        
         return False
