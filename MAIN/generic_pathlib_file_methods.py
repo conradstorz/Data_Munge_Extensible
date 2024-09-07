@@ -105,35 +105,18 @@ def delete_file_and_verify(file_path):
 
 
 def move_file_with_check(source_path, destination_path, exist_ok=True):
-
+    # move file to a new location
+    logger.debug(f"Attempting to move {source.name} to {destination}")    
+    # Create Path objects
+    source = Path(source_path)
+    destination = Path(destination_path)
     try:
-        # Create Path objects
-        source = Path(source_path)
-        destination = Path(destination_path)
-
-        logger.debug(f"Moving {source.name} to {destination}")
-
         # Ensure the destination directory exists
         destination.parent.mkdir(parents=True, exist_ok=exist_ok)
-
         # Move the file
         source.replace(destination)
         logger.debug(f"Moved {source} to {destination}")
-
-    # Verify the move
-    if destination.exists() and not source.exists():
-        logger.debug(f"Move verified: {source} was successfully moved to {destination}")
-        return True
-    else:
-        if destination.exists() and source.exists():
-            logger.debug(f"Move verification failed: {source} still exists at its original location, although {destination} was created.")
-        elif not destination.exists() and source.exists():
-            logger.debug(f"Move verification failed: {source} still exists at its original location, and {destination} was not created.")
-        elif not destination.exists() and not source.exists():
-            logger.debug(f"Move verification failed: Both {source} and {destination} do not exist.")
-        return False
-
-
+        # Verify the move
     except FileNotFoundError:
         logger.error(f"Error: The source file {source} does not exist.")
     except PermissionError:
@@ -144,3 +127,10 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
         logger.error(f"Error: An OS error occurred: {e}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
+    # verify move took place and log any failures
+    if destination.exists() and not source.exists():
+        logger.debug(f"Move verified: {source} is now at {destination}")
+        return True
+    else:
+        logger.debug("Move verification failed.")
+        return False
