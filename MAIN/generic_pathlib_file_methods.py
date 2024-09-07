@@ -3,6 +3,7 @@
 from loguru import logger
 from pathlib import Path
 import re
+import os
 import unicodedata
 
 # List of valid extensions (expand as needed)
@@ -114,16 +115,13 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
     try:
         # Ensure the destination directory exists
         destination.parent.mkdir(parents=True, exist_ok=exist_ok)
-        
         # Check if destination exists and handle based on exist_ok flag
         if destination.exists() and not exist_ok:
             logger.error(f"Error: Destination file {destination} already exists.")
             return False
-        
         # Move the file
         source.replace(destination)
         logger.debug(f"Moved {source} to {destination}")
-        
     except FileNotFoundError:
         logger.error(f"Error: The source file {source} does not exist.")
         return False
@@ -145,15 +143,12 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
         return True
     else:
         logger.debug("Move verification failed.")
-        
         # Check if source file still exists
         if source.exists():
             logger.error(f"Verification failed: Source file {source} still exists, move did not occur.")
-        
         # Check if destination file does not exist
         if not destination.exists():
             logger.error(f"Verification failed: Destination file {destination} does not exist.")
-        
         # Check for partial move by comparing file sizes if source and destination both exist
         if source.exists() and destination.exists():
             source_size = os.path.getsize(source)
@@ -162,9 +157,7 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
                 logger.error(f"Verification failed: File sizes differ. Source: {source_size} bytes, Destination: {destination_size} bytes.")
             else:
                 logger.error("Verification failed: Unknown issue, but sizes match. Further investigation needed.")
-        
         # Additional check if destination exists but source does not (could indicate permission issues)
         if not source.exists() and not destination.exists():
             logger.error("Verification failed: Neither source nor destination exist. Possible permission or deletion issue.")
-        
-        return False
+    return False
