@@ -9,7 +9,7 @@ import json
 from pathlib import Path
 import os
 from datetime import datetime
-from generic_munge_functions import extract_dates
+from generic_munge_functions import extract_date_from_filename
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
@@ -50,7 +50,7 @@ class FileMatcher:
 
 
 # activate declaration below when script is ready
-# declaration = FileMatcher()
+declaration = FileMatcher()
 
 
 @logger.catch
@@ -65,10 +65,15 @@ def data_handler_process(file_path: Path):
     # move_input_data_file_to_archive
 
     logger.info(f'ZIP Handler launched on file {file_path}')
-    filedates_list = get_dates_from_filename(file_path)
-    raw_dataframe = get_data_from(file_path)
+    filedates_list = extract_date_from_filename(file_path)
+    logger.debug(f'{filedates_list=}')
+    json_data = get_data_from(file_path)
+    logger.debug(f'{json_data=}')
+    # build output path
     output_filepath = Path(f"{ARCHIVE_DIRECTORY_NAME}\{file_path.stem}{OUTPUT_FILE_EXTENSION}")
-    processed_dataframe = process_dataframe(raw_dataframe)
+    logger.debug(f'{output_filepath=}')
+    processed_json = process_json(json_data, filedates_list, output_filepath)
+    logger.debug(f"{processed_json=}")
     # save data
     # print data
     # move data
@@ -76,90 +81,50 @@ def data_handler_process(file_path: Path):
     return True
 
 
-
-def process_dataframe(raw_dataframe):
-    if len(raw_dataframe) < 1:
-        logger.error(f"No data found to process")
-        return False
-
-    process_this_data(raw_dataframe, filedates_list, output_file)
-    return True
-
-
-
-
-def get_dates_from_filename(input_file):
-    logger.debug(f"Looking for date string in: {input_file.stem}")
-    filedates_list = extract_dates(input_file.stem)  # filename without extension
-    logger.debug(f"Found Date: {filedates_list}")
-    return filedates_list
-
+def process_json(raw_json, filedates_list, output_filepath):
+    # return a JSON object ready to use such as print or save.
+    logger.debug(f'Begin processing JSON data.')
+    if len(raw_json) < 1:
+        logger.error(f"No data found to process for output: {output_filepath}")
+        return {}
+    # add any modification of data desired here such as adding data from filedates_list and output_filepath
+    return raw_json
 
 
 def get_data_from(input_file):
+    # read ZIP file content data from file
+    logger.debug(f'Attempting to read contents list from ZIP: {input_file}')
     if not input_file.exists:
         logger.error(f"File '{input_file}' to process does not exist.")
-        return False
-
-    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
-    logger.debug(f"Output filename: {output_file}")
-
+        return {}
     # launch the processing function
+    logger.debug(f'Starting files list aquisition of: {input_file}')
     try:
-        logger.debug(f'Starting data aquisition.')
-        raw_dataframe = aquire_data(input_file, filedates_list)
-    except Exception as e:
-        logger.error(f"Failure processing dataframe: {e}")
-        return False    
-
-
-
-@logger.catch
-def aquire_data(file_path, filedates_list):
-    # load file into dataframe with needed pre-processing
-    empty_df = panda.DataFrame()    
-    try:
-        df = panda.read_csv(file_path, header=None)
+        raw_json = sanitize_zip(input_file)
     except FileNotFoundError as e:
-        return empty_df
-    logger.debug(f'Dataframe loaded.')
-    return df
-
-
-@logger.catch
-def process_this_data(raw_dataframe, date_str, output_file) -> bool:
-    # This is the customized procedures used to process this data. Should return a dataframe.
-    empty_df = panda.DataFrame()
-
-    # *** place custom code here ***
-
-    logger.debug(f"{output_file} with embeded date string {date_str} readyness verified.")
-
-    # all work complete
-    return empty_df
-
+        return {}
+    logger.debug(f'Zip file contents loaded as a JSON object.')        
+    return raw_json
 
 
 def sanitize_zip(zip_file):
+    # Check the contents list of ZIP file in as safe a manner as reasonable
+    logger.debug(f'Attempting safe opening of ZIP file: {zip_file}')
     # Define a size limit for files (e.g., 100 MB)
     MAX_FILE_SIZE = 100 * 1024 * 1024
     # Set the extraction directory
     safe_base_path = Path("/safe/directory/for/extraction")
-
     file_list = []
-
     try:
         with zipfile.ZipFile(zip_file, 'r') as zf:
             for info in zf.infolist():
                 # Prevent zip bombs by checking uncompressed file size
                 if info.file_size > MAX_FILE_SIZE:
                     raise ValueError(f"File {info.filename} exceeds the maximum allowed size.")
-
                 # Avoid directory traversal attacks
                 extracted_path = safe_base_path / Path(info.filename)
                 if not extracted_path.resolve().is_relative_to(safe_base_path.resolve()):
                     raise ValueError(f"Path traversal detected in file {info.filename}.")
-
                 # Gather file metadata
                 file_info = {
                     "file_name": info.filename,
@@ -168,13 +133,12 @@ def sanitize_zip(zip_file):
                     "modified_time": datetime(*info.date_time).isoformat(),
                 }
                 file_list.append(file_info)
-
         # Output JSON data
         json_output = json.dumps(file_list, indent=4)
-        return json_output
-
     except zipfile.BadZipFile:
-        raise ValueError("The provided zip file is malformed or corrupt.")
+        raise ValueError(f"The provided zip file: {zip_file} is malformed or corrupt.")
+    return json_output
+
 
 # Example usage
 if __name__ == "__main__":
