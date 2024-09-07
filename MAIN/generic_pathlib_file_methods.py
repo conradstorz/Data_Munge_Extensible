@@ -112,6 +112,10 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
     # Create Path objects
     source = Path(source_path)
     destination = Path(destination_path)
+    # check that paths are different
+    if source == destination:
+        logger.error(f"Error: Source {source} and destination {destination} are the same.")
+        return False    
     try:
         # Ensure the destination directory exists
         destination.parent.mkdir(parents=True, exist_ok=exist_ok)
