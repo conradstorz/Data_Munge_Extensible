@@ -132,6 +132,11 @@ def data_handler_process(file_path: Path):
 @logger.catch
 def process_floatReport_csv(in_f, RUNDATE):
     """Scan file and compute sums for 2 columns"""
+    # Declare labels here to eliminate possiblity of typos
+    ROUTE_TEXT = "               Route Totals"
+    REPORT_DATE = f"Report ran: {RUNDATE}"
+    FLOAT_LABEL = "Today's Float"
+
     empty_df = panda.DataFrame()
     df = data_from_csv(in_f)
 
@@ -139,7 +144,7 @@ def process_floatReport_csv(in_f, RUNDATE):
         "Location",
         "Reject Balance",
         "Balance",
-        "Today's Float",
+        FLOAT_LABEL,
         "Route",
     ]
     actual_columns_found = dataframe_contains(df, expected_fields_list)
@@ -150,7 +155,7 @@ def process_floatReport_csv(in_f, RUNDATE):
     logger.debug(f"Data contained all expected fields.")
 
     # tack on the date of this report extracted from the filename
-    df.at[len(df), "Location"] = f"Report ran: {RUNDATE}"
+    df.at[len(df), "Location"] = REPORT_DATE
 
     # Strip out undesirable characters from "Balance" column
     try:
@@ -160,10 +165,10 @@ def process_floatReport_csv(in_f, RUNDATE):
         logger.error(f"KeyError in balance column: {e}")
         return empty_df
 
-    # Process "Today's Float" column
+    # Process FLOAT_LABEL column
     try:
-        df.replace({"Today's Float": {"[\$,)]": ""}}, regex=True, inplace=True)
-        df["Today's Float"] = panda.to_numeric(df["Today's Float"], errors="coerce")
+        df.replace({FLOAT_LABEL: {"[\$,)]": ""}}, regex=True, inplace=True)
+        df[FLOAT_LABEL] = panda.to_numeric(df[FLOAT_LABEL], errors="coerce")
     except KeyError as e:
         logger.error(f"KeyError in 'Todays' Float' column: {e}")
         return empty_df
@@ -177,7 +182,18 @@ def process_floatReport_csv(in_f, RUNDATE):
 
     # sum the columns
     df.loc["Totals"] = df.select_dtypes(np.number).sum()
-    df.at["Totals", "Location"] = "               Route Totals"
+    df.at["Totals", "Location"] = ROUTE_TEXT
+
+    # sum the sums
+    # Locate the row containing "Route Totals"
+    route_totals_row = df[df['Location'].str.contains('Route Totals', na=False)]
+
+    # Sum the relevant values from "Route Totals" row
+    sum_value = route_totals_row['Balance'].values[0] + route_totals_row[FLOAT_LABEL].values[0]
+    print(f'{sum_value=}')
+    # Locate the row containing "Report Ran" and place the sum in the "Balance" column
+    df.loc[df['Location'].str.contains('Report ran', na=False), 'Balance'] = sum_value
+
 
     # work is finished. Drop unneeded columns from output
     df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
