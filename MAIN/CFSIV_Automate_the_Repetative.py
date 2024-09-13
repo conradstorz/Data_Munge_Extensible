@@ -24,35 +24,42 @@ import sys
 # setup logging
 # Remove the default handler
 logger.remove()
-# Add a handler for the console that logs messages at the INFO level and above
+# Add a handler for the console that logs messages at the INFO level
 # Add the console handler with colorization enabled
 logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
+# setup log rotation
 logger.add("LOGS/file_processing_{time:YYYY-MM-DD}.log", rotation="00:00", retention="9 days")
 logger.info(f'Program Start: {__name__}')
 
-# load data processing functions
-scripts_directory = Path.cwd() / "MAIN"
-directory_to_watch = Path("D:/Users/Conrad/Downloads/")
-scripts_manager = ScriptManager(scripts_directory)
+# load data processing functions for various data types
+SCRIPTS_DIRECTORY = Path.cwd() / "MAIN"
+scripts_manager = ScriptManager(SCRIPTS_DIRECTORY)
 scripts_manager.load_scripts()
 file_processor = FileProcessor(scripts_manager)
-# file_processor.process(directory_to_watch)  # This was a mistake i made after combining scripts and processors
+
+# establish where to look for incoming data
+DIRECTORY_TO_WATCH = Path("D:/Users/Conrad/Downloads/")
 
 # load email secrets
-secrets_directory = scripts_directory / Path(".env")
-secrets = dotenv_values(secrets_directory)
-imap_server = "imap.gmail.com"
+SECRETS_DIRECTORY = SCRIPTS_DIRECTORY / Path(".env")
+secrets = dotenv_values(SECRETS_DIRECTORY)
+IMAP_SERVER = "imap.gmail.com"
+
 # initiate class  (has optional flag 'mark_as_read' that defaults to False)
 try:
-    email_fetcher = EmailFetcher(imap_server, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=180, dld=directory_to_watch)
+    email_fetcher = EmailFetcher(IMAP_SERVER, secrets["EMAIL_USER"], secrets["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_TO_WATCH)
 except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
+
 # start fetcher
 email_fetcher.start()
 
 # This function will run until Keyboard Interrupt is detected
-monitor_download_directory(directory_to_watch, file_processor, delay=1)
+monitor_download_directory(DIRECTORY_TO_WATCH, file_processor, delay=1)
 
+# begin shutdown
 logger.info("directory watcher ended")
 email_fetcher.stop()
 logger.info("email watcher stopped")
+# shutdown complete
+sys.exit(0)
