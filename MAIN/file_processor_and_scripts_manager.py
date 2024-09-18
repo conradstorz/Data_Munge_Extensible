@@ -4,6 +4,7 @@
 from pathlib import Path
 from loguru import logger
 import sys
+import time
 import importlib
 import pprint
 from generic_pathlib_file_methods import move_file_with_check
@@ -119,8 +120,9 @@ class FileProcessor:
         process_func = self.script_manager.get_script_for_file(file_path.name)
         if not process_func:
             logger.warning(f"No matching script found for file: {file_path}")
-            # Lets move this file to misc storage folder
+            # Lets move this file to misc storage folder after a short delay to allow other outside processes a chance to complete
             new_file_path = Path(ARCHIVE_FOLDER) / Path(file_path.name)
+            time.sleep(5)
             move_file_with_check(file_path, new_file_path)
             return False
         else:
