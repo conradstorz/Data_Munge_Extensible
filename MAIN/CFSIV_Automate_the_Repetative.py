@@ -33,9 +33,9 @@ logger.info(f'Program Start: {__name__}')
 
 # load data processing functions for various data types
 SCRIPTS_DIRECTORY = Path.cwd() / "MAIN"
-scripts_manager = ScriptManager(SCRIPTS_DIRECTORY)
-scripts_manager.load_scripts()
-file_processor = FileProcessor(scripts_manager)
+scripts_manager_instance = ScriptManager(SCRIPTS_DIRECTORY)
+scripts_manager_instance.load_scripts()
+file_processor_instance = FileProcessor(scripts_manager_instance)
 
 # establish where to look for incoming data
 DIRECTORY_TO_WATCH = Path("D:/Users/Conrad/Downloads/")
@@ -55,7 +55,7 @@ except KeyError as e:
 email_fetcher.start()
 
 # This function will run until Keyboard Interrupt is detected
-monitor_download_directory(DIRECTORY_TO_WATCH, file_processor, delay=1)
+monitor_download_directory(DIRECTORY_TO_WATCH, file_processor_instance, delay=2)
 
 # begin shutdown
 logger.info("directory watcher ended")
