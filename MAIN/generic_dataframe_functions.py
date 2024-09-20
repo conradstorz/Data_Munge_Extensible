@@ -10,6 +10,7 @@ from pathlib import Path
 from generic_excel_functions import convert_dataframe_to_excel_with_formatting_and_save
 from generic_pathlib_file_methods import move_file_with_check
 
+@logger.catch()
 def load_json_to_dataframe(file_path):
     """
     Loads a JSON file into a pandas DataFrame or Series.
@@ -55,7 +56,6 @@ def load_json_to_dataframe(file_path):
         logger.debug(f"An unexpected error occurred: {e}")
         return pd.DataFrame()
     
-
 @logger.catch()
 def data_from_csv(in_f):
     """
@@ -84,7 +84,6 @@ def data_from_csv(in_f):
         DF_LAST_ROW = len(df)
         logger.debug(f"file imported into dataframe with {DF_LAST_ROW} rows.")
         return df
-
 
 @logger.catch()
 def load_csv_with_optional_headers(in_f: str, headers="") -> pd.DataFrame:
@@ -138,7 +137,6 @@ def load_csv_with_optional_headers(in_f: str, headers="") -> pd.DataFrame:
 
     return df
 
-
 @logger.catch()
 def dataframe_contains(df, list):
     """
@@ -159,7 +157,6 @@ def dataframe_contains(df, list):
     column_list = df.columns.tolist()
     matched_columns = [col for col in list if col in column_list]
     return matched_columns
-
 
 @logger.catch()
 def de_duplicate_header_names(df):
@@ -188,7 +185,6 @@ def de_duplicate_header_names(df):
     df.columns = new_columns
     logger.debug(f"{new_columns=}")
     return df
-
 
 @logger.catch()
 def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
@@ -227,8 +223,8 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
 
     return True
 
-
-def send_dataframe_to_file(outfile: Path, frame):
+@logger.catch()
+def send_dataframe_to_file_as_csv(outfile: Path, frame):
     """
     Save the DataFrame to a file.
 
@@ -243,7 +239,7 @@ def send_dataframe_to_file(outfile: Path, frame):
     frame.to_csv(outfile, index=False)
     logger.debug(f"Dataframe saved to {outfile}")
 
-
+@logger.catch()
 def print_dataframe(frame, printer):
     """
     Print the DataFrame to the specified printer.
@@ -255,7 +251,7 @@ def print_dataframe(frame, printer):
         None
     """
     logger.debug(f'Frame to output:\n{frame=}')
-    
+
     logger.debug(f"Dataframe printed to {printer}")
 
 
@@ -274,5 +270,5 @@ def send_dataframe_to_file_and_print(outfile: Path, frame):
         None
     """
     convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
-    send_dataframe_to_file(outfile, frame)
+    send_dataframe_to_file_as_csv(outfile, frame)
     print_dataframe(frame)

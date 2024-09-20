@@ -3,7 +3,7 @@ from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
 from generic_munge_functions import archive_original_file
-from generic_dataframe_functions import send_dataframe_to_file
+from generic_dataframe_functions import send_dataframe_to_file_as_csv
 from generic_dataframe_functions import load_json_to_dataframe
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
@@ -80,7 +80,7 @@ def data_handler_process(file_path: Path):
     processed_dataframe = process_this_data(raw_dataframe, filedates_list, file_path)
 
     logger.debug(f"sending dataframe to storage.")
-    send_dataframe_to_file(archive_output_file, processed_dataframe)
+    send_dataframe_to_file_as_csv(archive_output_file, processed_dataframe)
 
     logger.debug(f"moving incoming json file to new location.")
     archive_original_file(file_path, archive_output_file)
