@@ -1,4 +1,4 @@
-import pandas as panda
+import pandas as pd
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
@@ -50,13 +50,17 @@ def data_handler_process(file_path: Path):
         logger.error(f"File to process does not exist.")
         return False
 
-    logger.debug(f"Looking for date string in: {file_path.stem}")
+    logger.debug(f"Looking for date string(s) in: {file_path.stem}")
     filedate_list = extract_dates(file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedate_list}")
     output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
     logger.debug(f"Output filename: {output_file}")
 
     # launch the processing function
+    df_output = process_kiosoft_csv(file_path)
+    logger.debug(f'Data processing returned:\n{df_output=}')
+    
+    """
     try:
         result = aquire_this_data(file_path, filedate_list)
     except Exception as e:
@@ -71,10 +75,11 @@ def data_handler_process(file_path: Path):
     if len(df_output) < 1:
         logger.error(f"No data found to process")
         return False
+    """
 
     # processing done, send result to printer
     save_results_and_print(output_file, df_output, file_path)
-    logger.debug(f"\n{df_output}")
+    logger.debug(f"\nAll work complete.\n{df_output}")
 
     # all work complete
     return True
@@ -85,7 +90,7 @@ def aquire_this_data(file_path: Path, filedates: list) -> bool:
     # This is the customized procedures used to process this data
     # data should contain detailed transactions for the period of time described by 'filedates'
     # first date should in the list should be the earlier date and the second date the end date for the reporting period.
-    empty_df = panda.DataFrame()  # this is what we reutrn if data connot be imported
+    empty_df = pd.DataFrame()  # this is what we reutrn if data connot be imported
 
     logger.debug(f"{file_path} with embeded date string {filedates} readyness verified.")
     # this csv file is organized with descriptions in row 0 and values in row 1-n
@@ -94,7 +99,7 @@ def aquire_this_data(file_path: Path, filedates: list) -> bool:
     "Transaction Type","Total Amount ($)","Pre-Auth Amount ($)","Set Pre-Auth Amount ($)",Discount,"Special Amt","Response Code"]
     """
     try:
-        df = panda.read_csv(file_path)
+        df = pd.read_csv(file_path)
     except FileNotFoundError as e:
         return empty_df
 
@@ -153,7 +158,7 @@ def process_df(df):
     )
     subtotal_df = subtotal_df.rename(columns={"Total Amount ($)": "Sales($)"})
     # Merge the subtotal back into the main DataFrame
-    merged_df = panda.merge(sorted_df, subtotal_df, on="Machine ID", how="left")
+    merged_df = pd.merge(sorted_df, subtotal_df, on="Machine ID", how="left")
 
     # Drop duplicates: Keep the first occurrence of each row for a unique set of columns
     unique_columns = ["Location", "Machine ID"]
@@ -163,3 +168,48 @@ def process_df(df):
     df_dropped = deduplicated_df.drop(columns=["Total Amount ($)", "Response Code"])
 
     return df_dropped
+
+
+@logger.catch()
+def process_kiosoft_csv(filename):
+    """This function written with ChatGPT as a pair programmer.
+    """
+    # Load the CSV file
+    logger.info(f'Loading the CSV file {filename}')
+    file_path = Path(filename)
+    df = pd.read_csv(file_path)
+
+    # Clean the data by stripping leading/trailing spaces from all columns
+    df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
+    logger.debug(f'Data loaded and cleaned.')
+
+    # Create two separate dataframes for total and declined transactions
+    df_total = df.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
+
+    # Filter out only rows where 'Transaction Type' contains 'DECLINED' for the declined subtotal
+    df_declined = df[df['Response Code'].str.contains("declined", case=False, na=False)]
+    df_declined_total = df_declined.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
+    logger.debug(f'Data has been divided into all xacts and declined xacts.')
+
+    # Rename the columns for clarity  NOTE: this idea to rename was completely ChatGPT
+    df_total.rename(columns={'Total Amount ($)': 'Total Transactions Amount ($)'}, inplace=True)
+    df_declined_total.rename(columns={'Total Amount ($)': 'Declined Transactions Amount ($)'}, inplace=True)
+
+    # Merge the two subtotals by 'Machine ID'
+    df_final = pd.merge(df_total, df_declined_total, on='Machine ID', how='left')
+    logger.debug(f'Data has been merged into final report.')
+
+    # Fill any NaN values in the declined amount column with 0 (in case there are no declined transactions for some machines)
+    #  NOTE: This edge case was also suggested by ChatGPT
+    df_final['Declined Transactions Amount ($)'] = df_final['Declined Transactions Amount ($)'].fillna(0)
+
+    # Subtract the Declined Transactions from the Total Transactions to get the Net Amount
+    df_final['Net Transactions Amount ($)'] = df_final['Total Transactions Amount ($)'] - df_final['Declined Transactions Amount ($)']
+
+    # Save the final report to a CSV file   NOTE: This is outside of the scope of this function
+    # df_final.to_csv('final_report_with_net_total_by_machine_id.csv', index=False)
+
+    # return the final dataframe
+    logger.debug(f'Data processing complete.\n{df_final=}')
+    return df_final
+  
