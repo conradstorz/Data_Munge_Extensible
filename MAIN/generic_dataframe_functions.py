@@ -244,9 +244,9 @@ def send_dataframe_to_file(outfile: Path, frame):
     logger.debug(f"Dataframe saved to {outfile}")
 
 
-def print_dataframe(frame):
+def print_dataframe(frame, printer):
     """
-    Print the DataFrame to the console.
+    Print the DataFrame to the specified printer.
 
     Args:
         frame (DataFrame): The DataFrame to be printed.
@@ -254,8 +254,9 @@ def print_dataframe(frame):
     Returns:
         None
     """
-    logger.debug(frame)
-    logger.debug("Dataframe printed to console")
+    logger.debug(f'Frame to output:\n{frame=}')
+    
+    logger.debug(f"Dataframe printed to {printer}")
 
 
 def send_dataframe_to_file_and_print(outfile: Path, frame):
