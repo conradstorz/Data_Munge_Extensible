@@ -10,7 +10,7 @@ from loguru import logger
 import pandas as panda
 import numpy as np
 import time
-from generic_excel_functions import apply_formatting_and_save
+from generic_excel_functions import apply_excel_formatting_to_dataframe_and_save_spreadsheet
 from generic_excel_functions import print_excel_file
 from generic_munge_functions import extract_date_from_filename
 from generic_dataframe_functions import data_from_csv
@@ -97,7 +97,7 @@ def data_handler_process(file_path: Path):
     # Apply formatting rules and save Excel file
     try:
         logger.debug(f"Applying formatting rules to result with {len(result)} records")
-        apply_formatting_and_save(output_file, result)
+        apply_excel_formatting_to_dataframe_and_save_spreadsheet(output_file, result)
         logger.info(f"Successfully saved formatted data to: {output_file}")
     except Exception as e:
         logger.error(f"Error applying formatting or saving the file: {output_file}, Error: {e}")

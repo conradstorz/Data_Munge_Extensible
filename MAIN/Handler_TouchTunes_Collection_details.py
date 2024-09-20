@@ -3,7 +3,7 @@ from loguru import logger
 from pathlib import Path
 
 from generic_munge_functions import extract_dates
-from generic_excel_functions import apply_formatting_and_save
+from generic_excel_functions import apply_excel_formatting_to_dataframe_and_save_spreadsheet
 from generic_excel_functions import convert_xlsx_2_pdf
 from generic_munge_functions import print_pdf_using_os_subprocess
 
@@ -106,7 +106,7 @@ def data_handler_process(file_path: Path):
         "Please find Commission check included.",
     ]
     logger.debug(f'Format the data and save to Excel file.')
-    outfilename = apply_formatting_and_save(output_file, df_output)
+    outfilename = apply_excel_formatting_to_dataframe_and_save_spreadsheet(output_file, df_output)
 
     logger.debug(f'Creating PDF form final output from custom dataframe.')
     outfilename = convert_xlsx_2_pdf(outfilename, header=headers, footer=footers)

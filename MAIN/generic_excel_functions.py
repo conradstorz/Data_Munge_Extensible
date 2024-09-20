@@ -49,19 +49,17 @@ def set_custom_excel_formatting(df, writer, details):
             worksheet.set_column(i, i, column_width)
     return True
 
-
 @logger.catch()
 def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
     """Takes a dataframe and outputs to excel file."""
     logger.debug(f'Applying formatting rules and write excel file...')
-    apply_formatting_and_save(filename, frame)
+    apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame)
     time.sleep(1)  # Allow time for file to save
     logger.debug(f'Sending excel file to printer...')
     print_excel_file(filename)
 
-
 @logger.catch()
-def apply_formatting_and_save(filename, frame):
+def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     """Create an excel file on the default storage"""
     # define the various labels as $ or % or a plain number
     column_details = {
@@ -130,7 +128,7 @@ def apply_formatting_and_save(filename, frame):
         logger.error(f"An unexpected error occurred: {e}")
     return filename
 
-
+@logger.catch()
 def print_excel_file(filename):
     # Now we print
     logger.debug("Send processed excel file to printer...")
@@ -143,7 +141,6 @@ def print_excel_file(filename):
         logger.debug(f"Call to launch spreadsheet {filename} appears to have worked.")
     except FileNotFoundError as e:
         logger.error(f"Output file not found: {e}")
-
 
 @logger.catch()
 def load_excel_file(fname):
@@ -168,11 +165,11 @@ def load_excel_file(fname):
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
 
-
 @logger.catch()
 def convert_xlsx_2_pdf(fname, header=None, footer=None):
     """Converts an xlsx file into a pdf and saves back to same storage as original file.
-    header must be a list of strings to be added one per line at the top of the PDF.
+    header must be a list of strings to be added one per line at the top of the PDF 
+    and footer is the same for the bottom of each.
     """
     if header == None:
         header = ["Top of Page"]  # Default value
