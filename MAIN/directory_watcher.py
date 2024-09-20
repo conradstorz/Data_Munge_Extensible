@@ -5,7 +5,7 @@ import time
 import sys
 from datetime import datetime
 from generic_pathlib_file_methods import move_file_with_check
-
+ 
 ARCHIVE_FOLDER = Path("D:/Users/Conrad/Downloads/Archive_misc/")  # for files that are ignored
 
 logger.catch()
@@ -28,6 +28,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
     ignore_extensions = ignore_extensions or []  # This is a good way to avoid the mutable variable problem
+    logger.debug(f'Checking watched directory {directory_to_watch} for new files while ignoring {ignore_extensions}')
 
     # Load existing filenames from pickle
     if pickle_file.exists():
@@ -45,12 +46,13 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
 
     new_files = {f for f in current_files if f.name not in existing_files}
 
-    if not new_files:
+    if new_files == {}:
         logger.debug("No new files found.")
         return None
 
     # Process the first new file
     for new_file in new_files:
+        logger.debug(f'Examining file {new_file}')
         if (new_file.is_file() and new_file.suffix not in ignore_extensions):
             # Check for duplicate filenames and rename the file by appending a timestamp
             timestamp = datetime.now().strftime("%M%S")
@@ -77,6 +79,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
             return str(new_file_path)
 
     return None
+
 
 @logger.catch()
 def monitor_download_directory(directory_to_watch, file_processor, delay=1):
