@@ -2,6 +2,7 @@
 Defines common functions for working with dataframes used throughout my code
 """
 
+
 from loguru import logger
 import pandas as pd
 import json
@@ -208,6 +209,8 @@ def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     bool
         True if the process was successful, False otherwise.
     """
+    logger.debug(f'Launching save and print {input_filename=}')
+
     try:
         if len(frame) > 0:
             logger.debug(f"Sending Float Report to file/print...")
