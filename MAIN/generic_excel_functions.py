@@ -45,7 +45,7 @@ def set_custom_excel_formatting(df, writer, details):
             if details[col] == "%":
                 worksheet.set_column(i, i, column_width, percntg)
         else:  # just set the width of the column
-            logger.debug(f"No detailed column formating instructions found for: {col}")
+            logger.warning(f"No detailed column formating instructions found for: {col}")
             worksheet.set_column(i, i, column_width)
     return True
 
