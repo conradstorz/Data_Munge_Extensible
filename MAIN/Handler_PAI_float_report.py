@@ -13,8 +13,8 @@ import time
 from generic_excel_functions import apply_excel_formatting_to_dataframe_and_save_spreadsheet
 from generic_excel_functions import print_excel_file
 from generic_munge_functions import extract_date_from_filename
-from generic_dataframe_functions import data_from_csv
-from generic_dataframe_functions import dataframe_contains
+from generic_dataframe_functions import load_csv_to_dataframe
+from generic_dataframe_functions import verify_dataframe_contains
 from generic_munge_functions import archive_original_file
 
 
@@ -138,7 +138,7 @@ def process_floatReport_csv(in_f, RUNDATE):
     FLOAT_LABEL = "Today's Float"
 
     empty_df = panda.DataFrame()
-    df = data_from_csv(in_f)
+    df = load_csv_to_dataframe(in_f)
 
     expected_fields_list = [
         "Location",
@@ -147,7 +147,7 @@ def process_floatReport_csv(in_f, RUNDATE):
         FLOAT_LABEL,
         "Route",
     ]
-    actual_columns_found = dataframe_contains(df, expected_fields_list)
+    actual_columns_found = verify_dataframe_contains(df, expected_fields_list)
     if not (actual_columns_found == expected_fields_list):
         logger.debug(f"Data was expected to contain: {expected_fields_list}\n but only these fileds found: {actual_columns_found}")
         return empty_df

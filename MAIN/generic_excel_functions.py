@@ -143,7 +143,7 @@ def print_excel_file(filename):
         logger.error(f"Output file not found: {e}")
 
 @logger.catch()
-def load_excel_file(fname):
+def load_dataframe_from_excel_file(fname):
     try:
         # Load the Excel file
         file_path = Path(fname)
@@ -178,8 +178,9 @@ def convert_xlsx_2_pdf(fname, header=None, footer=None):
         footer = ["End"]  # Default value
 
     file_path = Path(fname)
+    # NOTE: what is the difference from this and the "read_excel" below?
     try:
-        excel_data = load_excel_file(file_path)
+        excel_data = load_dataframe_from_excel_file(file_path)
     except Exception as e:
         logger.error(f"Error importing data: {e}")
         return ""

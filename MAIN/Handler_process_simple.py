@@ -20,7 +20,7 @@ import pandas as panda
 import json
 from loguru import logger
 from pathlib import Path
-from generic_dataframe_functions import save_results_and_print
+from generic_dataframe_functions import save_dataframe_as_csv_and_print
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
@@ -78,7 +78,7 @@ def data_handler_process(file_path: Path) -> bool:
         else:
             if len(result) > 0:
                 logger.info(f"saving results and printing")
-                save_results_and_print(output_file, result, file_path)
+                save_dataframe_as_csv_and_print(output_file, result, file_path)
             else:
                 logger.error(f"No data found to save or print")
                 return False

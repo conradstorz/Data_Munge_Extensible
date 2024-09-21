@@ -26,7 +26,7 @@ import json
 from loguru import logger
 from pathlib import Path
 from whenever import Instant
-from generic_dataframe_functions import save_results_and_print
+from generic_dataframe_functions import save_dataframe_as_csv_and_print
 from generic_excel_functions import set_custom_excel_formatting, convert_dataframe_to_excel_with_formatting_and_save  # This function is probably in "generic_excel_functions.py" now
 
 
@@ -114,7 +114,7 @@ def data_handler_process(file_path: Path) -> bool:
             if len(frames) > 0:
                 logger.info(f"Send dataframes to printer")
                 for filename, df in frames.items():
-                    save_results_and_print(
+                    save_dataframe_as_csv_and_print(
                         filename, df, ""
                     )  # empty string tells function not to move input file to history
             else:

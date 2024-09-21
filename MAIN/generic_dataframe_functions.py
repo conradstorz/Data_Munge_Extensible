@@ -57,7 +57,7 @@ def load_json_to_dataframe(file_path):
         return pd.DataFrame()
     
 @logger.catch()
-def data_from_csv(in_f):
+def load_csv_to_dataframe(in_f):
     """
     Import a CSV file into a dataframe.
 
@@ -86,7 +86,7 @@ def data_from_csv(in_f):
         return df
 
 @logger.catch()
-def load_csv_with_optional_headers(in_f: str, headers="") -> pd.DataFrame:
+def load_csv_with_optional_headers_to_dataframe(in_f: str, headers="") -> pd.DataFrame:
     """
     Load a CSV file into a DataFrame with optional headers.
 
@@ -138,7 +138,7 @@ def load_csv_with_optional_headers(in_f: str, headers="") -> pd.DataFrame:
     return df
 
 @logger.catch()
-def dataframe_contains(df, list):
+def verify_dataframe_contains(df, list):
     """
     Examine a DataFrame for the existence of columns named in the provided list and return a list of columns that do exist.
 
@@ -187,7 +187,7 @@ def de_duplicate_header_names(df):
     return df
 
 @logger.catch()
-def save_results_and_print(outfile: Path, frame, input_filename: Path) -> bool:
+def save_dataframe_as_csv_and_print(outfile: Path, frame, input_filename: Path) -> bool:
     """
     Save results to a file and manage file movement.
 
@@ -240,7 +240,7 @@ def send_dataframe_to_file_as_csv(outfile: Path, frame):
     logger.debug(f"Dataframe saved to {outfile}")
 
 @logger.catch()
-def print_dataframe(frame, printer):
+def print_dataframe_to_named_printer(frame, printer):
     """
     Print the DataFrame to the specified printer.
 
@@ -255,7 +255,7 @@ def print_dataframe(frame, printer):
     logger.debug(f"Dataframe printed to {printer}")
 
 
-def send_dataframe_to_file_and_print(outfile: Path, frame):
+def send_dataframe_to_csv_file_and_print(outfile: Path, frame):
     """
     Save the DataFrame to a file and print it.
 
@@ -271,4 +271,4 @@ def send_dataframe_to_file_and_print(outfile: Path, frame):
     """
     convert_dataframe_to_excel_with_formatting_and_save(outfile, frame)
     send_dataframe_to_file_as_csv(outfile, frame)
-    print_dataframe(frame)
+    print_dataframe_to_named_printer(frame)

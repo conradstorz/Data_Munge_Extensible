@@ -2,9 +2,9 @@ import pandas as pd
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
-from generic_dataframe_functions import save_results_and_print
-from generic_dataframe_functions import data_from_csv
-from generic_dataframe_functions import dataframe_contains
+from generic_dataframe_functions import save_dataframe_as_csv_and_print
+from generic_dataframe_functions import load_csv_to_dataframe
+from generic_dataframe_functions import verify_dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"
@@ -78,7 +78,7 @@ def data_handler_process(file_path: Path):
     """
 
     # processing done, send result to printer
-    save_results_and_print(output_file, df_output, file_path)
+    save_dataframe_as_csv_and_print(output_file, df_output, file_path)
     logger.debug(f"\nAll work complete.\n{df_output}")
 
     # all work complete

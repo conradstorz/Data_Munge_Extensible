@@ -8,9 +8,9 @@ import pandas as panda
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_date_from_filename
-from generic_dataframe_functions import save_results_and_print
-from generic_dataframe_functions import data_from_csv
-from generic_dataframe_functions import dataframe_contains
+from generic_dataframe_functions import save_dataframe_as_csv_and_print
+from generic_dataframe_functions import load_csv_to_dataframe
+from generic_dataframe_functions import verify_dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 FILE_EXTENSION = ".csv"
@@ -74,7 +74,7 @@ def data_handler_process(file_path: Path):
         return False
     else:
         if len(result) > 0:
-            save_results_and_print(output_file, result, file_path)
+            save_dataframe_as_csv_and_print(output_file, result, file_path)
         else:
             logger.error(f"No data found to process")
             return False
