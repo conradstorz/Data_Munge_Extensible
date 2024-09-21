@@ -101,8 +101,11 @@ if __name__ == "__main__":
     # Example of encoding a file
     file_to_slug = Path('rh_input.txt')
     destination_directory = Path.cwd() / Path('destination_folder')
-    associated_string = "This is an example slugged_file = slugger.encode(file_to_slug, associated_string, destination_directory) string for slugification"
+    associated_string = "This is an example string for slugification"
+    
+    # Encode the file and generate the slugged filename
     slugged_file = slugger.encode(file_to_slug, associated_string, destination_directory)
+    print(f"File has been slugged and saved as: {slugged_file}")
 
     # Example of decoding a slug filename
     slug_filename = slugged_file.stem  # Get slug without extension
