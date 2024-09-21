@@ -36,8 +36,7 @@ VALID_EXTENSIONS = {
     '.iso', '.exe', '.dll'
 }
 
-
-
+@logger.catch()
 def sanitize_filename(filename):
     """
     Sanitize a filename by removing or replacing invalid characters.
@@ -75,7 +74,6 @@ def sanitize_filename(filename):
     # Return the sanitized filename with the valid file extension if one exists
     return f"{base_filename}{file_extension}"
 
-
 @logger.catch()
 def delete_file_and_verify(file_path):
     logger.debug(f'Attempting to delete file {file_path}')
@@ -103,7 +101,6 @@ def delete_file_and_verify(file_path):
         logger.error(f"Error: An OS error occurred: {e}")
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
-
 
 @logger.catch()
 def move_file_with_check(source_path, destination_path, exist_ok=True):

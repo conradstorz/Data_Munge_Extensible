@@ -254,7 +254,7 @@ def print_dataframe_to_named_printer(frame, printer):
 
     logger.debug(f"Dataframe printed to {printer}")
 
-
+@logger.catch()
 def send_dataframe_to_csv_file_and_print(outfile: Path, frame):
     """
     Save the DataFrame to a file and print it.

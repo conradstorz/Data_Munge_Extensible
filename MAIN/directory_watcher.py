@@ -9,7 +9,6 @@ from generic_pathlib_file_methods import move_file_with_check
 ARCHIVE_FOLDER = Path("D:/Users/Conrad/Downloads/Archive_misc/")  # for files that are ignored
 
 logger.catch()
-
 def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     """
     Checks the download directory, renames new files by appending a timestamp,
@@ -79,7 +78,6 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
             return str(new_file_path)
 
     return None
-
 
 @logger.catch()
 def monitor_download_directory(directory_to_watch, file_processor, delay=1):

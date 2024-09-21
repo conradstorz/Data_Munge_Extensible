@@ -18,8 +18,7 @@ def print_pdf_using_os_subprocess(file_path, printer_name):
         ]
     )
 
-
-
+@logger.catch()
 def archive_original_file(input_filename: Path, outfile: Path):
     """
     Move the original file to a new location.
@@ -32,8 +31,7 @@ def archive_original_file(input_filename: Path, outfile: Path):
     plfh.move_file_with_check(input_filename, outfile, exist_ok=True)
     logger.debug(f"Moved original file from {input_filename} to {outfile}")
 
-
-
+@logger.catch()
 def is_date_valid(date_str):
     formats = ["%Y%b%d", "%Y%m%d", "%Y-%m-%d"]
     min_date = datetime(1970, 1, 1)
@@ -48,7 +46,7 @@ def is_date_valid(date_str):
             continue
     return False
 
-
+@logger.catch()
 def extract_dates(string):
     # Define patterns to match different date formats
     patterns = [
@@ -101,8 +99,7 @@ def extract_dates(string):
 
     return sorted_date_strings
 
-
-@logger.catch
+@logger.catch()
 def extract_date_from_filename(fname):
     """the filename contains the date the report was run.
     extract and return the date string
@@ -125,7 +122,7 @@ def extract_date_from_filename(fname):
             return reds
     return datestring
 
-
+@logger.catch()
 def extract_date_from_filename_using_regularExpressions(fname):
 
     # The filename contains the date the report was run.
@@ -159,4 +156,3 @@ def extract_date_from_filename_using_regularExpressions(fname):
         logger.debug("No valid date found in filename.")
 
     return datestring
-
