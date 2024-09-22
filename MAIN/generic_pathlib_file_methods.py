@@ -1,4 +1,6 @@
-"""These are the common functions for handling files in the manner I prefer."""
+"""
+This module contains common functions for handling files using the pathlib library.
+"""
 
 from loguru import logger
 from pathlib import Path
@@ -8,124 +10,93 @@ import unicodedata
 
 # List of valid extensions (expand as needed)
 VALID_EXTENSIONS = {
-    # Document formats
     '.txt', '.pdf', '.doc', '.docx', '.odt', '.rtf', '.tex', '.wpd',
-
-    # Spreadsheet formats
     '.xls', '.xlsx', '.ods', '.csv',
-
-    # Presentation formats
     '.ppt', '.pptx', '.odp',
-
-    # Image formats
     '.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.svg',
-
-    # Audio formats
     '.mp3', '.wav', '.aac', '.flac', '.ogg',
-
-    # Video formats
     '.mp4', '.avi', '.mkv', '.mov', '.wmv', '.flv',
-
-    # Archive formats
     '.zip', '.tar', '.gz', '.rar', '.7z',
-
-    # Code and markup formats
     '.html', '.css', '.js', '.py', '.java', '.c', '.cpp', '.xml', '.json', '.yml',
-
-    # Other common formats
     '.iso', '.exe', '.dll'
 }
 
+
 @logger.catch()
-def sanitize_filename(filename):
+def sanitize_filename(filename: str) -> str:
     """
     Sanitize a filename by removing or replacing invalid characters.
+
     This method normalizes the filename, removes any non-alphanumeric characters,
     and replaces spaces or hyphens with underscores. It also ensures that no
     periods are present in the filename unless it's part of a valid file extension.
-    
-    If no valid file extension is detected, the entire string is treated as the filename.
-    
+
     :param filename: The original filename to sanitize.
     :type filename: str
     :return: The sanitized filename.
     :rtype: str
+    :raises ValueError: If the filename is empty or None.
     """
     if not filename:
         logger.error("Filename is empty or None.")
-        return None
+        raise ValueError("Filename cannot be empty or None")
 
     filepath = Path(filename)
     file_extension = filepath.suffix if filepath.suffix in VALID_EXTENSIONS else ''
     base_filename = filepath.stem if file_extension else filepath.name
-    
+
     logger.debug(f"Sanitizing string: {base_filename}")
-    
-    # Normalize and sanitize the base filename
-    base_filename = unicodedata.normalize('NFKD', base_filename).encode('ascii', 'ignore').decode('ascii')
-    base_filename = re.sub(r'[^\w\s-]', '', base_filename).strip().lower()
-    base_filename = re.sub(r'[-\s]+', '_', base_filename)
-    
-    # Remove any periods from the sanitized filename
-    base_filename = base_filename.replace('.', '')
-    
-    logger.debug(f"Sanitized string: {base_filename}")
-    
-    # Return the sanitized filename with the valid file extension if one exists
-    return f"{base_filename}{file_extension}"
+
+    sanitized = unicodedata.normalize('NFKD', base_filename)
+    sanitized = re.sub(r'[^\w\s-]', '', sanitized).strip().lower()
+    sanitized = re.sub(r'[-\s]+', '_', sanitized)
+
+    sanitized_filename = f"{sanitized}{file_extension}"
+
+    logger.debug(f"Sanitized filename: {sanitized_filename}")
+    return sanitized_filename
+
 
 @logger.catch()
-def delete_file_and_verify(file_path):
-    logger.debug(f'Attempting to delete file {file_path}')
-    try:
-        # Create a Path object
-        file = Path(file_path)
+def is_valid_extension(file_extension: str) -> bool:
+    """
+    Validate whether the given file extension is in the predefined list of valid extensions.
 
-        # Delete the file
-        file.unlink()
-        logger.debug(f"Successfully deleted {file}")
+    :param file_extension: The extension to validate.
+    :type file_extension: str
+    :return: True if the extension is valid, False otherwise.
+    :rtype: bool
+    """
+    return file_extension in VALID_EXTENSIONS
 
-        # Verify deletion
-        if not file.exists():
-            logger.debug(f"Verification: {file} has been deleted.")
-        else:
-            logger.debug(f"Verification failed: {file} still exists.")
-
-    except FileNotFoundError:
-        logger.error(f"Error: The file {file} does not exist.")
-    except PermissionError:
-        logger.error(f"Error: Permission denied. Unable to delete {file}.")
-    except IsADirectoryError:
-        logger.error(f"Error: {file} is a directory, not a file.")
-    except OSError as e:
-        logger.error(f"Error: An OS error occurred: {e}")
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
 
 @logger.catch()
-def move_file_with_check(source_path, destination_path, exist_ok=True):
-    # move file to a new location
-    logger.debug(f"Attempting to move {source_path} to {destination_path}")    
-    # Create Path objects
-    source = Path(source_path)
-    destination = Path(destination_path)
-    # check that paths are different
-    if source == destination:
-        logger.error(f"Error: Source {source} and destination {destination} are the same.")
-        return False    
+def move_file(source: Path, destination: Path) -> bool:
+    """
+    Move a file from the source path to the destination path.
+
+    If the destination directory does not exist, it will be created.
+    The function also verifies that the move was successful by checking the existence
+    of the source and destination files and comparing their sizes.
+
+    :param source: The path to the source file.
+    :type source: pathlib.Path
+    :param destination: The path to the destination file.
+    :type destination: pathlib.Path
+    :return: True if the move is successful, False otherwise.
+    :rtype: bool
+    :raises FileNotFoundError: If the source file does not exist.
+    :raises PermissionError: If permission is denied during the move.
+    :raises IsADirectoryError: If the source is a directory, not a file.
+    """
+    if not source.exists():
+        logger.error(f"Source file {source} does not exist.")
+        raise FileNotFoundError(f"Source file {source} does not exist.")
+    
     try:
-        # Ensure the destination directory exists
-        destination.parent.mkdir(parents=True, exist_ok=exist_ok)
-        # Check if destination exists and handle based on exist_ok flag
-        if destination.exists() and not exist_ok:
-            logger.error(f"Error: Destination file {destination} already exists.")
-            return False
-        # Move the file
-        source.replace(destination)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        source.rename(destination)
         logger.debug(f"Moved {source} to {destination}")
-    except FileNotFoundError:
-        logger.error(f"Error: The source file {source} does not exist.")
-        return False
     except PermissionError:
         logger.error(f"Error: Permission denied. Unable to move {source} to {destination}.")
         return False
@@ -138,27 +109,92 @@ def move_file_with_check(source_path, destination_path, exist_ok=True):
     except Exception as e:
         logger.error(f"An unexpected error occurred: {e}")
         return False
-    # verify move took place and log any failures
+    
     if destination.exists() and not source.exists():
         logger.debug(f"Move verified: {source} is now at {destination}")
         return True
     else:
         logger.debug("Move verification failed.")
-        # Check if source file still exists
         if source.exists():
             logger.error(f"Verification failed: Source file {source} still exists, move did not occur.")
-        # Check if destination file does not exist
         if not destination.exists():
             logger.error(f"Verification failed: Destination file {destination} does not exist.")
-        # Check for partial move by comparing file sizes if source and destination both exist
         if source.exists() and destination.exists():
             source_size = os.path.getsize(source)
             destination_size = os.path.getsize(destination)
             if source_size != destination_size:
-                logger.error(f"Verification failed: File sizes differ. Source: {source_size} bytes, Destination: {destination_size} bytes.")
-            else:
-                logger.error("Verification failed: Unknown issue, but sizes match. Further investigation needed.")
-        # Additional check if destination exists but source does not (could indicate permission issues)
-        if not source.exists() and not destination.exists():
-            logger.error("Verification failed: Neither source nor destination exist. Possible permission or deletion issue.")
-    return False
+                logger.error(f"File sizes differ. Source: {source_size} bytes, Destination: {destination_size} bytes.")
+        return False
+
+
+@logger.catch()
+def delete_file_and_verify(file_path: Path) -> bool:
+    """
+    Delete the file at the given path and verify that the deletion was successful.
+
+    :param file_path: The path to the file to delete.
+    :type file_path: pathlib.Path
+    :return: True if the file was successfully deleted, False otherwise.
+    :rtype: bool
+    :raises FileNotFoundError: If the file does not exist.
+    :raises PermissionError: If permission is denied when trying to delete the file.
+    """
+    if not file_path.exists():
+        logger.error(f"File {file_path} does not exist.")
+        raise FileNotFoundError(f"File {file_path} does not exist.")
+    
+    try:
+        file_path.unlink()
+        logger.debug(f"Deleted file: {file_path}")
+    except PermissionError:
+        logger.error(f"Error: Permission denied. Unable to delete {file_path}.")
+        return False
+    except IsADirectoryError:
+        logger.error(f"Error: {file_path} is a directory, not a file.")
+        return False
+    except OSError as e:
+        logger.error(f"Error: An OS error occurred: {e}")
+        return False
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+        return False
+
+    if not file_path.exists():
+        logger.debug(f"Deletion verified: {file_path} no longer exists.")
+        return True
+    else:
+        logger.error(f"Verification failed: File {file_path} still exists after attempting deletion.")
+        return False
+
+
+@logger.catch()
+def move_file_with_check(source: Path, destination: Path) -> bool:
+    """
+    Move a file from the source path to the destination path, with additional checks.
+
+    This function performs the move and then validates that the move was successful
+    by comparing file sizes or performing other checks.
+
+    :param source: The path to the source file.
+    :type source: pathlib.Path
+    :param destination: The path to the destination file.
+    :type destination: pathlib.Path
+    :return: True if the move is successful, False otherwise.
+    :rtype: bool
+    :raises FileNotFoundError: If the source file does not exist.
+    :raises PermissionError: If permission is denied during the move.
+    :raises IsADirectoryError: If the source is a directory, not a file.
+    """
+    logger.debug(f"Attempting to move file from {source} to {destination}")
+
+    if not move_file(source, destination):
+        logger.error(f"Failed to move file from {source} to {destination}")
+        return False
+
+    # Verify the move
+    if destination.exists() and not source.exists():
+        logger.debug(f"Move successful and verified: {source} to {destination}")
+        return True
+    else:
+        logger.error(f"Move verification failed for {source} to {destination}")
+        return False
