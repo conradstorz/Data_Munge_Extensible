@@ -6,10 +6,11 @@ from loguru import logger
 from pathlib import Path
 import re
 import os
+import time
 import unicodedata
 
-# List of valid extensions (expand as needed)
-VALID_EXTENSIONS = {
+# List of valid SUFFIXs (expand as needed)
+VALID_SUFFIXS = {
     '.txt', '.pdf', '.doc', '.docx', '.odt', '.rtf', '.tex', '.wpd',
     '.xls', '.xlsx', '.ods', '.csv',
     '.ppt', '.pptx', '.odp',
@@ -29,7 +30,7 @@ def sanitize_filename(filename: str) -> str:
 
     This method normalizes the filename, removes any non-alphanumeric characters,
     and replaces spaces or hyphens with underscores. It also ensures that no
-    periods are present in the filename unless it's part of a valid file extension.
+    periods are present in the filename unless it's part of a valid file SUFFIX.
 
     :param filename: The original filename to sanitize.
     :type filename: str
@@ -42,8 +43,8 @@ def sanitize_filename(filename: str) -> str:
         raise ValueError("Filename cannot be empty or None")
 
     filepath = Path(filename)
-    file_extension = filepath.suffix if filepath.suffix in VALID_EXTENSIONS else ''
-    base_filename = filepath.stem if file_extension else filepath.name
+    file_SUFFIX = filepath.suffix if filepath.suffix in VALID_SUFFIXS else ''
+    base_filename = filepath.stem if file_SUFFIX else filepath.name
 
     logger.debug(f"Sanitizing string: {base_filename}")
 
@@ -51,23 +52,23 @@ def sanitize_filename(filename: str) -> str:
     sanitized = re.sub(r'[^\w\s-]', '', sanitized).strip().lower()
     sanitized = re.sub(r'[-\s]+', '_', sanitized)
 
-    sanitized_filename = f"{sanitized}{file_extension}"
+    sanitized_filename = f"{sanitized}{file_SUFFIX}"
 
     logger.debug(f"Sanitized filename: {sanitized_filename}")
     return sanitized_filename
 
 
 @logger.catch()
-def is_valid_extension(file_extension: str) -> bool:
+def is_valid_SUFFIX(file_SUFFIX: str) -> bool:
     """
-    Validate whether the given file extension is in the predefined list of valid extensions.
+    Validate whether the given file SUFFIX is in the predefined list of valid SUFFIXs.
 
-    :param file_extension: The extension to validate.
-    :type file_extension: str
-    :return: True if the extension is valid, False otherwise.
+    :param file_SUFFIX: The SUFFIX to validate.
+    :type file_SUFFIX: str
+    :return: True if the SUFFIX is valid, False otherwise.
     :rtype: bool
     """
-    return file_extension in VALID_EXTENSIONS
+    return file_SUFFIX in VALID_SUFFIXS
 
 
 @logger.catch()
@@ -96,7 +97,7 @@ def move_file(source: Path, destination: Path) -> bool:
     try:
         destination.parent.mkdir(parents=True, exist_ok=True)
         source.rename(destination)
-        logger.debug(f"Moved {source} to {destination}")
+        logger.debug(f"Attempted move {source} to {destination}")
     except PermissionError:
         logger.error(f"Error: Permission denied. Unable to move {source} to {destination}.")
         return False
@@ -168,17 +169,22 @@ def delete_file_and_verify(file_path: Path) -> bool:
 
 
 @logger.catch()
-def move_file_with_check(source: Path, destination: Path) -> bool:
+def move_file_with_check(source: Path, destination: Path, retries: int = 3, delay: float = 2.0) -> bool:
     """
     Move a file from the source path to the destination path, with additional checks.
-
+    
     This function performs the move and then validates that the move was successful
-    by comparing file sizes or performing other checks.
-
+    by comparing file existence or performing other checks. If the move fails, it retries
+    several times by renaming the file and attempting the move again.
+    
     :param source: The path to the source file.
     :type source: pathlib.Path
     :param destination: The path to the destination file.
     :type destination: pathlib.Path
+    :param retries: Number of retry attempts if the move fails.
+    :type retries: int
+    :param delay: Time (in seconds) to wait between retries.
+    :type delay: float
     :return: True if the move is successful, False otherwise.
     :rtype: bool
     :raises FileNotFoundError: If the source file does not exist.
@@ -186,15 +192,35 @@ def move_file_with_check(source: Path, destination: Path) -> bool:
     :raises IsADirectoryError: If the source is a directory, not a file.
     """
     logger.debug(f"Attempting to move file from {source} to {destination}")
-
-    if not move_file(source, destination):
-        logger.error(f"Failed to move file from {source} to {destination}")
-        return False
-
-    # Verify the move
-    if destination.exists() and not source.exists():
-        logger.debug(f"Move successful and verified: {source} to {destination}")
-        return True
-    else:
-        logger.error(f"Move verification failed for {source} to {destination}")
-        return False
+    
+    if not source.is_file():
+        raise FileNotFoundError(f"Source file does not exist: {source}")
+    
+    attempt = 0
+    while attempt < retries:
+        try:
+            # Perform the file move with pathlib
+            destination.parent.mkdir(parents=True, exist_ok=True)  # Ensure destination directory exists
+            source.rename(destination)
+            
+            # Verify the move by checking the existence of the destination and non-existence of source
+            if destination.exists() and not source.exists():
+                logger.debug(f"Move successful and verified: {source} to {destination}")
+                return True
+            else:
+                logger.error(f"Move verification failed for {source} to {destination}")
+        except (PermissionError, IsADirectoryError) as e:
+            logger.error(f"Error during file move: {e}")
+            raise e
+        except Exception as e:
+            logger.error(f"Unexpected error during move: {e}")
+        
+        # Increment attempt and retry after a delay
+        attempt += 1
+        logger.warning(f"Retrying move attempt {attempt}/{retries} after failure.")
+        destination.with_name(f"{destination.stem}({int(attempt)}){destination.suffix}")
+        logger.debug(f'New filename: {destination}')
+        time.sleep(delay)
+    
+    logger.error(f"Failed to move file after {retries} attempts from {source} to {destination}")
+    return False
