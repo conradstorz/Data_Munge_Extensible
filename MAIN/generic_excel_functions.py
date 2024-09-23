@@ -113,7 +113,6 @@ def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     try:
         # Create a pandas ExcelWriter object
         logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
-        logger.debug(f'{frame=}')
         with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
             # Write the DataFrame to the Excel file
             logger.debug(f"Writing DataFrame to Excel file")
@@ -121,7 +120,6 @@ def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
             logger.debug(f"Applying custom column formatting")
             set_custom_excel_formatting(frame, writer, column_details)
             logger.debug("All work done. Saving worksheet...")
-            logger.debug(f'{frame=}')
             # File creation ends here and is saved automatically.
 
     except Exception as e:
