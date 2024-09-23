@@ -59,23 +59,17 @@ def data_handler_process(file_path: Path):
     # launch the processing function
     df_output = process_kiosoft_csv(file_path)
     logger.debug(f'Data processing returned:\n{df_output=}')
-    
-    """
-    try:
-        result = aquire_this_data(file_path, filedate_list)
-    except Exception as e:
-        logger.error(f"Failure processing dataframe: {e}")
-        return False
-    if len(result) < 1:
-        logger.error(f"No data found to process")
-        return False
 
-    # now generate the output dataframe
-    df_output = process_df(result)
-    if len(df_output) < 1:
-        logger.error(f"No data found to process")
-        return False
-    """
+    # Add a new row using .loc[] with the same value for all columns
+    num_columns = df_output.shape[1]  # Number of columns in the DataFrame
+    df_output.loc[len(df_output)] = [f'Start Date: {filedate_list[0]}'] + [''] * (num_columns - 1)  # 'New Machine' for the Machine ID, repeated 1000 for the rest
+    df_output.loc[len(df_output)] = [f'  End Date: {filedate_list[1]}'] + [''] * (num_columns - 1)  # 'New Machine' for the Machine ID, repeated 1000 for the rest
+
+    # Create a new row with only one column filled, others will default to NaN
+    #new_row = pd.DataFrame({"Special Column": ["Special Value"]}, index=[len(df_output)])
+
+    # Append the new row to the DataFrame
+    #df_output = pd.concat([df_output, new_row], ignore_index=True)
 
     # processing done, send result to printer
     save_dataframe_as_csv_and_print(output_file, df_output, file_path)
@@ -84,7 +78,68 @@ def data_handler_process(file_path: Path):
     # all work complete
     return True
 
+@logger.catch()
+def process_kiosoft_csv(filename):
+    """This function written with ChatGPT as a pair programmer.
+    """
+    # Load the CSV file
+    logger.info(f'Loading the CSV file {filename}')
+    file_path = Path(filename)
+    df = pd.read_csv(file_path)
 
+    # Clean the data by stripping leading/trailing spaces from all columns
+    df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
+
+    # Extract the value at row 0 of a specific column, e.g., 'Machine ID'
+    value = df.iloc[0]['Location']  # Extract the name of the Business where this data came from
+
+    # Convert the value to a string
+    Location_name = str(value)
+
+    logger.debug(f'Data loaded and cleaned.')
+
+    # Create two separate dataframes for total and declined transactions
+    df_total = df.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
+
+    # Filter out only rows where 'Transaction Type' contains 'DECLINED' for the declined subtotal
+    df_declined = df[df['Response Code'].str.contains("declined", case=False, na=False)]
+    df_declined_total = df_declined.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
+    logger.debug(f'Data has been divided into all xacts and declined xacts.')
+
+    # Rename the columns for clarity  NOTE: this idea to rename was completely ChatGPT
+    df_total.rename(columns={'Total Amount ($)': 'Total Transactions Amount ($)'}, inplace=True)
+    df_declined_total.rename(columns={'Total Amount ($)': 'Declined Transactions Amount ($)'}, inplace=True)
+
+    # Merge the two subtotals by 'Machine ID'
+    df_final = pd.merge(df_total, df_declined_total, on='Machine ID', how='left')
+    logger.debug(f'Data has been merged into final report.')
+
+    # Fill any NaN values in the declined amount column with 0 (in case there are no declined transactions for some machines)
+    #  NOTE: This edge case was also suggested by ChatGPT
+    df_final['Declined Transactions Amount ($)'] = df_final['Declined Transactions Amount ($)'].fillna(0)
+
+    # Subtract the Declined Transactions from the Total Transactions to get the Net Amount
+    df_final['Net Transactions Amount ($)'] = df_final['Total Transactions Amount ($)'] - df_final['Declined Transactions Amount ($)']
+
+    # Set 'Machine ID' as the index to make it part of the rows
+    #df_final = df_final.reset_index()
+    df_final = df_final.set_index('Machine ID')    
+
+    # Transpose the final DataFrame (rotate columns and rows along with their labels)
+    df_transposed = df_final.transpose()
+
+    # Reset the index (since inplace is deprecated, we reassign the result)
+    df_transposed = df_transposed.reset_index()
+
+    # Add a new row using .loc[] with the same value for all columns
+    num_columns = df_transposed.shape[1]  # Number of columns in the DataFrame
+    df_transposed.loc[len(df_transposed)] = [Location_name] + [''] * (num_columns - 1)
+    
+    # return the final dataframe
+    logger.debug(f'Data processing complete.\n{df_transposed=}')
+    return df_transposed.drop(columns=['01'])  # I don't know where I introduced the '01' column
+  
+"""
 @logger.catch
 def aquire_this_data(file_path: Path, filedates: list) -> bool:
     # This is the customized procedures used to process this data
@@ -94,10 +149,10 @@ def aquire_this_data(file_path: Path, filedates: list) -> bool:
 
     logger.debug(f"{file_path} with embeded date string {filedates} readyness verified.")
     # this csv file is organized with descriptions in row 0 and values in row 1-n
-    """The default download format:
-    ["Date Time","Ultra S/N",Machine,"Machine ID","Location ID","Bank Card Number","Card Type",Location,
-    "Transaction Type","Total Amount ($)","Pre-Auth Amount ($)","Set Pre-Auth Amount ($)",Discount,"Special Amt","Response Code"]
-    """
+    #The default download format:
+    #["Date Time","Ultra S/N",Machine,"Machine ID","Location ID","Bank Card Number","Card Type",Location,
+    #"Transaction Type","Total Amount ($)","Pre-Auth Amount ($)","Set Pre-Auth Amount ($)",Discount,"Special Amt","Response Code"]
+    
     try:
         df = pd.read_csv(file_path)
     except FileNotFoundError as e:
@@ -139,9 +194,9 @@ def aquire_this_data(file_path: Path, filedates: list) -> bool:
 
 @logger.catch()
 def process_df(df):
-    """Now we have a dataframe that contains mulitiple transactions for multiple devices.
-    return a dataframe with transactions totaled by device.
-    """
+    #Now we have a dataframe that contains mulitiple transactions for multiple devices.
+    #return a dataframe with transactions totaled by device.
+    
     # Filter out rows where 'Response Code' is not 'APPROVAL'
     filtered_df = df[df["Response Code"] == "APPROVAL"]
     logger.debug(
@@ -169,47 +224,4 @@ def process_df(df):
 
     return df_dropped
 
-
-@logger.catch()
-def process_kiosoft_csv(filename):
-    """This function written with ChatGPT as a pair programmer.
-    """
-    # Load the CSV file
-    logger.info(f'Loading the CSV file {filename}')
-    file_path = Path(filename)
-    df = pd.read_csv(file_path)
-
-    # Clean the data by stripping leading/trailing spaces from all columns
-    df = df.apply(lambda x: x.str.strip() if x.dtype == "object" else x)
-    logger.debug(f'Data loaded and cleaned.')
-
-    # Create two separate dataframes for total and declined transactions
-    df_total = df.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
-
-    # Filter out only rows where 'Transaction Type' contains 'DECLINED' for the declined subtotal
-    df_declined = df[df['Response Code'].str.contains("declined", case=False, na=False)]
-    df_declined_total = df_declined.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
-    logger.debug(f'Data has been divided into all xacts and declined xacts.')
-
-    # Rename the columns for clarity  NOTE: this idea to rename was completely ChatGPT
-    df_total.rename(columns={'Total Amount ($)': 'Total Transactions Amount ($)'}, inplace=True)
-    df_declined_total.rename(columns={'Total Amount ($)': 'Declined Transactions Amount ($)'}, inplace=True)
-
-    # Merge the two subtotals by 'Machine ID'
-    df_final = pd.merge(df_total, df_declined_total, on='Machine ID', how='left')
-    logger.debug(f'Data has been merged into final report.')
-
-    # Fill any NaN values in the declined amount column with 0 (in case there are no declined transactions for some machines)
-    #  NOTE: This edge case was also suggested by ChatGPT
-    df_final['Declined Transactions Amount ($)'] = df_final['Declined Transactions Amount ($)'].fillna(0)
-
-    # Subtract the Declined Transactions from the Total Transactions to get the Net Amount
-    df_final['Net Transactions Amount ($)'] = df_final['Total Transactions Amount ($)'] - df_final['Declined Transactions Amount ($)']
-
-    # Save the final report to a CSV file   NOTE: This is outside of the scope of this function
-    # df_final.to_csv('final_report_with_net_total_by_machine_id.csv', index=False)
-
-    # return the final dataframe
-    logger.debug(f'Data processing complete.\n{df_final=}')
-    return df_final
-  
+"""
