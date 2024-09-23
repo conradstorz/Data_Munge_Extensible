@@ -27,7 +27,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
     ignore_extensions = ignore_extensions or []  # This is a good way to avoid the mutable variable problem
-    logger.debug(f'Checking watched directory {directory_to_watch} for new files while ignoring {ignore_extensions}')
+    #logger.debug(f'Checking watched directory {directory_to_watch} for new files while ignoring {ignore_extensions}')
 
     # Load existing filenames from pickle
     if pickle_file.exists():
