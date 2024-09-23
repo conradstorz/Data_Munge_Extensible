@@ -2,9 +2,9 @@ import pandas as pd
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
-from generic_dataframe_functions import save_dataframe_as_csv_and_print
-from generic_dataframe_functions import load_csv_to_dataframe
-from generic_dataframe_functions import verify_dataframe_contains
+from generic_excel_functions import convert_dataframe_to_excel_with_formatting_and_save
+from generic_pathlib_file_methods import move_file_with_check
+
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_EXTENSION = ".csv"
@@ -44,36 +44,35 @@ declaration = FileMatcher()
 
 
 @logger.catch
-def data_handler_process(file_path: Path):
+def data_handler_process(original_file_path: Path):
     # This is the standardized functioncall for the Data_Handler_Template
-    if not file_path.exists:
-        logger.error(f"File to process does not exist.")
+    if not original_file_path.exists:
+        logger.error(f"File to process does not appear to exist.")
         return False
 
-    logger.debug(f"Looking for date string(s) in: {file_path.stem}")
-    filedate_list = extract_dates(file_path.stem)  # filename without extension
+    logger.debug(f"Looking for date string(s) in: {original_file_path.stem}")
+    filedate_list = extract_dates(original_file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedate_list}")
-    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
-    logger.debug(f"Output filename: {output_file}")
+
+    new_file_destination = Path(f"{ARCHIVE_DIRECTORY_NAME}") / Path(original_file_path.name)
+    logger.debug(f"New file destination: {new_file_destination}")
 
     # launch the processing function
-    df_output = process_kiosoft_csv(file_path)
-    logger.debug(f'Data processing returned:\n{df_output=}')
+    df_processed = process_kiosoft_csv(original_file_path)
+    logger.debug(f'Data processing returned:\n{df_processed=}')
 
     # Add a new row using .loc[] with the same value for all columns
-    num_columns = df_output.shape[1]  # Number of columns in the DataFrame
-    df_output.loc[len(df_output)] = [f'Start Date: {filedate_list[0]}'] + [''] * (num_columns - 1)  # 'New Machine' for the Machine ID, repeated 1000 for the rest
-    df_output.loc[len(df_output)] = [f'  End Date: {filedate_list[1]}'] + [''] * (num_columns - 1)  # 'New Machine' for the Machine ID, repeated 1000 for the rest
-
-    # Create a new row with only one column filled, others will default to NaN
-    #new_row = pd.DataFrame({"Special Column": ["Special Value"]}, index=[len(df_output)])
-
-    # Append the new row to the DataFrame
-    #df_output = pd.concat([df_output, new_row], ignore_index=True)
+    num_columns = df_processed.shape[1]  # Number of columns in the DataFrame
+    df_processed.loc[len(df_processed)] = [f'Start Date: {filedate_list[0]}'] + [''] * (num_columns - 1)  # 'New Machine' for the Machine ID, repeated 1000 for the rest
+    df_processed.loc[len(df_processed)] = [f'  End Date: {filedate_list[1]}'] + [''] * (num_columns - 1)  # 'New Machine' for the Machine ID, repeated 1000 for the rest
 
     # processing done, send result to printer
-    save_dataframe_as_csv_and_print(output_file, df_output, file_path)
-    logger.debug(f"\nAll work complete.\n{df_output}")
+    convert_dataframe_to_excel_with_formatting_and_save(Path('temp.xlsx'), df_processed)
+
+    # move file out of downloads
+    move_file_with_check(original_file_path, new_file_destination)
+
+    logger.debug(f"\nAll work complete.\n{df_processed}")
 
     # all work complete
     return True
@@ -134,9 +133,9 @@ def process_kiosoft_csv(filename):
     # Add a new row using .loc[] with the same value for all columns
     num_columns = df_transposed.shape[1]  # Number of columns in the DataFrame
     df_transposed.loc[len(df_transposed)] = [Location_name] + [''] * (num_columns - 1)
-    
+
     # return the final dataframe
-    logger.debug(f'Data processing complete.\n{df_transposed=}')
+    logger.debug(f'Data processing complete.')
     return df_transposed.drop(columns=['01'])  # I don't know where I introduced the '01' column
   
 """
