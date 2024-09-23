@@ -42,14 +42,28 @@ class FileMatcher:
 
     @logger.catch()
     def matches(self, filename: Path) -> bool:
-        """Define how to match data files"""
+        """
+        Check if the given filename matches the required patterns and file extension.
+
+        :param filename: Path object representing the file to check
+        :type filename: Path
+        :return: True if the file matches the patterns and extension, False otherwise
+        :rtype: bool
+        """
+
         if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
             return True  # match found
         else:
             return False  # no match
 
     def get_filename_strings_to_match(self):
-        """Returns the list of filename strings to match"""
+        """
+        Get the list of filename patterns to match.
+
+        :return: List of filename strings that are used for matching
+        :rtype: list
+        """
+
         return FILENAME_STRINGS_TO_MATCH
 
 
@@ -59,6 +73,14 @@ declaration = FileMatcher()
 
 @logger.catch
 def data_handler_process(file_path: Path):
+    """
+    Process the data file in a specific way provided by the file path.
+
+    :param file_path: Path object of the file to process
+    :type file_path: Path
+    :return: Processed data in the form of a DataFrame or relevant output
+    :rtype: pandas.DataFrame
+    """
     # This is the standardized function call for the Data_Handler_Template
     if not file_path.exists():
         logger.error(f"File to process does not exist: {file_path}")
@@ -131,7 +153,14 @@ def data_handler_process(file_path: Path):
 
 @logger.catch
 def process_floatReport_csv(in_f, RUNDATE):
-    """Scan file and compute sums for 2 columns"""
+    """
+    process_floatReport_csv: Processes the float report CSV file and applies necessary transformations.
+
+    :param param1: Description of the first parameter (replace with actual parameter names)
+    :type param1: type (replace with actual type)
+    :return: Processed data from the float report in the form of a DataFrame
+    :rtype: pandas.DataFrame
+    """    
     # Declare labels here to eliminate possiblity of typos
     ROUTE_TEXT = "               Route Totals"
     REPORT_DATE = f"Report ran: {RUNDATE}"
