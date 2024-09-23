@@ -10,7 +10,7 @@ def convert_html_to_pdf(html_file, output_pdf):
     :param html_file: Path to the HTML file.
     :param output_pdf: Path where the PDF will be saved.
     """
-    wkhtmltopdf_path = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"  # Update this if your wkhtmltopdf is in a different location
+    wkhtmltopdf_path = r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"  # Update this if your wkhtmltopdf is in a different location
     
     # Verify that the HTML file exists
     html_path = Path(html_file)
@@ -48,6 +48,8 @@ def print_pdf(file_path, printer_name, page_range="1-2"):
         raise FileNotFoundError(f"The file {file_path} does not exist.")
     
     # Construct the command to send to SumatraPDF
+    # -print-to <printer_name> will send the file to the specified printer
+    # -print-settings <range> specifies the page range to print
     command = [
         sumatra_path,
         '-print-to', printer_name,
