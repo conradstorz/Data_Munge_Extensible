@@ -13,7 +13,7 @@ from generic_dataframe_functions import load_csv_to_dataframe
 from generic_dataframe_functions import verify_dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-FILE_EXTENSION = ".csv"
+INPUT_DATA_FILE_EXTENSION = ".csv"
 OUTPUT_FILE_EXTENSION = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = ["ATMActivityReportforcommissions", "dummy place holder"]
 ARCHIVE_DIRECTORY_NAME = "QuarterlyCommission"
