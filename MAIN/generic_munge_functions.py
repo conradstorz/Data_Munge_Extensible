@@ -3,7 +3,7 @@ from datetime import datetime
 from loguru import logger
 import subprocess
 from pathlib import Path
-import generic_pathlib_file_methods as move_file_with_check
+from generic_pathlib_file_methods import move_file_with_check
 from dateutil.parser import parse, ParserError
 
 @logger.catch()
