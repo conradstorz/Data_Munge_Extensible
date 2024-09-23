@@ -51,7 +51,6 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
 
     # Process the first new file
     for new_file in new_files:
-        logger.debug(f'Examining file {new_file}')
         if (new_file.is_file() and new_file.suffix not in ignore_extensions):
             # Check for duplicate filenames and rename the file by appending a timestamp
             timestamp = datetime.now().strftime("%M%S")
