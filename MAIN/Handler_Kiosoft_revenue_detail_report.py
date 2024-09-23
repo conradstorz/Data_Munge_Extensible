@@ -53,9 +53,8 @@ def data_handler_process(original_file_path: Path):
     logger.debug(f"Looking for date string(s) in: {original_file_path.stem}")
     filedate_list = extract_dates(original_file_path.stem)  # filename without extension
     logger.debug(f"Found Date: {filedate_list}")
-
-    new_file_destination = Path(f"{ARCHIVE_DIRECTORY_NAME}") / Path(original_file_path.name)
-    logger.debug(f"New file destination: {new_file_destination}")
+    archive_input_file_destination = original_file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{original_file_path.name}")
+    logger.debug(f"Archive for processed file path is: {archive_input_file_destination}")
 
     # launch the processing function
     df_processed = process_kiosoft_csv(original_file_path)
@@ -70,7 +69,7 @@ def data_handler_process(original_file_path: Path):
     convert_dataframe_to_excel_with_formatting_and_save(Path('temp.xlsx'), df_processed)
 
     # move file out of downloads
-    move_file_with_check(original_file_path, new_file_destination)
+    move_file_with_check(original_file_path, archive_input_file_destination)
 
     logger.debug(f"\nAll work complete.\n{df_processed}")
 
