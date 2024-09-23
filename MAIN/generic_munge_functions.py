@@ -3,7 +3,7 @@ from datetime import datetime
 from loguru import logger
 import subprocess
 from pathlib import Path
-import generic_pathlib_file_methods as plfh
+import generic_pathlib_file_methods as move_file_with_check
 from dateutil.parser import parse, ParserError
 
 @logger.catch()
@@ -28,7 +28,7 @@ def archive_original_file(input_filename: Path, outfile: Path):
         outfile (Path): Path to the output file.
     """
     # move the file
-    plfh.move_file_with_check(input_filename, outfile, exist_ok=True)
+    move_file_with_check(input_filename, outfile)
     logger.debug(f"Moved original file from {input_filename} to {outfile}")
 
 @logger.catch()

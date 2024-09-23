@@ -80,7 +80,7 @@ def data_handler_process(file_path: Path) -> bool:
         # work finished remove original file from download directory
         new_file_path = file_path.parent / "QBO_file_history" / file_path.name
         # move the file
-        plfh.move_file_with_check(file_path, new_file_path, exist_ok=True)
+        plfh.move_file_with_check(file_path, new_file_path)
     # all work complete
     return True
 

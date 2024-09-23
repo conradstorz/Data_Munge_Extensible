@@ -12,7 +12,7 @@ from generic_munge_functions import (
 # Mock the external module used in archive_original_file
 class MockPLFH:
     @staticmethod
-    def move_file_with_check(input_filename, outfile, exist_ok):
+    def move_file_with_check(input_filename, outfile):
         return True
 
 @pytest.fixture(autouse=True)
