@@ -9,8 +9,8 @@ from generic_dataframe_functions import load_json_to_dataframe
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".json"
-OUTPUT_FILE_EXTENSION = ".csv"  # if this handler will output a different file type
+INPUT_DATA_FILE_SUFFIX = ".json"
+OUTPUT_FILE_SUFFIX = ".csv"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "_CFSIV_email_",
     "dummy place holder",
@@ -30,7 +30,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -54,7 +54,7 @@ def data_handler_process(file_path: Path):
         return False
 
     logger.debug(f"Looking for date string in: {file_path.stem}")
-    filedates_list = extract_dates(file_path.stem)  # filename without extension
+    filedates_list = extract_dates(file_path.stem)  # filename without SUFFIX
     logger.debug(f"Found Date(s): {filedates_list}")
 
     new_source_data_filename = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.name
@@ -62,7 +62,8 @@ def data_handler_process(file_path: Path):
     # ensure that the target directory exists
     new_source_data_filename.parent.mkdir(parents=True, exist_ok=True)
 
-    archive_output_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.stem}{OUTPUT_FILE_EXTENSION}")
+    archive_output_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.stem}{OUTPUT_FILE_SUFFIX}")
+    archive_source_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.name
     logger.debug(f"Archive for processed file path is: {archive_output_file}")
 
     # launch the processing function

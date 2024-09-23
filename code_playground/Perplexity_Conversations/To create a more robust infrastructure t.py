@@ -53,12 +53,12 @@ class Handler(FileSystemEventHandler):
 
 def process_new_file(file_path):
     # Determine the file type and process using the appropriate handler
-    file_extension = os.path.splitext(file_path)[1].lower()
-    handler = HANDLERS.get(file_extension)
+    file_SUFFIX = os.path.splitext(file_path)[1].lower()
+    handler = HANDLERS.get(file_SUFFIX)
     if handler:
         handler.process(file_path)
     else:
-        print(f"No handler found for {file_extension} files")
+        print(f"No handler found for {file_SUFFIX} files")
 
 if __name__ == "__main__":
     w = Watcher()
@@ -81,7 +81,7 @@ def load_handlers():
         if filename.endswith('.py') and filename != '__init__.py':
             module_name = filename[:-3]
             module = importlib.import_module(f'handlers.{module_name}')
-            HANDLERS[module.FILE_EXTENSION] = module
+            HANDLERS[module.FILE_SUFFIX] = module
 
 load_handlers()
 ```
@@ -98,7 +98,7 @@ from PyPDF2 import PdfFileReader
 import csv
 from datetime import datetime
 
-FILE_EXTENSION = '.pdf'
+FILE_SUFFIX = '.pdf'
 
 def process(file_path):
     try:
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 - **Directory Monitoring**: Uses `watchdog` to monitor the Downloads directory.
 - **Dynamic Handler Loading**: Loads handler modules dynamically from a `handlers` directory.
 - **Handler Interface**: Each handler module processes a specific file type and follows a common interface.
-- **File Processing**: When a new file is detected, it is processed by the appropriate handler based on its file extension.
+- **File Processing**: When a new file is detected, it is processed by the appropriate handler based on its file SUFFIX.
 
 This structure allows you to easily add new handlers by simply creating a new Python file in the `handlers` directory that implements the required interface.
 

@@ -33,7 +33,7 @@ def load_json_to_dataframe(file_path):
 
         # Check if the file is a valid JSON file
         if file_path.suffix != '.json':
-            logger.debug("Error: The file does not have a .json extension.")
+            logger.debug("Error: The file does not have a .json SUFFIX.")
             return pd.DataFrame()
 
         # Try loading the JSON as a DataFrame

@@ -7,8 +7,8 @@ from generic_pathlib_file_methods import move_file_with_check
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = ".xlsx"  # if this handler will output a different file type
+INPUT_DATA_FILE_SUFFIX = ".csv"
+OUTPUT_FILE_SUFFIX = ".xlsx"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "pay_at_machine_log",
     "dummy place holder",
@@ -29,7 +29,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -51,7 +51,7 @@ def data_handler_process(original_file_path: Path):
         return False
 
     logger.debug(f"Looking for date string(s) in: {original_file_path.stem}")
-    filedate_list = extract_dates(original_file_path.stem)  # filename without extension
+    filedate_list = extract_dates(original_file_path.stem)  # filename without SUFFIX
     logger.debug(f"Found Date: {filedate_list}")
     archive_input_file_destination = original_file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{original_file_path.name}")
     logger.debug(f"Archive for processed file path is: {archive_input_file_destination}")

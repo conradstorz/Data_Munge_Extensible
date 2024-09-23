@@ -15,8 +15,8 @@ from TouchTunes_Jukebox_Details import (
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = ".xlsx"  # if this handler will output a different file type
+INPUT_DATA_FILE_SUFFIX = ".csv"
+OUTPUT_FILE_SUFFIX = ".xlsx"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "Collection Details (",
     "dummy place holder",
@@ -37,7 +37,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -61,7 +61,7 @@ def data_handler_process(file_path: Path):
         return False
 
     logger.debug(f"Looking for date string in: {file_path.stem}")
-    filedates_list = extract_dates(file_path.stem)  # filename without extension
+    filedates_list = extract_dates(file_path.stem)  # filename without SUFFIX
     logger.debug(f"Found Date: {filedates_list}")
 
     # this data has more needed details in the filename. example:   Collection Details (A79CD) May 17, 2024 (4).csv
@@ -70,7 +70,7 @@ def data_handler_process(file_path: Path):
     logger.debug(f"Found device ID in filename: Device ID = {touchtunes_device}")
 
     output_file = Path(
-        f"{ARCHIVE_DIRECTORY_NAME}({touchtunes_device}){OUTPUT_FILE_EXTENSION}"
+        f"{ARCHIVE_DIRECTORY_NAME}({touchtunes_device}){OUTPUT_FILE_SUFFIX}"
     )
     logger.debug(f"Output filename: {output_file}")
 

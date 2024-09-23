@@ -1,9 +1,9 @@
-To design a Python project that dynamically loads scripts to process files based on their filenames or extensions, 
+To design a Python project that dynamically loads scripts to process files based on their filenames or SUFFIXs, 
 you can structure your project as follows:
 
 1. **Directory Watcher**: Monitors a directory for new files.
 2. **Script Manager**: Loads and manages the processing scripts dynamically.
-3. **File Processor**: Decides which script to run based on the file's name or extension.
+3. **File Processor**: Decides which script to run based on the file's name or SUFFIX.
 
 Here's a step-by-step guide to achieve this:
 
@@ -74,7 +74,7 @@ class ScriptManager:
 ```
 
 ### Step 3: File Processor
-Decide which script to use based on the file's name or extension and run it.
+Decide which script to use based on the file's name or SUFFIX and run it.
 
 ```python
 class FileProcessor:

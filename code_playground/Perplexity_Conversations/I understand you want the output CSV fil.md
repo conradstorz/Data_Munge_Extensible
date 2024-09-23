@@ -6,7 +6,7 @@ import csv
 from datetime import datetime
 
 def save_to_csv(data, pdf_path):
-    # Extract the original PDF filename without extension
+    # Extract the original PDF filename without SUFFIX
     pdf_filename = os.path.splitext(os.path.basename(pdf_path))[0]
     
     # Create a timestamp
@@ -25,7 +25,7 @@ def save_to_csv(data, pdf_path):
 
 This updated function does the following:
 
-1. It extracts the original PDF filename without the extension using `os.path.splitext()` and `os.path.basename()`.
+1. It extracts the original PDF filename without the SUFFIX using `os.path.splitext()` and `os.path.basename()`.
 
 2. It creates a timestamp using the current date and time, formatted as "YYYYMMDD_HHMMSS".
 

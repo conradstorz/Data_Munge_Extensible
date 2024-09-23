@@ -142,7 +142,7 @@ class FileHandler:
         Retrieves the original filename and associated string from the lookup table 
         based on the slug filename.
 
-        :param slug_filename: The slug filename to decode (without extension).
+        :param slug_filename: The slug filename to decode (without SUFFIX).
         :type slug_filename: str
         :param destination_dir: The directory where the lookup file is stored.
         :type destination_dir: Path
@@ -182,20 +182,20 @@ class FileLocator:
             return list(self.base_dir.rglob(filename))
         return list(self.base_dir.glob(filename))
 
-    def find_by_extension(self, extension: str, search_in_subdirs: bool = False) -> List[Path]:
+    def find_by_SUFFIX(self, SUFFIX: str, search_in_subdirs: bool = False) -> List[Path]:
         """
-        Locate files by extension. Optionally search in subdirectories.
+        Locate files by SUFFIX. Optionally search in subdirectories.
         
-        :param extension: The file extension to search for (e.g., '.txt').
-        :type extension: str
+        :param SUFFIX: The file SUFFIX to search for (e.g., '.txt').
+        :type SUFFIX: str
         :param search_in_subdirs: Whether to search in subdirectories (recursive search).
         :type search_in_subdirs: bool
         :return: List of matching file paths.
         :rtype: List[Path]
         """
-        if not extension.startswith('.'):
-            extension = f'.{extension}'
-        pattern = f"*{extension}"
+        if not SUFFIX.startswith('.'):
+            SUFFIX = f'.{SUFFIX}'
+        pattern = f"*{SUFFIX}"
         
         if search_in_subdirs:
             return list(self.base_dir.rglob(pattern))
@@ -265,21 +265,21 @@ class FileLocator:
                 return candidate
         return None
 
-    def find_recent_files(self, days: int = 1, extension: Optional[str] = None) -> List[Path]:
+    def find_recent_files(self, days: int = 1, SUFFIX: Optional[str] = None) -> List[Path]:
         """
         Locate files that were modified within the last `n` days.
         
         :param days: The number of days to go back.
         :type days: int
-        :param extension: Optional file extension to filter results (e.g., '.txt').
-        :type extension: str, optional
+        :param SUFFIX: Optional file SUFFIX to filter results (e.g., '.txt').
+        :type SUFFIX: str, optional
         :return: List of matching file paths.
         :rtype: List[Path]
         """
         matches = []
         cutoff_time = (datetime.now() - timedelta(days=days)).timestamp()
 
-        for file in self.base_dir.rglob('*' if extension is None else f'*{extension}'):
+        for file in self.base_dir.rglob('*' if SUFFIX is None else f'*{SUFFIX}'):
             if file.is_file() and file.stat().st_mtime > cutoff_time:
                 matches.append(file)
         return matches
@@ -317,7 +317,7 @@ if __name__ == "__main__":
     print(f"Slugged file has been saved as: {slugged_file_path}")
 
     # Decode the slug to get the original filename and associated string
-    slug_filename = slugged_file_path.stem  # Get the slug filename without extension
+    slug_filename = slugged_file_path.stem  # Get the slug filename without SUFFIX
     decoded_info = file_handler.decode_slug(slug_filename, destination_directory)
     
     print(f"Decoded information for slug {slug_filename}:")
@@ -333,8 +333,8 @@ if __name__ == "__main__":
     # Find by filename
     print(locator.find_by_name('example.txt'))
 
-    # Find by extension
-    print(locator.find_by_extension('.txt', search_in_subdirs=True))
+    # Find by SUFFIX
+    print(locator.find_by_SUFFIX('.txt', search_in_subdirs=True))
 
     # Find by wildcard pattern
     print(locator.find_by_wildcard('*.txt'))
@@ -349,7 +349,7 @@ if __name__ == "__main__":
     print(locator.find_in_env_path('python'))
 
     # Find recently modified files
-    print(locator.find_recent_files(days=2, extension='.txt'))
+    print(locator.find_recent_files(days=2, SUFFIX='.txt'))
 
     # Find largest file
     print(locator.find_largest_file())

@@ -19,8 +19,8 @@ from generic_munge_functions import archive_original_file
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = ".xlsx"
+INPUT_DATA_FILE_SUFFIX = ".csv"
+OUTPUT_FILE_SUFFIX = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = [
     "Terminal Status(w_FLOAT)automated",
     "floatautomated_3_",
@@ -43,15 +43,15 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """
-        Check if the given filename matches the required patterns and file extension.
+        Check if the given filename matches the required patterns and file SUFFIX.
 
         :param filename: Path object representing the file to check
         :type filename: Path
-        :return: True if the file matches the patterns and extension, False otherwise
+        :return: True if the file matches the patterns and SUFFIX, False otherwise
         :rtype: bool
         """
 
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -91,13 +91,13 @@ def data_handler_process(file_path: Path):
 
     logger.debug(f"Looking for date string in: {file_path.stem}")
     try:
-        filedate = extract_date_from_filename(file_path.stem)  # filename without extension
+        filedate = extract_date_from_filename(file_path.stem)  # filename without SUFFIX
         logger.info(f"Extracted Date: {filedate} from filename")
     except Exception as e:
         logger.error(f"Error extracting date from filename: {file_path.stem}, Error: {e}")
         return False
 
-    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_SUFFIX}")
     logger.debug(f"Output filename will be: {output_file}")
 
     archive_input_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.name}")

@@ -13,8 +13,8 @@ from generic_dataframe_functions import load_csv_to_dataframe
 from generic_dataframe_functions import verify_dataframe_contains
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = ".xlsx"
+INPUT_DATA_FILE_SUFFIX = ".csv"
+OUTPUT_FILE_SUFFIX = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = ["ATMActivityReportforcommissions", "dummy place holder"]
 ARCHIVE_DIRECTORY_NAME = "QuarterlyCommission"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
@@ -39,7 +39,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -61,9 +61,9 @@ def data_handler_process(file_path: Path):
         return False
 
     logger.debug(f"Looking for date string in: {file_path.stem}")
-    filedate = extract_date_from_filename(file_path.stem)  # filename without extension
+    filedate = extract_date_from_filename(file_path.stem)  # filename without SUFFIX
     logger.debug(f"Found Date: {filedate}")
-    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+    output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_SUFFIX}")
     logger.debug(f"Output filename: {output_file}")
     # launch the processing function
     try:

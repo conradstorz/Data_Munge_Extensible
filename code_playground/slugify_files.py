@@ -140,7 +140,7 @@ class Slugify:
         Decode the slug filename by retrieving the associated details (original string, 
         original filename, destination filename) from the lookup table.
 
-        :param slug_filename: The slug filename (without extension) to decode.
+        :param slug_filename: The slug filename (without SUFFIX) to decode.
         :type slug_filename: str
         :param destination_dir: Directory where the lookup table is stored.
         :type destination_dir: Path
@@ -192,6 +192,6 @@ if __name__ == "__main__":
     print(f"File has been slugged and saved as: {slugged_file}")
 
     # Example of decoding a slug filename
-    slug_filename = slugged_file.stem  # Get slug without extension
+    slug_filename = slugged_file.stem  # Get slug without SUFFIX
     details = slugger.decode(slug_filename, destination_directory)
     print(f"Details for {slug_filename}: {details}")

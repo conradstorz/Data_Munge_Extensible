@@ -6,7 +6,7 @@ and a rundate string and then makes calculations and returns an output version
 of the spreadsheet in dataframe format.
 """
 """
-# function, download filename, download extension, output extension
+# function, download filename, download SUFFIX, output SUFFIX
 BASENAME_BANK_STATEMENT = [process_bank_statement_csv,"BankDepositsStatement", CSV_EXT, CSV_EXT]
 EMAIL_BASENAME_FLOATREPORT = [process_floatReport_csv,"Terminal Status(w_FLOAT)automated", CSV_EXT, EXCEL_EXT]
 MANUAL_DL_BASENAME_FLOAT_REPORT = [process_floatReport_csv,"TerminalStatuswFLOATautomated3", CSV_EXT, CSV_EXT]
@@ -24,8 +24,8 @@ from generic_dataframe_functions import save_dataframe_as_csv_and_print
 
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".csv"
-OUTPUT_FILE_EXTENSION = ".xlsx"
+INPUT_DATA_FILE_SUFFIX = ".csv"
+OUTPUT_FILE_SUFFIX = ".xlsx"
 FILENAME_STRINGS_TO_MATCH = ["TerminalTrxData", "dummy place holder"]
 ARCHIVE_DIRECTORY_NAME = "SimpleTerminalData"
 FORMATTING_FILE = Path.cwd() / "MAIN" / "ColumnFormatting.json"
@@ -44,7 +44,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -67,7 +67,7 @@ def data_handler_process(file_path: Path) -> bool:
         return False
     else:
         # process file
-        output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_EXTENSION}")
+        output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_SUFFIX}")
         logger.debug(f"Output filename: {output_file}")
         try:
             logger.info(f"Sending {file_path} to be processed")

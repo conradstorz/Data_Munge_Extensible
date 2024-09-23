@@ -41,7 +41,7 @@ def test_file_handler_copy_and_slug(file_handler, temp_file, associated_string, 
     slugged_file_path = file_handler.copy_and_slug(temp_file, associated_string, destination_dir)
 
     assert slugged_file_path.exists(), "Slugged file should exist"
-    assert slugged_file_path.suffix == ".txt", "Slugged file should keep the original file extension"
+    assert slugged_file_path.suffix == ".txt", "Slugged file should keep the original file SUFFIX"
     assert len(slugged_file_path.stem) <= 60, "Slugged filename should not exceed max length"
 
 def test_file_handler_decode_slug(file_handler, temp_file, associated_string, tmp_path):

@@ -35,7 +35,7 @@ class EmailAttachmentDownloader:
 
     def download_attachments(self):
         logger.debug('downloading attachements')
-        ignored_extensions = [
+        ignored_SUFFIXs = [
             ".exe",
             ".bat",
             ".tmp",
@@ -43,7 +43,7 @@ class EmailAttachmentDownloader:
             "html",
             ".pdf",
             ".jpg",
-        ]  # Specify the extensions to ignore
+        ]  # Specify the SUFFIXs to ignore
 
         with imaplib.IMAP4_SSL('imap.gmail.com') as mail:
             mail.login(self.email_user, self.email_password)
@@ -97,9 +97,9 @@ class EmailAttachmentDownloader:
                         if isinstance(filename, bytes):
                             filename = filename.decode(encoding or 'utf-8')
 
-                        # Check file extension and skip if it's in the ignored list
-                        file_extension = os.path.splitext(filename)[1].lower()
-                        if file_extension in ignored_extensions:
+                        # Check file SUFFIX and skip if it's in the ignored list
+                        file_SUFFIX = os.path.splitext(filename)[1].lower()
+                        if file_SUFFIX in ignored_SUFFIXs:
                             logger.debug(f"Ignored: {filename}")
                             continue
 

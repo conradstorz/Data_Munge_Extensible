@@ -24,7 +24,7 @@ class EmailFetcher:
     :type mark_as_seen: bool
     :param delay: The delay in seconds between each email fetching cycle. Default is 600 seconds.
     :type delay: int
-    :param ignore_file_types: A list of file extensions to ignore when downloading attachments.
+    :param ignore_file_types: A list of file SUFFIXs to ignore when downloading attachments.
     :type ignore_file_types: list
     """
 
@@ -123,9 +123,9 @@ class EmailFetcher:
             # Process and download attachments
             for att in msg.attachments:
                 logger.debug(f'Processing attachment: {att.filename=}')
-                att_extension = att.filename.split(".")[-1].lower()
+                att_SUFFIX = att.filename.split(".")[-1].lower()
                 
-                if att_extension not in self.ignore_file_types:
+                if att_SUFFIX not in self.ignore_file_types:
                     logger.debug(f'Sanitizing attachment filename: "{att.filename}"')
                     sanitized_filename = f"{email_sender}_{sanitize_filename(att.filename)}"
                     attachment_destination = Path(self.email_download_directory) / Path(sanitized_filename)
@@ -143,7 +143,7 @@ class EmailFetcher:
                         "saved_to": str(attachment_destination)
                     })
                 else:
-                    logger.debug(f"Ignored attachment with extension '{att_extension}': {att.filename}")
+                    logger.debug(f"Ignored attachment with SUFFIX '{att_SUFFIX}': {att.filename}")
 
             
             logger.info(f"Processed and saved email: {email_subject}")

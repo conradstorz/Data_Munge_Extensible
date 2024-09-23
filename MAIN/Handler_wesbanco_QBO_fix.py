@@ -9,7 +9,7 @@ import generic_pathlib_file_methods as plfh
 QBO_MODIFIED_DIRECTORY = Path("D:/Users/Conrad/Documents/")
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".qbo"
+INPUT_DATA_FILE_SUFFIX = ".qbo"
 FILENAME_STRINGS_TO_MATCH = ["Export-", "dummy place holder"]
 
 
@@ -26,14 +26,14 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """
-        Determines if the given filename matches the specified patterns and extension.
+        Determines if the given filename matches the specified patterns and SUFFIX.
 
         :param filename: The Path object representing the file to check.
         :type filename: Path
         :return: True if the file matches, False otherwise.
         :rtype: bool
         """
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -95,7 +95,7 @@ def modify_QBO(QBO_records_list):
     """
     modified_qbo, file_date, acct_number = process_qbo_lines(QBO_records_list)
     # Attempt to write results to cleanfile
-    fname = "".join([file_date, "_", acct_number, INPUT_DATA_FILE_EXTENSION])
+    fname = "".join([file_date, "_", acct_number, INPUT_DATA_FILE_SUFFIX])
     logger.debug(f"Attempting to output modified lines to file name: {fname}")
     clean_output_file = Path(QBO_MODIFIED_DIRECTORY, fname)
     try:

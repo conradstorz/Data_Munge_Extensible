@@ -14,8 +14,8 @@ from generic_munge_functions import extract_date_from_filename
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
-INPUT_DATA_FILE_EXTENSION = ".zip"
-OUTPUT_FILE_EXTENSION = ".json"  # if this handler will output a different file type
+INPUT_DATA_FILE_SUFFIX = ".zip"
+OUTPUT_FILE_SUFFIX = ".json"  # if this handler will output a different file type
 FILENAME_STRINGS_TO_MATCH = [
     "notifiernayaxcom_report_",
     "dummy place holder",
@@ -39,7 +39,7 @@ class FileMatcher:
     @logger.catch()
     def matches(self, filename: Path) -> bool:
         """Define how to match data files"""
-        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_EXTENSION):
+        if any(s in filename for s in FILENAME_STRINGS_TO_MATCH) and filename.endswith(INPUT_DATA_FILE_SUFFIX):
             return True  # match found
         else:
             return False  # no match
@@ -70,7 +70,7 @@ def data_handler_process(file_path: Path):
     json_data = get_data_from(file_path)
     logger.debug(f'{json_data=}')
     # build output path
-    output_filepath = Path(f"{ARCHIVE_DIRECTORY_NAME}\{file_path.stem}{OUTPUT_FILE_EXTENSION}")
+    output_filepath = Path(f"{ARCHIVE_DIRECTORY_NAME}\{file_path.stem}{OUTPUT_FILE_SUFFIX}")
     logger.debug(f'{output_filepath=}')
     processed_json = process_json(json_data, filedates_list, output_filepath)
     logger.debug(f"{processed_json=}")

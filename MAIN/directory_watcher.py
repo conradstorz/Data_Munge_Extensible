@@ -9,7 +9,7 @@ from generic_pathlib_file_methods import move_file_with_check
 ARCHIVE_FOLDER = Path("D:/Users/Conrad/Downloads/Archive_misc/")  # for files that are ignored
 
 logger.catch()
-def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
+def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
     """
     Checks the download directory, renames new files by appending a timestamp,
     removes missing filenames from pickle, and returns the first new filename it finds.
@@ -19,15 +19,15 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
     :type directory_to_watch: str or Path
     :param pickle_file: Path to the pickle file for storing filenames
     :type pickle_file: str or Path
-    :param ignore_extensions: List of file extensions to ignore (e.g., ['.tmp', '.part'])
-    :type ignore_extensions: list of str or None
+    :param ignore_SUFFIXs: List of file SUFFIXs to ignore (e.g., ['.tmp', '.part'])
+    :type ignore_SUFFIXs: list of str or None
     :return: The first new filename found, or None if no new files
     :rtype: str or None
     """
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
-    ignore_extensions = ignore_extensions or []  # This is a good way to avoid the mutable variable problem
-    #logger.debug(f'Checking watched directory {directory_to_watch} for new files while ignoring {ignore_extensions}')
+    ignore_SUFFIXs = ignore_SUFFIXs or []  # This is a good way to avoid the mutable variable problem
+    #logger.debug(f'Checking watched directory {directory_to_watch} for new files while ignoring {ignore_SUFFIXs}')
 
     # Load existing filenames from pickle
     if pickle_file.exists():
@@ -51,7 +51,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_extensions=None):
 
     # Process the first new file
     for new_file in new_files:
-        if (new_file.is_file() and new_file.suffix not in ignore_extensions):
+        if (new_file.is_file() and new_file.suffix not in ignore_SUFFIXs):
             # Check for duplicate filenames and rename the file by appending a timestamp
             timestamp = datetime.now().strftime("%M%S")
             timestamp = f"({timestamp})"
@@ -117,7 +117,7 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
     try:
         while True:
             loops = indicate_progress(loops)  
-            new_file = get_first_new_file(directory_to_watch, "./download_history_file.pkl", ignore_extensions=['.download', '.tmp', '.part', '.crdownload'])
+            new_file = get_first_new_file(directory_to_watch, "./download_history_file.pkl", ignore_SUFFIXs=['.download', '.tmp', '.part', '.crdownload'])
             if new_file:
                 time.sleep(1)  # allow the filesystem to settle before proceeding
                 new_file = Path(new_file)
