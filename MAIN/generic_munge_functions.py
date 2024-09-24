@@ -19,17 +19,18 @@ def print_pdf_using_os_subprocess(file_path, printer_name):
     )
 
 @logger.catch()
-def archive_original_file(input_filename: Path, outfile: Path):
+def archive_original_file(input_filename: Path, destination: Path):
     """
     Move the original file to a new location.
 
     Args:
-        input_filename (Path): Original input file name.
-        outfile (Path): Path to the output file.
+        input_filename (Path): Original input file name path complete.
+        destination (Path): Path to the destination directory.
     """
+    destination_filename = destination / input_filename.name
     # move the file
-    move_file_with_check(input_filename, outfile)
-    logger.debug(f"Moved original file from {input_filename} to {outfile}")
+    move_file_with_check(input_filename, destination_filename)
+    logger.debug(f"Moved original file from {input_filename} to {destination}")
 
 @logger.catch()
 def is_date_valid(date_str):

@@ -63,8 +63,8 @@ def data_handler_process(file_path: Path):
     new_source_data_filename.parent.mkdir(parents=True, exist_ok=True)
 
     archive_output_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.stem}{OUTPUT_FILE_SUFFIX}")
-    archive_source_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / file_path.name
-    logger.debug(f"Archive for processed file path is: {archive_output_file}")
+    archive_directory_path = file_path.parent / ARCHIVE_DIRECTORY_NAME
+    logger.debug(f"Archive for processed file path is: {archive_directory_path}")
 
     # launch the processing function
     try:
@@ -84,7 +84,7 @@ def data_handler_process(file_path: Path):
     send_dataframe_to_file_as_csv(archive_output_file, processed_dataframe)
 
     logger.debug(f"moving incoming json file to new location.")
-    archive_original_file(file_path, archive_output_file)
+    archive_original_file(file_path, archive_directory_path)
 
     return True
 

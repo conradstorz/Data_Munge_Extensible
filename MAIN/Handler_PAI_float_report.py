@@ -100,8 +100,8 @@ def data_handler_process(file_path: Path):
     output_file = Path(f"{ARCHIVE_DIRECTORY_NAME}{OUTPUT_FILE_SUFFIX}")
     logger.debug(f"Output filename will be: {output_file}")
 
-    archive_input_file = file_path.parent / ARCHIVE_DIRECTORY_NAME / Path(f"{file_path.name}")
-    logger.debug(f"Archive for processed file path is: {archive_input_file}")
+    input_file_archive_destination = file_path.parent / ARCHIVE_DIRECTORY_NAME
+    logger.debug(f"Archive for processed file path is: {input_file_archive_destination}")
 
     # Launch the processing function
     try:
@@ -139,9 +139,9 @@ def data_handler_process(file_path: Path):
 
     # Archive the original file
     try:
-        logger.debug(f"Archiving original file from {file_path} to {archive_input_file}")
-        archive_original_file(file_path, archive_input_file)
-        logger.info(f"Successfully archived file: {file_path} to {archive_input_file}")
+        logger.debug(f"Archiving original file from {file_path} to {input_file_archive_destination}")
+        archive_original_file(file_path, input_file_archive_destination)
+        logger.info(f"Successfully archived file: {file_path} to {input_file_archive_destination}")
     except Exception as e:
         logger.error(f"Error archiving file: {file_path}, Error: {e}")
         return False

@@ -60,8 +60,7 @@ def test_extract_date_from_filename():
 def test_archive_original_file(tmp_path):
     # Set up test paths using pytest's tmp_path fixture
     input_file = tmp_path / "test_input.txt"
-    output_file = tmp_path / "archive" / "test_input.txt"
-
+    output_file = tmp_path / "archive"
     # Create a dummy input file
     input_file.write_text("Test content")
 
