@@ -1,6 +1,9 @@
 import subprocess
 from loguru import logger
 from pathlib import Path
+import pdfplumber
+import pandas as pd
+
 
 @logger.catch()
 def convert_html_to_pdf(html_file, output_pdf):
@@ -63,3 +66,20 @@ def print_pdf(file_path, printer_name, page_range="1-2"):
         print(f"Sent {page_range} of {file_path} to printer {printer_name}.")
     except subprocess.CalledProcessError as e:
         print(f"Failed to print {file_path}. Error: {e}")
+
+
+@logger.catch()
+def load_pdf_to_dataframe(pdf_file):
+
+    # Open the PDF file
+    with pdfplumber.open(pdf_file) as pdf:
+        # Extract the first page
+        first_page = pdf.pages[0]
+        
+        # Extract tables from the first page
+        table = first_page.extract_table()
+
+    # Load the table into a DataFrame
+    df = pd.DataFrame(table[1:], columns=table[0])
+
+    return df
