@@ -54,14 +54,14 @@ def test_construct_email_data(email_fetcher, mock_msg):
     assert email_data[0]["to"] == mock_msg.to
     assert email_data[0]["attachments"] == attachments
 
-# Test save_email_content function with mocks for Path.mkdir and open
+# Test save_email_content function with proper Path open mocking
 def test_save_email_content(email_fetcher, mocker):
     # Mock Path's mkdir and open methods
     mock_mkdir = mocker.patch("pathlib.Path.mkdir")
     
-    # Mock Path.open but ensure it matches the full Path and mode
+    # Directly mock Path.open to ensure it captures both the Path and the mode
     mock_open = mocker.patch("pathlib.Path.open", mocker.mock_open())
-    
+
     mock_timestamp = mocker.patch("FetchEmailClassModularized.datetime", wraps=datetime)
     mock_timestamp.now.return_value = datetime(2023, 9, 23, 10, 0, 0)
 
@@ -77,6 +77,8 @@ def test_save_email_content(email_fetcher, mocker):
     mock_open.assert_called_once_with(expected_filename, 'w')
     mock_open().write.assert_called_once()  # Check if the file is being written to
     mock_mkdir.assert_called_once()  # Ensure mkdir is called to create the directory
+
+
 
 
 
@@ -108,12 +110,12 @@ def test_process_attachments(email_fetcher, mocker):
     mock_save_attachment.assert_called_once()
     assert len(attachments) == 1
 
-# Test save_attachment function with mocks for Path.mkdir and open
+# Test save_attachment function with proper Path open mocking
 def test_save_attachment(email_fetcher, mocker):
     # Mock Path's mkdir and open methods
     mock_mkdir = mocker.patch("pathlib.Path.mkdir")
     
-    # Mock Path.open but ensure it matches the full Path and mode
+    # Directly mock Path.open to ensure it captures both the Path and the mode
     mock_open = mocker.patch("pathlib.Path.open", mocker.mock_open())
     
     att = MagicMock(payload=b"data")
@@ -128,6 +130,11 @@ def test_save_attachment(email_fetcher, mocker):
     mock_open.assert_called_once_with(expected_path, 'wb')
     mock_open().write.assert_called_once_with(b"data")
     mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
+
+
+
+
+
 # Test process_email integration
 def test_process_email_integration(email_fetcher, mock_msg, mocker):
     mock_sanitize_details = mocker.patch("FetchEmailClassModularized.EmailFetcher.sanitize_email_details", return_value=("subject", "sender", "body"))
