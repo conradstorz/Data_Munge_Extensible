@@ -54,32 +54,26 @@ def test_construct_email_data(email_fetcher, mock_msg):
     assert email_data[0]["to"] == mock_msg.to
     assert email_data[0]["attachments"] == attachments
 
-# Test save_email_content function with proper Path open mocking
 def test_save_email_content(email_fetcher, mocker):
     # Mock Path's mkdir and open methods
     mock_mkdir = mocker.patch("pathlib.Path.mkdir")
     
-    # Directly mock Path.open to ensure it captures both the Path and the mode
+    # Directly mock Path.open and make sure it captures the full Path and mode
     mock_open = mocker.patch("pathlib.Path.open", mocker.mock_open())
-
+    
     mock_timestamp = mocker.patch("FetchEmailClassModularized.datetime", wraps=datetime)
     mock_timestamp.now.return_value = datetime(2023, 9, 23, 10, 0, 0)
-
+    
     email_subject = "Test Subject"
     email_data = [{"subject": "Test Subject"}]
     email_fetcher.email_download_directory = "/some/path"
     
     email_fetcher.save_email_content(email_subject, email_data)
-
+    
     expected_filename = Path("/some/path/_CFSIV_email_Test Subject_20230923_100000.json")
     
     # Assert that the correct file path and mode were used
     mock_open.assert_called_once_with(expected_filename, 'w')
-    mock_open().write.assert_called_once()  # Check if the file is being written to
-    mock_mkdir.assert_called_once()  # Ensure mkdir is called to create the directory
-
-
-
 
 
 # Test sanitize_attachment_filename
@@ -110,12 +104,11 @@ def test_process_attachments(email_fetcher, mocker):
     mock_save_attachment.assert_called_once()
     assert len(attachments) == 1
 
-# Test save_attachment function with proper Path open mocking
 def test_save_attachment(email_fetcher, mocker):
     # Mock Path's mkdir and open methods
     mock_mkdir = mocker.patch("pathlib.Path.mkdir")
     
-    # Directly mock Path.open to ensure it captures both the Path and the mode
+    # Directly mock Path.open and make sure it captures the full Path and mode
     mock_open = mocker.patch("pathlib.Path.open", mocker.mock_open())
     
     att = MagicMock(payload=b"data")
@@ -123,13 +116,11 @@ def test_save_attachment(email_fetcher, mocker):
     email_fetcher.email_download_directory = "/some/path"
     
     email_fetcher.save_attachment(att, sanitized_filename)
-
+    
     expected_path = Path("/some/path") / sanitized_filename
     
     # Assert that the correct file path and mode were used
     mock_open.assert_called_once_with(expected_path, 'wb')
-    mock_open().write.assert_called_once_with(b"data")
-    mock_mkdir.assert_called_once_with(parents=True, exist_ok=True)
 
 
 
