@@ -1,4 +1,4 @@
-import pandas as panda
+import pandas as pd
 import os
 from pathlib import Path
 from loguru import logger
@@ -113,7 +113,7 @@ def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     try:
         # Create a pandas ExcelWriter object
         logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
-        with panda.ExcelWriter(filename, engine="xlsxwriter") as writer:
+        with pd.ExcelWriter(filename, engine="xlsxwriter") as writer:
             # Write the DataFrame to the Excel file
             logger.debug(f"Writing DataFrame to Excel file")
             frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
@@ -151,7 +151,7 @@ def load_dataframe_from_excel_file(fname):
             raise FileNotFoundError(f"The file '{file_path}' does not exist.")
 
         # Load the Excel file using pandas
-        excel_data = panda.ExcelFile(file_path)
+        excel_data = pd.ExcelFile(file_path)
 
         # Return the loaded Excel data
         return excel_data
@@ -185,7 +185,7 @@ def convert_xlsx_2_pdf(fname, header=None, footer=None):
 
     # Read the data from the first sheet
     try:
-        data = panda.read_excel(file_path, sheet_name="Sheet1")
+        data = pd.read_excel(file_path, sheet_name="Sheet1")
     except Exception as e:
         logger.error(f"ERROR reading data: {e}")
         return ""
