@@ -154,8 +154,6 @@ class EmailFetcher:
         except Exception as e:
             logger.error(f"Error processing email {msg.subject}: {e}", exc_info=True)  # Add exc_info for stack trace
 
-
-
     def start(self):
         """Start the email fetching process in a separate thread."""
         if not self.running:
