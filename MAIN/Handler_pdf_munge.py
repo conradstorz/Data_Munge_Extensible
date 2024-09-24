@@ -3,7 +3,8 @@ import pandas as pd
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
-from generic_pdf_functions import print_pdf
+from generic_pdf_functions import print_pdf, load_pdf_to_dataframe
+from generic_dataframe_functions import print_dataframe_to_named_printer
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
@@ -67,7 +68,8 @@ def data_handler_process(file_path: Path):
     # launch the processing function
     try:
         logger.debug(f'Starting data aquisition.')
-        # raw_dataframe = aquire_data(file_path, filedates_list)
+        raw_dataframe = aquire_data(file_path, filedates_list)
+        print_dataframe_to_named_printer(raw_dataframe, SYSTEM_PRINTER_NAME)
         print_pdf(file_path, SYSTEM_PRINTER_NAME)
     except Exception as e:
         logger.error(f"Failure processing PDF: {e}")
@@ -78,6 +80,10 @@ def data_handler_process(file_path: Path):
 
     return True
 
+
+def aquire_data(file_path, filedates_list): 
+    data_frame = load_pdf_to_dataframe(file_path)
+    return data_frame
 
 
 # Example usage
