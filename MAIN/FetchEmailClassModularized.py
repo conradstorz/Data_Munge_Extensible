@@ -167,13 +167,21 @@ class EmailFetcher:
         """
         Save an individual attachment to disk.
         """
+        # Ensure the directory exists before saving the file
         attachment_destination = Path(self.email_download_directory) / sanitized_filename
-        attachment_destination.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            logger.debug(f'Creating directory if it does not exist: "{attachment_destination.parent}"')
+            attachment_destination.parent.mkdir(parents=True, exist_ok=True)
 
-        logger.debug(f'Saving attachment to: "{attachment_destination}"')
-        with attachment_destination.open('wb') as f:
-            f.write(att.payload)
-        logger.debug(f"Processed and downloaded attachment: {attachment_destination}")
+            logger.debug(f'Saving attachment to: "{attachment_destination}"')
+            with attachment_destination.open('wb') as f:
+                f.write(att.payload)
+            logger.debug(f"Processed and downloaded attachment: {attachment_destination}")
+        
+        except Exception as e:
+            logger.error(f"Failed to save attachment {sanitized_filename} at {attachment_destination}: {e}", exc_info=True)
+            raise
+
 
     def start(self):
         """
