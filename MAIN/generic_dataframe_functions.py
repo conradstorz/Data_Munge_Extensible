@@ -251,7 +251,7 @@ def print_dataframe_to_named_printer(frame, printer):
         None
     """
     logger.debug(f'Frame to output:\n{frame=}')
-
+    # TODO implement actual printing of dataframe
     logger.debug(f"Dataframe printed to {printer}")
 
 @logger.catch()
