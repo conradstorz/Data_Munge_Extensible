@@ -54,9 +54,11 @@ def test_construct_email_data(email_fetcher, mock_msg):
     assert email_data[0]["to"] == mock_msg.to
     assert email_data[0]["attachments"] == attachments
 
-# Test save_email_content function
+# Test save_email_content function with mocks for Path.mkdir and open
 def test_save_email_content(email_fetcher, mocker):
-    mock_open = mocker.patch("builtins.open", mocker.mock_open())
+    # Mock Path's mkdir and open methods
+    mock_mkdir = mocker.patch("pathlib.Path.mkdir")
+    mock_open = mocker.patch("pathlib.Path.open", mocker.mock_open())
     mock_timestamp = mocker.patch("FetchEmailClassModularized.datetime", wraps=datetime)
     mock_timestamp.now.return_value = datetime(2023, 9, 23, 10, 0, 0)
 
@@ -69,6 +71,8 @@ def test_save_email_content(email_fetcher, mocker):
     expected_filename = "/some/path/_CFSIV_email_Test Subject_20230923_100000.json"
     mock_open.assert_called_once_with(Path(expected_filename), 'w')
     mock_open().write.assert_called_once()  # Check if the file is being written to
+    mock_mkdir.assert_called_once()  # Ensure mkdir is called to create the directory
+
 
 # Test sanitize_attachment_filename
 def test_sanitize_attachment_filename(email_fetcher, mocker):
@@ -97,16 +101,17 @@ def test_process_attachments(email_fetcher, mocker):
     mock_sanitize_filename.assert_called_once_with(email_sender, "test.pdf")
     mock_save_attachment.assert_called_once()
     assert len(attachments) == 1
-
-# Test save_attachment function
+    
+# Test save_attachment function with mocks for Path.mkdir and open
 def test_save_attachment(email_fetcher, mocker):
-    mock_open = mocker.patch("builtins.open", mocker.mock_open())
+    # Mock Path's mkdir and open methods
     mock_mkdir = mocker.patch("pathlib.Path.mkdir")
+    mock_open = mocker.patch("pathlib.Path.open", mocker.mock_open())
     
     att = MagicMock(payload=b"data")
     sanitized_filename = "sanitized_filename.txt"
     email_fetcher.email_download_directory = "/some/path"
-
+    
     email_fetcher.save_attachment(att, sanitized_filename)
 
     expected_path = Path("/some/path") / sanitized_filename
