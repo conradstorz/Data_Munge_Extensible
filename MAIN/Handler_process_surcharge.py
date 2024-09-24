@@ -27,8 +27,7 @@ from loguru import logger
 from pathlib import Path
 from whenever import Instant
 from generic_dataframe_functions import save_dataframe_as_csv_and_print
-from generic_excel_functions import set_custom_excel_formatting, convert_dataframe_to_excel_with_formatting_and_save  # This function is probably in "generic_excel_functions.py" now
-
+from generic_json_functions import prettify_json
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_SUFFIX = ".csv"
@@ -123,14 +122,6 @@ def data_handler_process(file_path: Path) -> bool:
     return True
 
 
-# Custom function to serialize the dictionary excluding unserializable objects
-def custom_json_serializer(obj):
-    # usage example: pretty_dict = json.dumps(dict, default=custom_json_serializer, indent=4)
-    if isinstance(obj, (int, float, str, bool, list, tuple, dict, type(None))):
-        return obj
-    else:
-        return str(obj)
-
 
 def validate_value(value, min_value=0, max_value=float("inf")):
     """Validate if the value is within the expected range and is not negative.
@@ -204,7 +195,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
         terminal_details = json.load(json_data)
     # this dictionary will contain information about individual terminals
     # Pretty print and log the dictionary item
-    pretty_json = json.dumps(terminal_details, default=custom_json_serializer, indent=4)
+    pretty_json = prettify_json(terminal_details)
     logger.debug(f"Printer details report:\n{pretty_json}")
 
     logger.debug(f"Reading formatting file..")
@@ -213,7 +204,7 @@ def process_monthly_surcharge_report(input_file, RUNDATE):
         column_details = json.load(json_data)
     # this dictionary will contain information about formating output values.
     # Pretty print and log the dictionary item
-    pretty_json = json.dumps(column_details, default=custom_json_serializer, indent=4)
+    pretty_json = prettify_json(column_details)
     logger.debug(f"Printer details report:\n{pretty_json}")
 
     return (
@@ -398,9 +389,7 @@ def generate_multiple_report_dataframes(
         report_definitions = json.load(json_data)
     # this dictionary will contain information about individual reports
     # Pretty print and log the dictionary item
-    pretty_json = json.dumps(
-        report_definitions, default=custom_json_serializer, indent=4
-    )
+    pretty_json = prettify_json(report_definitions)
     logger.debug(f"Report Definitions File:{pretty_json}")
 
     # create these reports

@@ -9,7 +9,8 @@ import json
 from pathlib import Path
 import os
 from datetime import datetime
-from generic_munge_functions import extract_date_from_filename
+from generic_munge_functions import extract_dates
+from generic_munge_functions import archive_original_file
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
@@ -65,18 +66,36 @@ def data_handler_process(file_path: Path):
     # move_input_data_file_to_archive
 
     logger.info(f'ZIP Handler launched on file {file_path}')
-    filedates_list = extract_date_from_filename(file_path)
-    logger.debug(f'{filedates_list=}')
+
+    logger.debug(f"Looking for date string in: {file_path.stem}")
+    filedates_list = extract_dates(file_path.stem)  # filename without SUFFIX or directory tree
+    logger.debug(f"Found Date(s): {filedates_list}")
+
     json_data = get_data_from(file_path)
     logger.debug(f'{json_data=}')
+
     # build output path
     output_filepath = Path(f"{ARCHIVE_DIRECTORY_NAME}\{file_path.stem}{OUTPUT_FILE_SUFFIX}")
     logger.debug(f'{output_filepath=}')
-    processed_json = process_json(json_data, filedates_list, output_filepath)
-    logger.debug(f"{processed_json=}")
+
+    archive_directory_path = file_path.parent / ARCHIVE_DIRECTORY_NAME
+    logger.debug(f"Archive for processed file path is: {archive_directory_path}")    
+
+    # read zip file contents into memory
+    raw_json_of_zipfile = get_data_from(file_path)
+    logger.debug(f'{raw_json_of_zipfile=}')
+
+    #processed_json = process_json(json_data, filedates_list, output_filepath)
+    #logger.debug(f"{processed_json=}")
+
     # save data
+
     # print data
+
     # move data
+    logger.debug(f"moving incoming json file to new location.")
+    archive_original_file(file_path, archive_directory_path)    
+
     logger.debug(f"ZIP file processing complete.")
     return True
 
