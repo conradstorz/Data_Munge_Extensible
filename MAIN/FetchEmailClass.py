@@ -8,6 +8,7 @@ import time
 from loguru import logger
 from generic_pathlib_file_methods import sanitize_filename
 import threading
+from datetime import datetime
 import sys
 
 class EmailFetcher:
@@ -94,15 +95,16 @@ class EmailFetcher:
         try:
             # gather email details and sanitize strings
             logger.info(f"Incoming eMail: '{msg.subject}' Sanitizing...")
-            email_subject = sanitize_filename(msg.subject)
+            email_subject = sanitize_filename(msg.subject[:50])  # Limit subject to 50 chars for filename safety
             logger.debug(f'Sanitized eMail subject: "{email_subject}"')
             email_sender = sanitize_filename(msg.from_)
             logger.debug(f'Sanitized sender name: {email_sender}')
-            email_body = msg.text or msg.html
+            email_body = msg.text or msg.html or "<No content>"
+
             attachments = []
 
             # Construct the email data
-            email_data = [ {
+            email_data = [{
                 "subject": email_subject,
                 "body": email_body,
                 "from": msg.from_,
@@ -112,29 +114,31 @@ class EmailFetcher:
                 "date": msg.date.isoformat(),
                 "headers": dict(msg.headers),
                 "attachments": attachments
-            } ]
+            }]
 
             # Save email content as JSON
-            output_file = Path(self.email_download_directory) / Path(f"_CFSIV_email_{email_subject}.json")
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_file = Path(self.email_download_directory) / f"_CFSIV_email_{email_subject}_{timestamp}.json"
+
             logger.debug(f'Saving JSON file: {output_file}')
             with output_file.open('w') as f:
                 json.dump(email_data, f, indent=4)
 
             # Process and download attachments
             for att in msg.attachments:
-                logger.debug(f'Processing attachment: {att.filename=}')
+                logger.debug(f'Processing attachment: {att.filename=} size={att.size}')
                 att_SUFFIX = att.filename.split(".")[-1].lower()
-                
+
                 if att_SUFFIX not in self.ignore_file_types:
                     logger.debug(f'Sanitizing attachment filename: "{att.filename}"')
-                    sanitized_filename = f"{email_sender}_{sanitize_filename(att.filename)}"
+                    sanitized_filename = f"{email_sender}_{sanitize_filename(att.filename[:50])}"  # Limit length
                     attachment_destination = Path(self.email_download_directory) / Path(sanitized_filename)
                     attachment_destination.parent.mkdir(parents=True, exist_ok=True)
-                    
+
                     logger.debug(f'Saving attachment to: "{attachment_destination}"')
                     with attachment_destination.open('wb') as f:
                         f.write(att.payload)
-                    
+
                     logger.debug(f"Processed and downloaded attachment: {attachment_destination}")
                     attachments.append({
                         "filename": sanitized_filename,
@@ -145,11 +149,11 @@ class EmailFetcher:
                 else:
                     logger.debug(f"Ignored attachment with SUFFIX '{att_SUFFIX}': {att.filename}")
 
-            
             logger.info(f"Processed and saved email: {email_subject}")
 
         except Exception as e:
-            logger.error(f"Error processing email {msg.subject}: {e}")
+            logger.error(f"Error processing email {msg.subject}: {e}", exc_info=True)  # Add exc_info for stack trace
+
 
 
     def start(self):
