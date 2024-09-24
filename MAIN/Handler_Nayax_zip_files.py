@@ -11,6 +11,7 @@ import os
 from datetime import datetime
 from generic_munge_functions import extract_dates
 from generic_munge_functions import archive_original_file
+from generic_json_functions import prettify_json
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
@@ -73,6 +74,7 @@ def data_handler_process(file_path: Path):
 
     json_data = get_data_from(file_path)
     logger.debug(f'{json_data=}')
+    logger.debug(f'{prettify_json(json_data)}')
 
     # build output path
     output_filepath = Path(f"{ARCHIVE_DIRECTORY_NAME}\{file_path.stem}{OUTPUT_FILE_SUFFIX}")
@@ -81,12 +83,8 @@ def data_handler_process(file_path: Path):
     archive_directory_path = file_path.parent / ARCHIVE_DIRECTORY_NAME
     logger.debug(f"Archive for processed file path is: {archive_directory_path}")    
 
-    # read zip file contents into memory
-    raw_json_of_zipfile = get_data_from(file_path)
-    logger.debug(f'{raw_json_of_zipfile=}')
-
-    #processed_json = process_json(json_data, filedates_list, output_filepath)
-    #logger.debug(f"{processed_json=}")
+    processed_json = process_json(json_data, filedates_list, output_filepath)
+    logger.debug(f"{prettify_json(processed_json)}")
 
     # save data
 
@@ -133,10 +131,12 @@ def sanitize_zip(zip_file):
     MAX_FILE_SIZE = 100 * 1024 * 1024
     # Set the extraction directory
     safe_base_path = Path("/safe/directory/for/extraction")
-    file_list = []
+    file_list = {}
     try:
         with zipfile.ZipFile(zip_file, 'r') as zf:
-            for info in zf.infolist():
+            for index, info in enumerate(zf.infolist()):
+                file_info = {}
+                logger.debug(f'{index=},{info=}')
                 # Prevent zip bombs by checking uncompressed file size
                 if info.file_size > MAX_FILE_SIZE:
                     raise ValueError(f"File {info.filename} exceeds the maximum allowed size.")
@@ -145,15 +145,13 @@ def sanitize_zip(zip_file):
                 if not extracted_path.resolve().is_relative_to(safe_base_path.resolve()):
                     raise ValueError(f"Path traversal detected in file {info.filename}.")
                 # Gather file metadata
-                file_info = {
-                    "file_name": info.filename,
-                    "file_size": info.file_size,
-                    "compress_size": info.compress_size,
-                    "modified_time": datetime(*info.date_time).isoformat(),
-                }
-                file_list.append(file_info)
+                file_info["file_name"] = info.filename
+                file_info["file_size"] = info.file_size
+                file_info["compress_size"] = info.compress_size
+                file_info["modified_time"] = datetime(*info.date_time).isoformat()
+                file_list[index] = file_info
         # Output JSON data
-        json_output = json.dumps(file_list, indent=4)
+        json_output = json.dumps(file_list)
     except zipfile.BadZipFile:
         raise ValueError(f"The provided zip file: {zip_file} is malformed or corrupt.")
     return json_output
