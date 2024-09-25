@@ -36,12 +36,12 @@ class EmailFetcher:
         self.imap_server = imap_server
         self.username = username
         self.password = password
-        self.mark_as_seen = mark_as_seen
         self.delay = interval
+        self.mark_as_seen = mark_as_seen
         self.email_download_directory = dld
-        self.ignore_file_types = [ext.lower() for ext in ignore_file_types]
-        self.running = False
+        self.ignore_file_types = ignore_file_types if ignore_file_types else []
         self.thread = None
+        self.stop_thread = threading.Event()
 
         logger.debug(
             f"EmailFetcher initialized with server: {imap_server}, user: {username}, mark_as_seen: {mark_as_seen}, delay: {interval}, ignore_file_types: {self.ignore_file_types}"
