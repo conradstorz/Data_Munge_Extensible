@@ -212,7 +212,7 @@ class EmailFetcher:
     def monitor_thread(self):
         """Monitor the thread and restart if it stalls."""
         while not self.stop_thread.is_set():  # Respect the stop signal
-            time.sleep(3)  # Check thread status every 60 seconds
+            time.sleep(1)  # Check thread status every 60 seconds
             if not self.thread.is_alive():
                 logger.error("Thread has stalled, attempting to restart.")
                 self.start_fetching()  # Restart the thread if it has stalled
@@ -222,24 +222,28 @@ class EmailFetcher:
 
     def stop_fetching(self):
         """Stop the email fetching and monitoring processes gracefully."""
-        if self.thread and self.thread.is_alive():
-            logger.info("Stopping email fetching thread.")
-            self.stop_thread.set()  # Signal both email fetching and monitoring threads to stop
-            self.thread.join(timeout=10)  # Wait for the fetching thread to finish, with a timeout
-            
-            if self.thread.is_alive():
-                logger.warning("Fetching thread did not exit in time, it may be stuck.")
-            else:
-                logger.info("Fetching thread stopped successfully.")
+        
+        # Signal both email fetching and monitoring threads to stop
+        self.stop_thread.set()  # This should come first to notify both threads to stop
         
         # Check if the monitoring thread exists and is alive before attempting to join
-        if self.monitoring_thread and self.monitoring_thread.is_alive():
-            logger.info("Stopping thread monitoring.")
+        if hasattr(self, 'monitoring_thread') and self.monitoring_thread.is_alive():
+            logger.info("Stopping fetching thread monitoring.")
             self.monitoring_thread.join(timeout=5)  # Wait for monitoring thread to finish
             if self.monitoring_thread.is_alive():
                 logger.warning("Monitoring thread did not exit in time.")
             else:
                 logger.info("Monitoring thread stopped successfully.")
+        
+        # Check if the fetching thread is alive before attempting to join
+        if self.thread and self.thread.is_alive():
+            logger.info("Stopping email fetching thread.")
+            self.thread.join(timeout=10)  # Wait for the fetching thread to finish, with a timeout
+            if self.thread.is_alive():
+                logger.warning("Fetching thread did not exit in time, it may be stuck.")
+            else:
+                logger.info("eMail thread stopped successfully.")
+    
 
 
 if __name__ == "__main__":
