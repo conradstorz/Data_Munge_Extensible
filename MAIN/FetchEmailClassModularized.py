@@ -191,7 +191,11 @@ class EmailFetcher:
             logger.info("Starting email fetching thread.")
             self.thread = threading.Thread(target=self.fetch_emails)
             self.thread.start()
-            self.monitor_thread()  # Start monitoring the thread
+
+            # Start the monitoring in a separate thread
+            logger.debug(f"Starting the fetching monitor in its own thread.")
+            self.monitoring_thread = threading.Thread(target=self.monitor_thread)
+            self.monitoring_thread.start()
         else:
             logger.warning("Email fetching thread is already running.")
 
@@ -199,7 +203,7 @@ class EmailFetcher:
     def monitor_thread(self):
         """Monitor the thread and restart if it stalls."""
         while True:
-            time.sleep(60)  # Check thread status every 60 seconds
+            time.sleep(3)  # Check thread status every 3 seconds
             if not self.thread.is_alive():
                 logger.error("Thread has stalled, attempting to restart.")
                 self.start_fetching()  # Restart the thread if it has stalled
@@ -209,16 +213,26 @@ class EmailFetcher:
                 break
 
 
-    def stop_fetching(self):
-        """Stop the email fetching process gracefully."""
-        if self.thread and self.thread.is_alive():
-            logger.info("Stopping email fetching thread.")
-            self.stop_thread.set()  # Signal the thread to stop
-            self.thread.join(timeout=10)  # Wait for the thread to finish, with a timeout
-            if self.thread.is_alive():
-                logger.warning("Thread did not exit in time, force stopping.")
+def stop_fetching(self):
+    """Stop the email fetching process gracefully."""
+    if self.thread and self.thread.is_alive():
+        logger.info("Stopping email fetching thread.")
+        self.stop_thread.set()  # Signal both email fetching and monitoring threads to stop
+        
+        self.thread.join(timeout=10)  # Wait for the fetching thread to finish, with a timeout
+        if self.thread.is_alive():
+            logger.warning("Fetching thread did not exit in time, force stopping.")
+        else:
+            logger.info("Fetching thread stopped successfully.")
+        
+        # If the monitor thread was started in `start_fetching`, it should also be joined here
+        if self.monitoring_thread and self.monitoring_thread.is_alive():
+            logger.info("Stopping thread monitoring.")
+            self.monitoring_thread.join(timeout=5)  # Wait for monitoring thread to finish
+            if self.monitoring_thread.is_alive():
+                logger.warning("Monitoring thread did not exit in time.")
             else:
-                logger.info("Thread stopped successfully.")
+                logger.info("Monitoring thread stopped successfully.")
 
 
 if __name__ == "__main__":
