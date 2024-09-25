@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from loguru import logger
 import time
-import generic_pathlib_file_methods as plfh
+import generic_pathlib_file_methods as delete_file_and_verify
 from fpdf import FPDF
 
 @logger.catch()
@@ -109,7 +109,7 @@ def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     }
     # clean up any old output file that exists
     logger.debug(f"Cleanup any old file left over from previous runs.")
-    plfh.delete_file_and_verify(filename)
+    delete_file_and_verify(filename)
     try:
         # Create a pandas ExcelWriter object
         logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
@@ -176,19 +176,13 @@ def convert_xlsx_2_pdf(fname, header=None, footer=None):
         footer = ["End"]  # Default value
 
     file_path = Path(fname)
-    # NOTE: what is the difference from this and the "read_excel" below?
-    try:
-        excel_data = load_dataframe_from_excel_file(file_path)
-    except Exception as e:
-        logger.error(f"Error importing data: {e}")
-        return ""
 
     # Read the data from the first sheet
     try:
         data = pd.read_excel(file_path, sheet_name="Sheet1")
     except Exception as e:
         logger.error(f"ERROR reading data: {e}")
-        return ""
+        return
 
     # Extract the labels and the data
     value_name = data.iloc[0].values
