@@ -57,11 +57,14 @@ class EmailFetcher:
                     for msg in mailbox.fetch(AND(seen=self.mark_as_seen)):
                         self.process_email(msg)
                     
-                    # Check again if stop_thread is set after the main loop
-                    if self.stop_thread.is_set():
-                        break                        
-
-                    time.sleep(self.delay)
+                    loop = self.delay
+                    while loop > 0:
+                        loop -= 1
+                        # Check again if stop_thread is set frequently
+                        if self.stop_thread.is_set():
+                            break                        
+                        time.sleep(1)
+    
 
         except Exception as e:
             logger.exception(f"An error occurred during email fetching: {e}")
