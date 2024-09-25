@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from MAIN.slugify_file_manager import SlugGenerator, FileHandler  # Assuming this is the module name
+from slugify_file_manager import SlugGenerator, FileHandler  # Assuming this is the module name
 
 @pytest.fixture
 def slug_generator():
