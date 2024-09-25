@@ -206,18 +206,15 @@ class EmailFetcher:
         else:
             logger.warning("Email fetching thread is already running.")
 
-
     def monitor_thread(self):
         """Monitor the thread and restart if it stalls."""
-        while True:
-            time.sleep(3)  # Check thread status every 3 seconds
+        while not self.stop_thread.is_set():  # Respect the stop signal
+            time.sleep(3)  # Check thread status every 60 seconds
             if not self.thread.is_alive():
                 logger.error("Thread has stalled, attempting to restart.")
                 self.start_fetching()  # Restart the thread if it has stalled
                 break  # Exit monitoring as the thread is restarted
-            if self.stop_thread.is_set():
-                logger.info("Stopping thread monitoring.")
-                break
+        logger.info("Monitoring thread has exited.")
 
 
     def stop_fetching(self):
