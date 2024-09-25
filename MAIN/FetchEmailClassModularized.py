@@ -221,19 +221,18 @@ class EmailFetcher:
 
 
     def stop_fetching(self):
-        """Stop the email fetching process gracefully."""
+        """Stop the email fetching and monitoring processes gracefully."""
         if self.thread and self.thread.is_alive():
             logger.info("Stopping email fetching thread.")
-            self.stop_thread.set()  # Signal the thread to stop
-            self.thread.join(timeout=10)  # Wait for the thread to finish, with a timeout
+            self.stop_thread.set()  # Signal both email fetching and monitoring threads to stop
+            self.thread.join(timeout=10)  # Wait for the fetching thread to finish, with a timeout
             
             if self.thread.is_alive():
                 logger.warning("Fetching thread did not exit in time, it may be stuck.")
-                # Optional: You can log additional info or handle this case differently
             else:
                 logger.info("Fetching thread stopped successfully.")
         
-        # If the monitor thread was started in `start_fetching`, it should also be joined here
+        # Check if the monitoring thread exists and is alive before attempting to join
         if self.monitoring_thread and self.monitoring_thread.is_alive():
             logger.info("Stopping thread monitoring.")
             self.monitoring_thread.join(timeout=5)  # Wait for monitoring thread to finish
