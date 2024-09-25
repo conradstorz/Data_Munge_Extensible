@@ -16,7 +16,7 @@ As of 9/22/2024 this framework has handlers for 11 different data sources.
 
 from file_processor_and_scripts_manager import ScriptManager, FileProcessor
 from directory_watcher import monitor_download_directory
-from FetchEmailClass import EmailFetcher
+from FetchEmailClassModularized import EmailFetcher
 from loguru import logger
 from pathlib import Path
 from dotenv import dotenv_values
@@ -57,7 +57,7 @@ except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
 
 # start fetcher
-email_fetcher.start()
+email_fetcher.start_fetching()
 # fetcher will download each email and it's attachments as it arrives
 
 # begin monitoring directory where data gets downloaded
@@ -66,7 +66,7 @@ monitor_download_directory(DIRECTORY_TO_WATCH, file_processor_instance, delay=2)
 
 # begin shutdown
 logger.info("directory watcher ended")
-email_fetcher.stop()
+email_fetcher.stop_fetching()
 logger.info("email watcher stopped")
 # shutdown complete
 sys.exit(0)

@@ -48,16 +48,18 @@ class EmailFetcher:
         )
 
     def fetch_emails(self):
-        """
-        Fetch emails from the IMAP server based on the specified criteria.
-        """
+        """Fetch emails in a loop, logging errors, and handling thread safety."""
         try:
-            with MailBox(self.imap_server).login(self.username, self.password, initial_folder="INBOX") as mailbox:
-                for msg in mailbox.fetch(AND(seen=False) if not self.mark_as_seen else AND()):
-                    self.process_email(msg)
-                time.sleep(self.delay)
+            with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
+                while not self.stop_thread.is_set():
+                    logger.info("Fetching emails...")
+                    for msg in mailbox.fetch(AND(seen=self.mark_as_seen)):
+                        self.process_email(msg)
+                    time.sleep(self.delay)
         except Exception as e:
-            logger.error(f"Error fetching emails: {e}", exc_info=True)
+            logger.exception(f"An error occurred during email fetching: {e}")
+        finally:
+            logger.info("Email fetching thread has exited.")
 
     def process_email(self, msg):
         """
@@ -183,25 +185,41 @@ class EmailFetcher:
             raise
 
 
-    def start(self):
-        """
-        Start the email fetching process in a separate thread.
-        """
-        if not self.running:
-            self.running = True
+    def start_fetching(self):
+        """Start the email fetching process in a separate thread."""
+        if self.thread is None or not self.thread.is_alive():
+            logger.info("Starting email fetching thread.")
             self.thread = threading.Thread(target=self.fetch_emails)
             self.thread.start()
-            logger.debug(f"Started email fetching for {self.username}")
+            self.monitor_thread()  # Start monitoring the thread
+        else:
+            logger.warning("Email fetching thread is already running.")
 
-    def stop(self):
-        """
-        Stop the email fetching process.
-        """
-        if self.running:
-            self.running = False
-            if self.thread is not None:
-                self.thread.join()  # Wait for the thread to finish
-            logger.debug(f"Stopped email fetching for {self.username}")
+
+    def monitor_thread(self):
+        """Monitor the thread and restart if it stalls."""
+        while True:
+            time.sleep(60)  # Check thread status every 60 seconds
+            if not self.thread.is_alive():
+                logger.error("Thread has stalled, attempting to restart.")
+                self.start_fetching()  # Restart the thread if it has stalled
+                break  # Exit monitoring as the thread is restarted
+            if self.stop_thread.is_set():
+                logger.info("Stopping thread monitoring.")
+                break
+
+
+    def stop_fetching(self):
+        """Stop the email fetching process gracefully."""
+        if self.thread and self.thread.is_alive():
+            logger.info("Stopping email fetching thread.")
+            self.stop_thread.set()  # Signal the thread to stop
+            self.thread.join(timeout=10)  # Wait for the thread to finish, with a timeout
+            if self.thread.is_alive():
+                logger.warning("Thread did not exit in time, force stopping.")
+            else:
+                logger.info("Thread stopped successfully.")
+
 
 if __name__ == "__main__":
     email_fetcher = EmailFetcher(
@@ -209,13 +227,12 @@ if __name__ == "__main__":
         "your_email@example.com", 
         "password", 
         mark_as_seen=False, 
-        interval=600, 
+        interval=600,  
         ignore_file_types=["gif", "bmp"]
     )
-    email_fetcher.start()
+    email_fetcher.start_fetching()  
 
     # Do other processing here
 
     # To stop the email fetching process:
-    email_fetcher.stop()
-    
+    email_fetcher.stop_fetching()  
