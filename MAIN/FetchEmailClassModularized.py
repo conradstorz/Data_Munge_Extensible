@@ -56,7 +56,7 @@ class EmailFetcher:
                     logger.debug(f"Fetching emails with criteria: {criteria}")
                     for msg in mailbox.fetch(criteria):    
                         self.process_email(msg)
-                        # Check again if stop_thread is set frequently
+                        # Check frequently if stop_thread is set 
                         if self.stop_thread.is_set():
                             break                                 
                     logger.debug('IMAP connection closed.')
@@ -64,7 +64,7 @@ class EmailFetcher:
                 loop = self.delay
                 while loop > 0:
                     loop -= 1
-                    # Check again if stop_thread is set frequently
+                    # Check frequently if stop_thread is set 
                     if self.stop_thread.is_set():
                         break                        
                     time.sleep(1)
