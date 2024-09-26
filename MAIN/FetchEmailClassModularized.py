@@ -53,10 +53,11 @@ class EmailFetcher:
             with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                 while not self.stop_thread.is_set():
 
-                    logger.info("Fetching emails...")
-                    for msg in mailbox.fetch(AND(seen=self.mark_as_seen)):
+                    criteria = AND(seen=self.mark_as_seen)
+                    logger.debug(f"Fetching emails with criteria: {criteria}")
+                    for msg in mailbox.fetch(criteria):           
                         self.process_email(msg)
-                    
+
                     loop = self.delay
                     while loop > 0:
                         loop -= 1
@@ -64,12 +65,12 @@ class EmailFetcher:
                         if self.stop_thread.is_set():
                             break                        
                         time.sleep(1)
-    
 
         except Exception as e:
             logger.exception(f"An error occurred during email fetching: {e}")
         finally:
             logger.info("Email fetching thread has exited.")
+
 
     def process_email(self, msg):
         """
