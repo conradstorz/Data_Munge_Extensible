@@ -50,21 +50,24 @@ class EmailFetcher:
     def fetch_emails(self):
         """Fetch emails in a loop, logging errors, and handling thread safety."""
         try:
-            with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
-                while not self.stop_thread.is_set():
-
+            while not self.stop_thread.is_set():
+                with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
-                    for msg in mailbox.fetch(criteria):           
+                    for msg in mailbox.fetch(criteria):    
                         self.process_email(msg)
-
-                    loop = self.delay
-                    while loop > 0:
-                        loop -= 1
                         # Check again if stop_thread is set frequently
                         if self.stop_thread.is_set():
-                            break                        
-                        time.sleep(1)
+                            break                                 
+                    logger.debug('IMAP connection closed.')
+
+                loop = self.delay
+                while loop > 0:
+                    loop -= 1
+                    # Check again if stop_thread is set frequently
+                    if self.stop_thread.is_set():
+                        break                        
+                    time.sleep(1)
 
         except Exception as e:
             logger.exception(f"An error occurred during email fetching: {e}")
