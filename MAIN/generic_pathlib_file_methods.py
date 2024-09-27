@@ -141,8 +141,9 @@ def delete_file_and_verify(file_path: Path) -> bool:
     :raises PermissionError: If permission is denied when trying to delete the file.
     """
     if not file_path.exists():
-        logger.error(f"File {file_path} does not exist.")
-        raise FileNotFoundError(f"File {file_path} does not exist.")
+        logger.error(f"File {file_path} does not exist. Nothing to delete.")
+        #raise FileNotFoundError(f"File {file_path} does not exist.")
+        return False
     
     try:
         file_path.unlink()
