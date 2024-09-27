@@ -61,8 +61,11 @@ def convert_dataframe_to_excel_with_formatting_and_save(filename, frame):
 @logger.catch()
 def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     """Create an excel file on the default storage"""
-    # define the various labels as $ or % or a plain number
+    # define the various labels as 'A' for alpha, or $ or % or # for a plain number
     column_details = {
+        "Reject Balance": "$",
+        "Balance": "$",
+        "Today's Float": "$",        
         "Device Number": "A",
         "Bill to Biz Code": "A",
         "Location": "A",
