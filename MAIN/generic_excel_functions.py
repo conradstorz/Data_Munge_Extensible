@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from loguru import logger
 import time
-import generic_pathlib_file_methods as delete_file_and_verify
+from generic_pathlib_file_methods import delete_file_and_verify
 from fpdf import FPDF
 
 @logger.catch()
@@ -109,7 +109,7 @@ def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     }
     # clean up any old output file that exists
     logger.debug(f"Cleanup any old file left over from previous runs.")
-    delete_file_and_verify(filename)
+    delete_file_and_verify(filename) 
     try:
         # Create a pandas ExcelWriter object
         logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
