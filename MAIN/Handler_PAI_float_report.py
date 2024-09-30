@@ -16,7 +16,7 @@ from generic_munge_functions import extract_date_from_filename
 from generic_dataframe_functions import load_csv_to_dataframe
 from generic_dataframe_functions import verify_dataframe_contains
 from generic_munge_functions import archive_original_file
-
+from whenever import Instant
 
 # standardized declaration for CFSIV_Data_Munge_Extensible project
 INPUT_DATA_FILE_SUFFIX = ".csv"
@@ -163,8 +163,12 @@ def process_floatReport_csv(in_f, RUNDATE):
     """    
     # Declare labels here to eliminate possiblity of typos
     ROUTE_TEXT = "               Route Totals"
-    REPORT_DATE = f"Report ran: {RUNDATE}"
+    #REPORT_DATE = f"Report ran: {RUNDATE}"
     FLOAT_LABEL = "Today's Float"
+
+    now = Instant.now()
+    timestamp = str(now.format_rfc2822())
+    REPORT_DATE = timestamp
 
     empty_df = panda.DataFrame()
     df = load_csv_to_dataframe(in_f)
@@ -222,7 +226,6 @@ def process_floatReport_csv(in_f, RUNDATE):
     print(f'{sum_value=}')
     # Locate the row containing "Report Ran" and place the sum in the "Balance" column
     df.loc[df['Location'].str.contains('Report ran', na=False), 'Balance'] = sum_value
-
 
     # work is finished. Drop unneeded columns from output
     df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
