@@ -163,12 +163,12 @@ def process_floatReport_csv(in_f, RUNDATE):
     """    
     # Declare labels here to eliminate possiblity of typos
     ROUTE_TEXT = "               Route Totals"
-    #REPORT_DATE = f"Report ran: {RUNDATE}"
+    REPORT_DATE = f"Report generated: {RUNDATE}"
     FLOAT_LABEL = "Today's Float"
 
     now = Instant.now()
-    timestamp = str(now.format_rfc2822())
-    REPORT_DATE = timestamp
+    timestamp = f'Printed at: {str(now.format_rfc2822())}'
+    PRINT_DATE = timestamp
 
     empty_df = panda.DataFrame()
     df = load_csv_to_dataframe(in_f)
