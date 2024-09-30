@@ -7,7 +7,7 @@ from df_modifier import insert_string_at_top
 
 def test_insert_string_at_top_first_column():
     # Test case 1: Inserting string into the first column by default
-    df = pd.DataFrame({'A': [10, 20], 'B': [100, 200]})
+    df = pd.DataFrame({'A': ["a string", "another string"], 'B': [100, 200]})
     result_df = insert_string_at_top(df, "First Row")
     
     expected_df = pd.DataFrame({'A': ["First Row", 10, 20], 'B': [pd.NA, 100, 200]})
@@ -15,15 +15,23 @@ def test_insert_string_at_top_first_column():
     pd.testing.assert_frame_equal(result_df, expected_df)
 
 
-def test_insert_string_at_top_specified_column():
+def test_insert_string_at_top_first_column_when_not_compatible_with_string():
+    # Test case 1: Inserting string into the first column by default
+    df = pd.DataFrame({'A': [10, 20], 'B': [100, 200]})
+    
+    # Expecting a TypeError to be raised
+    with pytest.raises(TypeError):
+        result_df = insert_string_at_top(df, "First Row")
+
+
+def test_insert_string_at_top_specified_column_when_not_compatible_with_string():
     # Test case 2: Inserting string into a specified column
     df = pd.DataFrame({'A': [10, 20], 'B': [100, 200]})
-    result_df = insert_string_at_top(df, "Header B", column_name="B")
-    
-    expected_df = pd.DataFrame({'A': [pd.NA, 10, 20], 'B': ["Header B", 100, 200]})
-    
-    pd.testing.assert_frame_equal(result_df, expected_df)
 
+    # Expecting a TypeError to be raised
+    with pytest.raises(TypeError):    
+        result_df = insert_string_at_top(df, "Header B", column_name="B")
+    
 
 def test_insert_string_invalid_column_name():
     # Test case 3: Invalid column name should raise a KeyError
