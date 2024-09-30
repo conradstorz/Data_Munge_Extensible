@@ -51,6 +51,7 @@ class EmailFetcher:
         """Fetch emails in a loop, logging errors, and handling thread safety."""
         try:
             while not self.stop_thread.is_set():
+                logger.info('Checking eMail provider...')
                 with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
