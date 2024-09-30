@@ -46,13 +46,14 @@ def test_insert_string_on_empty_dataframe():
     df = pd.DataFrame(columns=['A', 'B'])
     result_df = insert_string_at_top(df, "New String")
     
-    # Convert NaN to pd.NA explicitly for consistency
-    expected_df = pd.DataFrame({'A': ["New String"], 'B': [pd.NA]})
+    # Expected DataFrame, setting the dtype to 'object'
+    expected_df = pd.DataFrame({'A': ["New String"], 'B': [pd.NA]}, dtype="object")
     
-    # Ensure both DataFrames have the same null type
+    # Ensure that both DataFrames use pd.NA explicitly and convert dtypes
     result_df = result_df.convert_dtypes()
     expected_df = expected_df.convert_dtypes()
-    
+
+    # Ensure that both DataFrames use pd.NA consistently
     pd.testing.assert_frame_equal(result_df, expected_df)
 
 
