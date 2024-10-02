@@ -59,9 +59,21 @@ def insert_string_at_top(df: pd.DataFrame, input_string: str, column_name: str =
 
 # Example usage (if this script is run directly)
 if __name__ == "__main__":
-    # Example DataFrame
-    data = {'A': [2, 3], 'B': [5, 6]}
-    df = pd.DataFrame(data)
+    from io import StringIO
+
+    # CSV formatted data as a string
+    csv_data = """
+    A,B,C
+    hello,5,8
+    world,6,9
+    friends,4,7
+    """
+
+    # Use StringIO to simulate reading from a file
+    data = StringIO(csv_data)
+    # Create DataFrame
+    df = pd.read_csv(data)
+    print(df)
 
     # String to insert
     string_to_insert = "New String"
