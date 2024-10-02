@@ -129,8 +129,12 @@ def monitor_download_directory(directory_to_watch, file_processor, delay=1):
                     move_file_with_check(new_file, new_file_path)                    
                 else:                    
                     logger.debug(f'File found to attempt processing {new_file}')
+                    # Send this filename to be matched to a 'handler'
                     file_processor.process(directory_to_watch / new_file)
-            time.sleep(delay)  # Set the pace for how often to look for new files.
+            loop = delay
+            while loop > 0:  # Set the pace for how often to look for new files.
+                time.sleep(0.1)  # Don't block processing of other code for more than 1 tenth of a second
+                loop -= 0.1
 
     except KeyboardInterrupt:
         logger.info(f"Keyboard interrupt detected.")
