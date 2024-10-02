@@ -69,7 +69,6 @@ class ScriptManager:
             pretty_list_of_handlers = pprint.pformat(filename_substrings, width=160)
             logger.debug(f"These are the templates and filename sub-strings being monitored during this run:\n{pretty_list_of_handlers}")
 
-
     def get_script_for_file(self, filename):
         """
         Retrieves the processing function for a given set of data based on 
@@ -108,7 +107,7 @@ class FileProcessor:
 
     def process(self, file_path):
         """
-        Processes the specified file using the appropriate script.
+        Look for a 'Handler' for the specified file and process the data using the appropriate script.
 
         :param file_path: Path to the file to be processed
         :type file_path: str or Path
