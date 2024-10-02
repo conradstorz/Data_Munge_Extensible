@@ -52,12 +52,12 @@ IMAP_SERVER = "imap.gmail.com"
 
 # initiate the email watcher class  (has optional flag 'mark_as_read' that defaults to False)
 try:
-    email_fetcher = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_TO_WATCH)
+    email_fetcher_instance = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_TO_WATCH)
 except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
 
 # start fetcher
-email_fetcher.start_fetching()
+email_fetcher_instance.start_fetching()
 # fetcher will download each email and it's attachments as it arrives
 
 # begin monitoring directory where data gets downloaded
@@ -66,7 +66,7 @@ monitor_download_directory(DIRECTORY_TO_WATCH, file_processor_instance, delay=2)
 
 # begin shutdown
 logger.info("directory watcher ended")
-email_fetcher.stop_fetching()
+email_fetcher_instance.stop_fetching()
 logger.info("email watcher stopped")
 # shutdown complete
 sys.exit(0)
