@@ -139,9 +139,8 @@ def data_handler_process(file_path: Path):
 
     # Archive the original file
     try:
-        logger.debug(f"Archiving original file from {file_path} to {input_file_archive_destination}")
+        logger.info(f"Archiving original file from {file_path} to {input_file_archive_destination}")
         archive_original_file(file_path, input_file_archive_destination)
-        logger.info(f"Successfully archived file: {file_path} to {input_file_archive_destination}")
     except Exception as e:
         logger.error(f"Error archiving file: {file_path}, Error: {e}")
         return False
