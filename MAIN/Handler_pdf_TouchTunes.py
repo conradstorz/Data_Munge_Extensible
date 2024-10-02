@@ -3,6 +3,7 @@ from pathlib import Path
 from generic_munge_functions import extract_dates
 from generic_pdf_functions import print_pdf, load_pdf_to_dataframe
 from generic_dataframe_functions import print_dataframe_to_named_printer
+from generic_munge_functions import archive_original_file
 
 SYSTEM_PRINTER_NAME = "Canon TR8500 series"  # SumatrPDF needs the output printer name
 
@@ -75,6 +76,17 @@ def data_handler_process(file_path: Path):
     if not output_file.exists():
         logger.error(f"No data found to process")
         return False
+
+    # TODO move PDF file to archive directory
+    input_file_archive_destination = file_path.parent / ARCHIVE_DIRECTORY_NAME
+    try:
+        logger.info(f"Archiving original file from:\n {file_path} to \n{input_file_archive_destination}")
+        archive_original_file(file_path, input_file_archive_destination)
+    except Exception as e:
+        logger.error(f"Error archiving file: {file_path}, Error: {e}")
+        return False
+
+    logger.info(f"All processing for file: {file_path} completed successfully")
 
     return True
 
