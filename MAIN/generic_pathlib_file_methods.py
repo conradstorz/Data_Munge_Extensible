@@ -22,7 +22,6 @@ VALID_SUFFIXS = {
     '.iso', '.exe', '.dll'
 }
 
-
 @logger.catch()
 def sanitize_filename(filename: str) -> str:
     """
@@ -65,8 +64,6 @@ def sanitize_filename(filename: str) -> str:
     logger.debug(f"Sanitized filename: {sanitized_filename}")
     return sanitized_filename
 
-
-
 @logger.catch()
 def is_valid_SUFFIX(file_SUFFIX: str) -> bool:
     """
@@ -78,7 +75,6 @@ def is_valid_SUFFIX(file_SUFFIX: str) -> bool:
     :rtype: bool
     """
     return file_SUFFIX in VALID_SUFFIXS
-
 
 @logger.catch()
 def move_file(source: Path, destination: Path) -> bool:
@@ -136,7 +132,6 @@ def move_file(source: Path, destination: Path) -> bool:
                 logger.error(f"File sizes differ. Source: {source_size} bytes, Destination: {destination_size} bytes.")
         return False
 
-
 @logger.catch()
 def delete_file_and_verify(file_path: Path) -> bool:
     """
@@ -176,7 +171,6 @@ def delete_file_and_verify(file_path: Path) -> bool:
     else:
         logger.error(f"Verification failed: File {file_path} still exists after attempting deletion.")
         return False
-
 
 @logger.catch()
 def move_file_with_check(source: Path, destination: Path, retries: int = 3, delay: float = 2.0) -> bool:
