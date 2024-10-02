@@ -27,7 +27,7 @@ FILENAME_STRINGS_TO_MATCH = [
     "terminal_statuswfloatautomated",
     ]
 
-ARCHIVE_DIRECTORY_NAME = "FloatReport"
+ARCHIVE_DIRECTORY_NAME = "FloatReportArchive"
 
 
 class FileMatcher:
