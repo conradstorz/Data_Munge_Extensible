@@ -75,7 +75,6 @@ class EmailFetcher:
         finally:
             logger.info("Email fetching thread has exited.")
 
-
     def process_email(self, msg):
         """
         Process an individual email.
@@ -96,21 +95,20 @@ class EmailFetcher:
             logger.error(f"Error constructing email data for {email_subject}: {e}", exc_info=True)
             return  # Stop processing if email data can't be constructed
 
-        # Save email content to JSON
-        try:
-            self.save_email_content(email_subject, email_data)
-        except Exception as e:
-            logger.error(f"Error saving email content for {email_subject}: {e}", exc_info=True)
-            return  # Stop processing if saving email content fails
-
         # Process attachments
         try:
             self.process_attachments(msg.attachments, email_sender, attachments)
         except Exception as e:
             logger.error(f"Error processing attachments for {email_subject}: {e}", exc_info=True)
 
-        logger.info(f"Processed and saved email: {email_subject}")
+         # Save email content to JSON
+        try:
+            self.save_email_content(email_subject, email_data)
+        except Exception as e:
+            logger.error(f"Error saving email content for {email_subject}: {e}", exc_info=True)
+            return  # Stop processing if saving email content fails           
 
+        logger.info(f"Processed and saved email: {email_subject}")
 
     def sanitize_email_details(self, msg):
         """
@@ -199,7 +197,6 @@ class EmailFetcher:
             logger.error(f"Failed to save attachment {sanitized_filename} at {attachment_destination}: {e}", exc_info=True)
             raise
 
-
     def start_fetching(self):
         """Start the email fetching process in a separate thread."""
         if self.thread is None or not self.thread.is_alive():
@@ -223,7 +220,6 @@ class EmailFetcher:
                 self.start_fetching()  # Restart the thread if it has stalled
                 break  # Exit monitoring as the thread is restarted
         logger.info("Monitoring thread has exited.")
-
 
     def stop_fetching(self):
         """Stop the email fetching and monitoring processes gracefully."""
