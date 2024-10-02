@@ -58,7 +58,9 @@ class ScriptManager:
             logger.error(f"No handlers loaded. Exiting")
             sys.exit(0)
         else:  # gather and log filename sub-strings that will be monitored
+            # TODO check that each loaded handler uses a unique combination of string and file suffix: different from other handlers
             filename_substrings = []
+            # TODO if a handler proposes to handle a string that already belongs to a different handler: log as an error.
             for script_name, script in self.scripts.items():
                 try:
                     filename_substrings.append(f"{script_name}: {script['declaration'].get_filename_strings_to_match()}")
