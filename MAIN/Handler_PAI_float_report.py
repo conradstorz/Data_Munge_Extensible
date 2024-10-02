@@ -162,7 +162,7 @@ def process_floatReport_csv(in_f, RUNDATE):
     :rtype: pandas.DataFrame
     """    
     # Declare labels here to eliminate possiblity of typos
-    ROUTE_TEXT = "               Route Totals"
+    ROUTE_TEXT = "                            Route Totals"
     REPORT_DATE = f"Report generated: {RUNDATE}"
     FLOAT_LABEL = "Today's Float"
 
@@ -189,6 +189,8 @@ def process_floatReport_csv(in_f, RUNDATE):
 
     # tack on the date of this report extracted from the filename
     df.at[len(df), "Location"] = REPORT_DATE
+    # tack on the date that this report is printed
+    df.at[len(df), "Location"] = PRINT_DATE    
 
     # Strip out undesirable characters from "Balance" column
     try:
@@ -224,8 +226,8 @@ def process_floatReport_csv(in_f, RUNDATE):
     # Sum the relevant values from "Route Totals" row
     sum_value = route_totals_row['Balance'].values[0] + route_totals_row[FLOAT_LABEL].values[0]
     print(f'{sum_value=}')
-    # Locate the row containing "Report Ran" and place the sum in the "Balance" column
-    df.loc[df['Location'].str.contains('Report ran', na=False), 'Balance'] = sum_value
+    # Locate the row containing "Report generated" and place the sum in the "Balance" column
+    df.loc[df['Location'].str.contains('Report generated', na=False), 'Balance'] = sum_value
 
     # work is finished. Drop unneeded columns from output
     df = df.drop(["Route"], axis=1)  # df.columns is zero-based panda.Index
