@@ -48,14 +48,23 @@ def sanitize_filename(filename: str) -> str:
 
     logger.debug(f"Sanitizing string: {base_filename}")
 
+    # Normalize Unicode characters to decomposed form (NFKD)
     sanitized = unicodedata.normalize('NFKD', base_filename)
+
+    # Remove any character that is not ASCII (0-127)
+    # First remove unicode characters
+    sanitized = re.sub(r'[^\x00-\x7F]+', '', sanitized)
+    # Remove any character that is not a word character, space, or hyphen
     sanitized = re.sub(r'[^\w\s-]', '', sanitized).strip().lower()
+    # Replace multiple spaces or hyphens with a single underscore
     sanitized = re.sub(r'[-\s]+', '_', sanitized)
+
 
     sanitized_filename = f"{sanitized}{file_SUFFIX}"
 
     logger.debug(f"Sanitized filename: {sanitized_filename}")
     return sanitized_filename
+
 
 
 @logger.catch()
