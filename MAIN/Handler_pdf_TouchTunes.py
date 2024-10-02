@@ -1,5 +1,3 @@
-import subprocess
-import pandas as pd
 from loguru import logger
 from pathlib import Path
 from generic_munge_functions import extract_dates
