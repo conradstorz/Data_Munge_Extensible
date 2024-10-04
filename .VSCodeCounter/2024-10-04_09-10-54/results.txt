@@ -1,0 +1,56 @@
+Date : 2024-10-04 09:10:54
+Directory : d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN
+Total : 31 files,  3866 codes, 465 comments, 869 blanks, all 5200 lines
+
+Languages
++----------+------------+------------+------------+------------+------------+
+| language | files      | code       | comment    | blank      | total      |
++----------+------------+------------+------------+------------+------------+
+| Python   |         30 |      3,806 |        465 |        868 |      5,139 |
+| CSV      |          1 |         60 |          0 |          1 |         61 |
++----------+------------+------------+------------+------------+------------+
+
+Directories
++------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                 | files      | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                    |         31 |      3,866 |        465 |        869 |      5,200 |
++------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| filename                                                                                             | language | code       | comment    | blank      | total      |
++------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\CFSIV_Automate_the_Repetative.py         | Python   |         42 |         14 |         16 |         72 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\FetchEmailClassModularized.py            | Python   |        211 |         13 |         40 |        264 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_ATM_commissions.py               | Python   |        143 |         20 |         34 |        197 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_Kiosoft_revenue_detail_report.py | Python   |        132 |         45 |         48 |        225 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_Nayax_zip_files.py               | Python   |        105 |         29 |         31 |        165 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_PAI_float_report.py              | Python   |        170 |         23 |         44 |        237 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_TouchTunes_Collection_details.py | Python   |        545 |         42 |         52 |        639 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_email_json_files.py              | Python   |         75 |         10 |         25 |        110 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_html_munge.py                    | Python   |         71 |         10 |         29 |        110 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_pdf_Cantaloupe.py                | Python   |         66 |          5 |         23 |         94 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_pdf_TouchTunes.py                | Python   |         73 |          6 |         25 |        104 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_process_simple.py                | Python   |        174 |         17 |         33 |        224 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_process_surcharge.py             | Python   |        314 |         40 |         63 |        417 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_template_data_munge.py           | Python   |         70 |          9 |         27 |        106 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\Handler_wesbanco_QBO_fix.py              | Python   |        266 |         23 |         53 |        342 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\SimpleTerminalData.csv                   | CSV      |         60 |          0 |          1 |         61 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\betson_email.py                          | Python   |          1 |          0 |          0 |          1 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\df_modifier.py                           | Python   |         69 |         13 |         20 |        102 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\directory_watcher.py                     | Python   |        119 |         11 |         22 |        152 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\file_processor_and_scripts_manager.py    | Python   |        117 |          9 |         21 |        147 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\generic_dataframe_functions.py           | Python   |        221 |         10 |         44 |        275 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\generic_excel_functions.py               | Python   |        165 |         33 |         31 |        229 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\generic_json_functions.py                | Python   |         27 |          3 |          9 |         39 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\generic_munge_functions.py               | Python   |        125 |         14 |         21 |        160 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\generic_pathlib_file_methods.py          | Python   |        189 |         10 |         32 |        231 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\generic_pdf_functions.py                 | Python   |         56 |         11 |         18 |         85 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\test_date_from_str.py                    | Python   |         41 |          3 |         15 |         59 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\test_df_modifier.py                      | Python   |         38 |         13 |         28 |         79 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\test_email_fetcher.py                    | Python   |         96 |         14 |         36 |        146 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\test_generic_excel_functions.py          | Python   |         32 |          4 |         14 |         50 |
+| d:\Users\Conrad\Documents\Python\Data_Munge_Extensible\MAIN\test_generic_munge_functions.py          | Python   |         53 |         11 |         14 |         78 |
+| Total                                                                                                |          |      3,866 |        465 |        869 |      5,200 |
++------------------------------------------------------------------------------------------------------+----------+------------+------------+------------+------------+
