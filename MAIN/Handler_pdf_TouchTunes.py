@@ -77,7 +77,7 @@ def data_handler_process(file_path: Path):
         logger.error(f"No data found to process")
         return False
 
-    # TODO move PDF file to archive directory
+    # move PDF file to archive directory
     input_file_archive_destination = file_path.parent / ARCHIVE_DIRECTORY_NAME
     try:
         logger.info(f"Archiving original file from:\n {file_path} to \n{input_file_archive_destination}")
