@@ -74,11 +74,7 @@ def data_handler_process(file_path: Path):
     except Exception as e:
         logger.error(f"Failure processing HTML: {e}")
         return False
-    if not output_file.exists():
-        logger.error(f"No data found to process")
-        return False
 
-    # process_this_data(raw_dataframe, filedates_list, output_file)
     print_pdf(output_file, SYSTEM_PRINTER_NAME)
 
     # move PDF file to archive directory

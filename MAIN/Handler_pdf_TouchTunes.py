@@ -73,9 +73,6 @@ def data_handler_process(file_path: Path):
     except Exception as e:
         logger.error(f"Failure processing PDF: {e}")
         return False
-    if not output_file.exists():
-        logger.error(f"No data found to process")
-        return False
 
     # move PDF file to archive directory
     input_file_archive_destination = file_path.parent / ARCHIVE_DIRECTORY_NAME
