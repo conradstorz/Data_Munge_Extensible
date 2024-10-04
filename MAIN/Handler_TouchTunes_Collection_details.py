@@ -6,6 +6,7 @@ from generic_munge_functions import extract_dates
 from generic_excel_functions import apply_excel_formatting_to_dataframe_and_save_spreadsheet
 from generic_excel_functions import convert_xlsx_2_pdf
 from generic_munge_functions import print_pdf_using_os_subprocess
+from generic_munge_functions import archive_original_file
 
 """this is now appended to the end of this file
 from TouchTunes_Jukebox_Details import (
@@ -117,6 +118,16 @@ def data_handler_process(file_path: Path):
 
     logger.debug(f"Output saved as {outfilename}")
     # all jukebox revenue processing work complete
+
+    # move PDF file to archive directory
+    input_file_archive_destination = file_path.parent / ARCHIVE_DIRECTORY_NAME
+    try:
+        logger.info(f"Archiving original file from:\n {file_path} to \n{input_file_archive_destination}")
+        archive_original_file(file_path, input_file_archive_destination)
+    except Exception as e:
+        logger.error(f"Error archiving file: {file_path}, Error: {e}")
+        return False
+
     return True
 
 
