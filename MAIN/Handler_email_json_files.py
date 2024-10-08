@@ -1,3 +1,5 @@
+import re
+import requests
 import pandas as panda
 from loguru import logger
 from pathlib import Path
@@ -16,6 +18,7 @@ FILENAME_STRINGS_TO_MATCH = [
     "dummy place holder",
 ]
 ARCHIVE_DIRECTORY_NAME = "eMail_history"
+DOWNLOAD_DIRECTORY = Path("D:/Users/Conrad/Downloads/")
 
 class FileMatcher:
     """
@@ -94,7 +97,9 @@ def aquire_data(file_path, filedates_list):
     # load file into dataframe with needed pre-processing
     df = load_json_to_dataframe(file_path)
     logger.debug(f'Dataframe loaded. {df=}')
+
     # TODO place pre-processing code here
+
     return df
 
 
@@ -104,7 +109,73 @@ def process_this_data(raw_dataframe, date_str_list, output_file) -> bool:
     empty_df = panda.DataFrame()
 
     logger.debug(f"{output_file} with embeded date string {date_str_list} readyness verified.")
+
     # *** place custom code here ***
+
+    # There is an email from PayRange that includes a link in the body of the email to the download url for the data that the email references.
+    PAYRANGE_EMAIL_BODY_DETAILS_DOWNLOAD_IDENTIFIER = "\r\nDownload\r\n<https://"
+    # When this sub-string exists in the body of an email then go ahead and initiate that download.
+    if PAYRANGE_EMAIL_BODY_DETAILS_DOWNLOAD_IDENTIFIER in raw_dataframe['body']:
+        logger.debug(f'Data download URL found.')
+        data_url = extract_download_url(raw_dataframe['body'])
+        logger.debug(f'Data URL: {data_url}')
+        initiate_download(data_url, download_dir)
+        logger.debug('Data download completed.')
 
     # all work complete
     return raw_dataframe
+
+def extract_download_url(text):
+    """
+    Extract the URL that directly follows the word 'Download' in the provided text.
+
+    :param text: The text containing the URL.
+    :type text: str
+    :return: The extracted URL or None if no URL is found.
+    :rtype: str or None
+    """
+    # Regular expression to find a URL directly preceded by 'Download'
+    match = re.search(r'Download\s*<\s*(https?://[^\s>]+)\s*>', text, re.IGNORECASE)
+    if match:
+        return match.group(1)
+    else:
+        return None    
+    
+
+
+def initiate_download(url, download_dir):
+    """
+    Download a file from the given URL and save it in the specified directory using pathlib.
+
+    :param url: The URL of the resource to download.
+    :type url: str
+    :param download_dir: The directory where the downloaded file will be saved.
+    :type download_dir: str or Path
+    :return: The path to the downloaded file.
+    :rtype: Path or None
+    """
+    # Ensure the download directory exists
+    download_dir = Path(download_dir)
+    download_dir.mkdir(parents=True, exist_ok=True)
+
+    # Extract the filename from the URL
+    filename = url.split('/')[-1]
+    
+    # Full path to save the file
+    file_path = download_dir / filename
+
+    try:
+        # Download the file
+        response = requests.get(url, stream=True)
+        response.raise_for_status()  # Raise an error for bad HTTP status codes
+        
+        # Save the file
+        with file_path.open('wb') as file:
+            for chunk in response.iter_content(chunk_size=8192):
+                file.write(chunk)
+        
+        print(f"File downloaded successfully: {file_path}")
+        return file_path
+    except requests.exceptions.RequestException as e:
+        print(f"Failed to download the file: {e}")
+        return None
