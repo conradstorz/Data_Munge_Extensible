@@ -55,8 +55,15 @@ class EmailFetcher:
                 with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
-                    for msg in mailbox.fetch(criteria):    
+                    # Fetch all emails matching the criteria
+                    emails = list(mailbox.fetch(criteria))
+                    logger.info(f"Total emails fetched: {len(emails)}")                    
+                    for msg in emails:
+                        logger.debug(
+                            f"Fetched email | Subject: {msg.subject} | Sender: {msg.from_} | Date: {msg.date} | Message ID: {msg.uid}"
+                        )                            
                         self.process_email(msg)
+                        logger.info(f"Successfully processed email with Message ID: {msg.uid}")
                         # Check frequently if stop_thread is set 
                         if self.stop_thread.is_set():
                             break                                 
@@ -80,6 +87,7 @@ class EmailFetcher:
         Process an individual email.
         """
         # Process email details
+        logger.debug(f'Attempting to process eMail: {msg.uid}')
         try:
             email_subject, email_sender, email_body = self.sanitize_email_details(msg)
         except Exception as e:
