@@ -1,12 +1,17 @@
 import pandas as pd
 import numpy as np
 
-def insert_string(df: pd.DataFrame, input_string: str, column_name: str = None, position: str = 'top') -> pd.DataFrame:
+def insert_string(df: pd.DataFrame, input_string: str, column_name: str = None, position: int = None) -> pd.DataFrame:
     """
-    Inserts a string at the top or bottom of a DataFrame. If no column name is specified,
+    TODO allow any variable to be inserted. default to matching column type pre-existing but allow override option.
+
+        Inserts a string at the top or bottom of a DataFrame. If no column name is specified,
     the string is inserted into the first column of the DataFrame. Raises an 
     exception if the column's data type is not compatible with strings or if
     the column name is not found in the DataFrame.
+
+    TODO default to top and left column unless specified and insert new column if column name specified doesn't exist.
+                if new column, default to fill all rows with new value but allow override to specify row
     
     Parameters:
     -----------
@@ -33,6 +38,10 @@ def insert_string(df: pd.DataFrame, input_string: str, column_name: str = None, 
         If the provided column name does not exist in the DataFrame.
     """
     
+    # If no position is provided, use the last row
+    if position is None:
+        position == df.shape[0]  # Number of rows in dataframe
+        
     # If no column name is provided, use the first column
     if column_name is None:
         column_name = df.columns[0]
