@@ -26,6 +26,17 @@ import sys
 
 logger.remove()  # Remove the default handler
 
+def obfuscate_secrets(record):  # During a crash dump I witnessed API credential leakage and this is intended to protect against that
+    # List of sensitive keys to obfuscate
+    sensitive_keys = ["password", "api_key", "token", "secret", "username"]
+    
+    for key in sensitive_keys:
+        if key in record["extra"]:
+            record["extra"][key] = "***REDACTED***"
+    return record
+
+logger = logger.patch(obfuscate_secrets)
+
 # Add a handler for the console that logs messages at the INFO level with colorization enabled
 logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
 
