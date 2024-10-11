@@ -94,7 +94,7 @@ def process_kiosoft_csv(filename):
     # Convert the value to a string
     Location_name = str(value)
 
-    logger.debug(f'Data loaded and cleaned.')
+    logger.debug(f'Data loaded and cleaned for location: {Location_name}.')
 
     # Create two separate dataframes for total and declined transactions
     df_total = df.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
@@ -102,7 +102,7 @@ def process_kiosoft_csv(filename):
     # Filter out only rows where 'Transaction Type' contains 'DECLINED' for the declined subtotal
     df_declined = df[df['Response Code'].str.contains("declined", case=False, na=False)]
     df_declined_total = df_declined.groupby('Machine ID')['Total Amount ($)'].sum().reset_index()
-    logger.debug(f'Data has been divided into all xacts and declined xacts.')
+    logger.debug(f'Data has been divided into "all xacts" and "declined xacts".')
 
     # Rename the columns for clarity  NOTE: this idea to rename was completely ChatGPT
     df_total.rename(columns={'Total Amount ($)': 'Total Transactions Amount ($)'}, inplace=True)
