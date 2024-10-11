@@ -37,33 +37,47 @@ def fetch_emails_last_24_hours(imap_server, username, password, download_dir, se
     # Fetch emails from the last 24 hours
     last_24_hours = datetime.now() - timedelta(days=1)
     try:
+        # Step 1: Connect to the mailbox
+        logger.info("Connecting to the email server...")
         with MailBox(imap_server).login(username, password) as mailbox:
-            criteria = AND(date_gte=last_24_hours.date())  # Emails in the last 24 hours
-            emails = list(mailbox.fetch(criteria))
-            logger.info(f"Total emails fetched: {len(emails)}")
+            logger.info("Successfully connected to the email server. Please wait...")
+            
+            try:
+                # Step 2: Fetch emails from the last 24 hours
+                criteria = AND(date_gte=last_24_hours.date())  # Emails in the last 24 hours
+                emails = list(mailbox.fetch(criteria))
+                logger.info(f"Total emails fetched: {len(emails)}")
+            except Exception as e:
+                logger.error(f"Error occurred while fetching emails: {str(e)}")
+                return  # Exit function if fetching emails fails
 
             for msg in emails:
-                if msg.uid in seen_uids:
-                    logger.info(f"Email UID {msg.uid} already processed. Skipping.")
-                    continue
+                try:
+                    # Step 3: Check if the email has been processed
+                    if msg.uid in seen_uids:
+                        logger.info(f"Email UID {msg.uid} already processed. Skipping.")
+                        continue
 
-                logger.debug(
-                    f"Fetched email | Subject: {msg.subject} | Sender: {msg.from_} | Date: {msg.date} | UID: {msg.uid}"
-                )
-                
-                # Process email (implement your logic here)
-                # Example: Save email content or attachments
-                process_email(msg, download_dir, ignore_file_types)
+                    logger.debug(
+                        f"Fetched email | Subject: {msg.subject} | Sender: {msg.from_} | Date: {msg.date} | UID: {msg.uid}"
+                    )
 
-                # Add the email UID to the seen_uids list and save it
-                seen_uids.add(msg.uid)
-                with open(seen_emails_file, 'a') as f:
-                    f.write(f"{msg.uid}\n")
-                    
+                    # Step 4: Process the email
+                    process_email(msg, download_dir, ignore_file_types)
+
+                    # Step 5: Mark the email as processed
+                    seen_uids.add(msg.uid)
+                    with open(seen_emails_file, 'a') as f:
+                        f.write(f"{msg.uid}\n")
+
+                    logger.info(f"Successfully processed email UID {msg.uid}.")
+                except Exception as e:
+                    logger.error(f"Error processing email UID {msg.uid}: {str(e)}")
+            
             logger.debug("Processing completed.")
-
     except Exception as e:
-        logger.error(f"Error occurred while fetching emails: {str(e)}")
+        logger.error(f"Critical error occurred while handling emails: {str(e)}")
+
 
 
 def process_email(msg, download_dir, ignore_file_types):
@@ -99,8 +113,33 @@ def process_email(msg, download_dir, ignore_file_types):
         "body": msg.text or msg.html,
     }
     
-    email_filename = download_dir / f"{msg.uid}.json"
+    email_filename = download_dir / f"{msg.subject}.json"
     with open(email_filename, 'w') as json_file:
         json.dump(email_data, json_file, indent=4)
     
     logger.info(f"Saved email content as: {email_filename}")
+
+
+
+def sanitize_email_details(self, msg):
+    """
+    Sanitize email details like subject and sender.
+    """
+    logger.info(f"Incoming eMail: '{msg.subject}' Sanitizing...")
+    email_subject = sanitize_filename(msg.subject[:50])
+    logger.debug(f'Sanitized eMail subject: "{email_subject}"')
+
+    email_sender = sanitize_filename(msg.from_)
+    logger.debug(f'Sanitized sender name: {email_sender}')
+
+    email_body = msg.text or msg.html or "<No content>"
+    return email_subject, email_sender, email_body
+
+
+def sanitize_attachment_filename(self, email_sender, filename):
+    """
+    Sanitize attachment filename for saving.
+    """
+    logger.debug(f'Sanitizing attachment filename: "{filename}"')
+    return f"{email_sender}_{sanitize_filename(filename[:50])}"
+
