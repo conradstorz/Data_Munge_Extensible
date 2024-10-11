@@ -62,7 +62,6 @@ def data_handler_process(original_file_path: Path):
     LOCATION_LABEL = 'location'
     columns_to_keep = {  # csv data names and what to change each one to
         'date': "Date",
-        LOCATION_LABEL: "Location",
         'machine': "Mach Name",
         'mob_sales': "Mobile$",
         'cash_sales': "Cash$",
@@ -75,13 +74,15 @@ def data_handler_process(original_file_path: Path):
     df_processed = process_payrange_csv(original_file_path, columns_to_keep, LOCATION_LABEL)
     logger.debug(f'Data processing returned:\n{df_processed=}')
 
-    # Keep only the needed columns
-    keep = columns_to_keep.values()  # extract the list of modified names of the columns
-    df_processed = df_processed[keep]
-
-    # Add a new row using .loc[] with the same value for all columns
+    # Add a new rows using .loc[] with the same value for all columns
     num_columns = df_processed.shape[1]  # Number of columns in the DataFrame
     df_processed.loc[len(df_processed)] = ['PayRange'] + [''] * (num_columns - 1)    
+    location_name = df_processed.iloc[0][LOCATION_LABEL]  # Extract the name of the Business where this data came from
+    df_processed.loc[len(df_processed)] = [location_name] + [''] * (num_columns - 1)
+
+    # Keep only the needed columns
+    keep = columns_to_keep.values()  # extract the list of modified names of the columns
+    df_processed = df_processed[keep]  # drop the other columns
 
     # processing done, send result to printer  TODO see if landscape can be specified
     convert_dataframe_to_excel_with_formatting_and_save(Path('temp.xlsx'), df_processed)
