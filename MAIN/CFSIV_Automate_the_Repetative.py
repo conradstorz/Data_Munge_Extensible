@@ -17,6 +17,7 @@ As of 9/22/2024 this framework has handlers for 11 different data sources.
 from file_processor_and_scripts_manager import ScriptManager, FileProcessor
 from directory_watcher import monitor_download_directory
 from FetchEmailClassModularized import EmailFetcher
+#from FetchEmailFunctionally import fetch_emails_last_24_hours
 from loguru import logger
 from pathlib import Path
 from dotenv import dotenv_values
@@ -55,6 +56,9 @@ try:
     email_fetcher_instance = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_TO_WATCH)
 except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
+
+
+#fetch_emails_last_24_hours(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], DIRECTORY_TO_WATCH, "./Emails_seen.history")
 
 # start fetcher
 email_fetcher_instance.start_fetching()
