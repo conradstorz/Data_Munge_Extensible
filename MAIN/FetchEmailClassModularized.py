@@ -52,6 +52,7 @@ class EmailFetcher:
         try:
             while not self.stop_thread.is_set():
                 logger.info('Checking eMail provider...')
+                # self.username = 'crash'  # introduce a code exception
                 with MailBox(self.imap_server).login(self.username, self.password) as mailbox:
                     criteria = AND(seen=self.mark_as_seen)
                     logger.debug(f"Fetching emails with criteria: {criteria}")
@@ -104,10 +105,11 @@ class EmailFetcher:
             return  # Stop processing if email data can't be constructed
 
         # Process attachments
-        try:
-            self.process_attachments(msg.attachments, email_sender, attachments)
-        except Exception as e:
-            logger.error(f"Error processing attachments for {email_subject}: {e}", exc_info=True)
+        if len(attachments) > 0:
+            try:
+                self.process_attachments(msg.attachments, email_sender, attachments)
+            except Exception as e:
+                logger.error(f"Error processing attachments for {email_subject}: {e}", exc_info=True)
 
          # Save email content to JSON
         try:
