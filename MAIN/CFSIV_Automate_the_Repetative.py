@@ -24,25 +24,8 @@ from dotenv import dotenv_values
 import sys
 
 # setup logging
+import load_loguru_logging_defaults  # file will process automatically on import
 
-logger.remove()  # Remove the default handler
-
-def obfuscate_secrets(record):  # During a crash dump I witnessed API credential leakage and this is intended to protect against that
-    # List of sensitive keys to obfuscate
-    sensitive_keys = ["password", "api_key", "token", "secret", "username"]
-    
-    for key in sensitive_keys:
-        if key in record["extra"]:
-            record["extra"][key] = "***REDACTED***"
-    return record
-
-logger = logger.patch(obfuscate_secrets)
-
-# Add a handler for the console that logs messages at the INFO level with colorization enabled
-logger.add(sys.stdout, level='INFO', colorize=True, format="<green>{time}</green> <level>{message}</level>")
-
-# Add a handler for permanent storage with automatic rotation
-logger.add("LOGS/file_processing_{time:YYYY-MM-DD}.log", rotation="00:00", retention="9 days")
 
 logger.info(f'Program Start: {__name__}')
 
