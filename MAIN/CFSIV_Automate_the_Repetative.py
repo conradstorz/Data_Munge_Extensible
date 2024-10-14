@@ -39,6 +39,7 @@ file_processor_instance = FileProcessor(scripts_manager_instance)
 
 # establish where to look for incoming data
 DIRECTORY_TO_WATCH = Path("D:/Users/Conrad/Downloads/")
+DIRECTORY_FOR_EMAILS = DIRECTORY_TO_WATCH
 
 # load secrets from the running system to ensure they are not hard coded
 SECRETS_DIRECTORY = SCRIPTS_DIRECTORY / Path(".env")
@@ -47,12 +48,12 @@ IMAP_SERVER = "imap.gmail.com"
 
 # initiate the email watcher class  (has optional flag 'mark_as_read' that defaults to False)
 try:
-    email_fetcher_instance = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_TO_WATCH)
+    email_fetcher_instance = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_FOR_EMAILS)
 except KeyError as e:
     logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
 
 
-#fetch_emails_last_24_hours(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], DIRECTORY_TO_WATCH, "./Emails_seen.history")
+#fetch_emails_last_24_hours(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], DIRECTORY_FOR_EMAILS, "./Emails_seen.history")
 
 # start fetcher
 email_fetcher_instance.start_fetching()
