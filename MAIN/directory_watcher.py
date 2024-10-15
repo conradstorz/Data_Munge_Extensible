@@ -37,16 +37,18 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
 
 
     directory_to_watch = Path(directory_to_watch)
-    pickle_file = Path(pickle_file)
+    # pickle_file = Path(pickle_file)
     ignore_SUFFIXs = ignore_SUFFIXs or []  # This is a good way to avoid the mutable variable problem
     #logger.debug(f'Checking watched directory {directory_to_watch} for new files while ignoring {ignore_SUFFIXs}')
 
+    """
     # Load existing filenames from pickle
     if pickle_file.exists():
         with pickle_file.open('rb') as pf:
             existing_files = pickle.load(pf)
     else:
         existing_files = set()
+    """
 
     # Update the list of files in the directory
     try:
@@ -55,7 +57,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         logger.error(f'Could not access directory: {e}')
         sys.exit(0)  # TODO re-raise error
 
-    new_files = {f for f in current_files if f.name not in existing_files and f.is_file()}
+    new_files = {f for f in current_files if f.is_file()}
 
     if new_files == {}:
         logger.debug("No new files found.")
@@ -72,10 +74,12 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         new_file_path = new_file
         logger.debug(f"New file found '{new_file.name}' in '{directory_to_watch.name}'")
 
+        """
         # Update the pickle file with the new filename
         existing_files.add(new_file)
         with pickle_file.open('wb') as pf:
             pickle.dump(existing_files, pf)
+        """
 
         if new_file.suffix in ignore_SUFFIXs:
             logger.debug('Ignoring.')  
@@ -88,11 +92,13 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         new_file.rename(new_file_path)
         logger.debug(f"Renamed file: {new_file.name} -> {new_file_path}")
         
+        """
         # Update the pickle file with the new filename
         existing_files.add(new_file_path)
         with pickle_file.open('wb') as pf:
             pickle.dump(existing_files, pf)
-
+        """
+        
         return str(new_file_path)
     return None
 
