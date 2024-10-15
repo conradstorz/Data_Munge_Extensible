@@ -88,7 +88,7 @@ def data_handler_process(file_path: Path):
         return False
 
     file_size = file_path.stat().st_size
-    logger.info(f"Starting processing for file: {file_path}, Size: {file_size} bytes")
+    logger.debug(f"Starting processing for file: {file_path}, Size: {file_size} bytes")
 
     logger.debug(f"Looking for date string in: {file_path.stem}")
     try:
@@ -121,7 +121,7 @@ def data_handler_process(file_path: Path):
     try:
         logger.debug(f"Applying formatting rules to result with {len(result)} records")
         apply_excel_formatting_to_dataframe_and_save_spreadsheet(output_file, result)
-        logger.info(f"Successfully saved formatted data to: {output_file}")
+        logger.debug(f"Successfully saved formatted data to: {output_file}")
     except Exception as e:
         logger.error(f"Error applying formatting or saving the file: {output_file}, Error: {e}")
         return False
@@ -133,20 +133,20 @@ def data_handler_process(file_path: Path):
     try:
         logger.debug(f"Sending Excel file to printer: {output_file}")
         print_excel_file(output_file)
-        logger.info(f"Excel file {output_file} sent to printer successfully")
+        logger.debug(f"Excel file {output_file} sent to printer successfully")
     except Exception as e:
         logger.error(f"Error printing file: {output_file}, Error: {e}")
         return False
 
     # Archive the original file
     try:
-        logger.info(f"Archiving original file from {file_path} to {input_file_archive_destination}")
+        logger.info(f"Archiving original file from {file_path.name} to {input_file_archive_destination.stem}")
         archive_original_file(file_path, input_file_archive_destination)
     except Exception as e:
         logger.error(f"Error archiving file: {file_path}, Error: {e}")
         return False
 
-    logger.info(f"All processing for file: {file_path} completed successfully")
+    logger.info(f"All processing for file: {file_path.name} completed successfully")
     return True
 
 

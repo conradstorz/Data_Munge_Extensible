@@ -72,7 +72,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
     # Process the first new file
     for new_file in new_files:
         new_file_path = new_file
-        logger.debug(f"New file found '{new_file.name}' in '{directory_to_watch.name}'")
+        logger.info(f"New file found '{new_file.name}' in '{directory_to_watch.name}'")
 
         """
         # Update the pickle file with the new filename
@@ -98,7 +98,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         with pickle_file.open('wb') as pf:
             pickle.dump(existing_files, pf)
         """
-        
+
         return str(new_file_path)
     return None
 
