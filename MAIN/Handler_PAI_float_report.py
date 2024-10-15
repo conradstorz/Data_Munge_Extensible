@@ -25,6 +25,7 @@ FILENAME_STRINGS_TO_MATCH = [
     "Terminal Status(w_FLOAT)automated",
     "floatautomated_3_",
     "terminal_statuswfloatautomated",
+    "report_results_daily_float_report"  # this is a JSON file so it will not match this handler in it's current configuration
     ]
 
 ARCHIVE_DIRECTORY_NAME = "FloatReportArchive"
