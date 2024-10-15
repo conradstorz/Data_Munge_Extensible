@@ -24,6 +24,18 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
     :return: The first new filename found, or None if no new files
     :rtype: str or None
     """
+    def give_file_uniquie_name(filename, directry):
+        # Loop to ensure no duplicate filename exists and rename the file by appending a timestamp to avoid conflicts
+        new_file_path = filename.copy()
+        while new_file_path.exists():  # TODO does this need to check for file/directory status?
+            timestamp = datetime.now().strftime("%M%S")
+            timestamp = f"({timestamp})"
+            new_filename = f"{filename.stem}_{timestamp}{filename.suffix}"
+            new_file_path = directry / new_filename
+
+        return new_file_path
+
+
     directory_to_watch = Path(directory_to_watch)
     pickle_file = Path(pickle_file)
     ignore_SUFFIXs = ignore_SUFFIXs or []  # This is a good way to avoid the mutable variable problem
@@ -41,42 +53,47 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         current_files = set(directory_to_watch.iterdir())
     except FileNotFoundError as e:
         logger.error(f'Could not access directory: {e}')
-        sys.exit(0)
+        sys.exit(0)  # TODO re-raise error
 
     new_files = {f for f in current_files if f.name not in existing_files}
 
     if new_files == {}:
         logger.debug("No new files found.")
+        # clean up any ignored files
+        old_files = current_files - new_files
+        for file in old_files:
+            new_name = give_file_uniquie_name(file, directory_to_watch)
+            file.rename(new_name)
+            logger.debug(f"Renamed file: {file.name} -> {new_name}")
         return None
 
     # Process the first new file
     for new_file in new_files:
-        if (new_file.is_file() and new_file.suffix not in ignore_SUFFIXs):
-            # Check for duplicate filenames and rename the file by appending a timestamp
-            timestamp = datetime.now().strftime("%M%S")
-            timestamp = f"({timestamp})"
+        logger.debug(f"New file found '{new_file.name}' in '{directory_to_watch.name}'")
 
-            # If a file with the same name exists, append a timestamp to avoid conflicts
-            new_filename = f"{new_file.stem}_{timestamp}{new_file.suffix}"
-            new_file_path = directory_to_watch / new_filename
-            
-            # Loop to ensure no conflicts even after renaming
-            while new_file_path.exists():
-                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
-                new_filename = f"{new_file.stem}_{timestamp}{new_file.suffix}"
-                new_file_path = directory_to_watch / new_filename
+        # Update the pickle file with the new filename
+        existing_files.add(new_file)
+        with pickle_file.open('wb') as pf:
+            pickle.dump(existing_files, pf)
 
-            new_file.rename(new_file_path)
-            logger.debug(f"Renamed file: {new_file.name} -> {new_filename}")
+        if not (new_file.is_file() and new_file.suffix not in ignore_SUFFIXs):
+            logger.debug('Ignoring.')
+            continue
 
-            # Update the pickle file with the new filename
-            existing_files.add(new_filename)
-            with pickle_file.open('wb') as pf:
-                pickle.dump(existing_files, pf)
-
+        new_file_path = give_file_uniquie_name(new_file, directory_to_watch)
+        if new_file_path == new_file:
             return str(new_file_path)
+        
+        new_file.rename(new_file_path)
+        logger.debug(f"Renamed file: {new_file.name} -> {new_file_path}")
 
-    return None
+        # Update the pickle file with the new filename
+        existing_files.add(new_file_path)
+        with pickle_file.open('wb') as pf:
+            pickle.dump(existing_files, pf)
+
+    return str(new_file_path)
+
 
 @logger.catch()
 def monitor_download_directory(directory_to_watch, file_processor, delay=1):
