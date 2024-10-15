@@ -26,7 +26,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
     """
     def give_file_uniquie_name(filename, directry):
         # Loop to ensure no duplicate filename exists and rename the file by appending a timestamp to avoid conflicts
-        new_file_path = filename.copy()
+        new_file_path = Path(str(filename))  # This is trying to ensure a copy not a pointer reference
         while new_file_path.exists():  # TODO does this need to check for file/directory status?
             timestamp = datetime.now().strftime("%M%S")
             timestamp = f"({timestamp})"
@@ -55,7 +55,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         logger.error(f'Could not access directory: {e}')
         sys.exit(0)  # TODO re-raise error
 
-    new_files = {f for f in current_files if f.name not in existing_files}
+    new_files = {f for f in current_files if f.name not in existing_files and f.is_file()}
 
     if new_files == {}:
         logger.debug("No new files found.")
@@ -69,6 +69,7 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
 
     # Process the first new file
     for new_file in new_files:
+        new_file_path = new_file
         logger.debug(f"New file found '{new_file.name}' in '{directory_to_watch.name}'")
 
         # Update the pickle file with the new filename
@@ -76,8 +77,8 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         with pickle_file.open('wb') as pf:
             pickle.dump(existing_files, pf)
 
-        if not (new_file.is_file() and new_file.suffix not in ignore_SUFFIXs):
-            logger.debug('Ignoring.')
+        if new_file.suffix in ignore_SUFFIXs:
+            logger.debug('Ignoring.')  
             continue
 
         new_file_path = give_file_uniquie_name(new_file, directory_to_watch)
@@ -86,13 +87,14 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
         
         new_file.rename(new_file_path)
         logger.debug(f"Renamed file: {new_file.name} -> {new_file_path}")
-
+        
         # Update the pickle file with the new filename
         existing_files.add(new_file_path)
         with pickle_file.open('wb') as pf:
             pickle.dump(existing_files, pf)
 
-    return str(new_file_path)
+        return str(new_file_path)
+    return None
 
 
 @logger.catch()
