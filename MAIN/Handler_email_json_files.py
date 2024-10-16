@@ -119,7 +119,7 @@ def process_this_data(raw_dataframe, date_str_list, output_file) -> bool:
         logger.debug(f'Data download URL found.')
         data_url = extract_download_url(raw_dataframe['body'])
         logger.debug(f'Data URL: {data_url}')
-        initiate_download(data_url, download_dir)
+        initiate_download(data_url, DOWNLOAD_DIRECTORY)
         logger.debug('Data download completed.')
 
     # all work complete
