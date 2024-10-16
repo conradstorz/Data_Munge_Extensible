@@ -66,7 +66,7 @@ def data_handler_process(original_file_path: Path):
         'mob_sales': "Mobile$",
         'cash_sales': "Cash$",
         'card_sales': "Credit$",
-        # 'tot_sales': "Total$",  The printout is too wide for the printer if all the columns are included
+        'tot_sales': "Total$",
         'net': "Net$",
     }
 
