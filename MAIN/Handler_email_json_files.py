@@ -70,12 +70,8 @@ def data_handler_process(file_path: Path):
     logger.debug(f"Archive for processed file path is: {archive_directory_path}")
 
     # launch the processing function
-    try:
-        logger.debug(f'Starting data aquisition.')
-        raw_dataframe = aquire_data(file_path, filedates_list)
-    except Exception as e:
-        logger.error(f"Failure processing dataframe: {e}")
-        return False
+    logger.debug(f'Starting data aquisition.')
+    raw_dataframe = aquire_data(file_path, filedates_list)
     if len(raw_dataframe) < 1:
         logger.error(f"No data found to process")
         return False
@@ -164,18 +160,15 @@ def initiate_download(url, download_dir):
     # Full path to save the file
     file_path = download_dir / filename
 
-    try:
-        # Download the file
-        response = requests.get(url, stream=True)
-        response.raise_for_status()  # Raise an error for bad HTTP status codes
-        
-        # Save the file
-        with file_path.open('wb') as file:
-            for chunk in response.iter_content(chunk_size=8192):
-                file.write(chunk)
-        
-        print(f"File downloaded successfully: {file_path}")
-        return file_path
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to download the file: {e}")
-        return None
+    # Download the file
+    response = requests.get(url, stream=True)
+    response.raise_for_status()  # Raise an error for bad HTTP status codes
+    
+    # Save the file
+    with file_path.open('wb') as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
+    
+    print(f"File downloaded successfully: {file_path}")
+    return file_path
+
