@@ -27,11 +27,12 @@ def get_first_new_file(directory_to_watch, pickle_file, ignore_SUFFIXs=None):
     def give_file_uniquie_name(filename, directry):
         # Loop to ensure no duplicate filename exists and rename the file by appending a timestamp to avoid conflicts
         new_file_path = Path(str(filename))  # This is trying to ensure a copy not a pointer reference
-        while new_file_path.exists():  # TODO does this need to check for file/directory status?
+        while new_file_path.exists():  # TODO does this need to check for file/directory status? make sure it doesn't create a name thats too long
             timestamp = datetime.now().strftime("%M%S")
             timestamp = f"({timestamp})"
             new_filename = f"{filename.stem}_{timestamp}{filename.suffix}"
             new_file_path = directry / new_filename
+            time.sleep(1)  # slow the pace   TODO make this non-blocking by making a loop of 1/100 a second per
 
         return new_file_path
 

@@ -6,6 +6,8 @@ from pathlib import Path
 from generic_pathlib_file_methods import move_file_with_check
 from dateutil.parser import parse, ParserError
 
+# TODO add a non-blocking sleep function that loops at 1/100 second while 'sleeping'
+
 @logger.catch()
 def print_pdf_using_os_subprocess(file_path, printer_name):
     """Print PDF files using the windows program SumatraPDF"""
