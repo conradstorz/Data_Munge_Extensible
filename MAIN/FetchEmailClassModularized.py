@@ -96,6 +96,8 @@ class EmailFetcher:
             return  # Stop processing if critical email details fail
 
         attachments = []
+        if msg.attachments:
+            attachments = msg.attachments
 
         # Construct email data
         try:
