@@ -12,6 +12,10 @@ client = OpenAI(
 chat_completion = client.chat.completions.create(
     messages=[
         {
+            "role": "system",
+            "content": "You are a skilled haiku poet. Create beautiful, nature-themed haikus."
+        },
+        {
             "role": "user",
             "content": "write a haiku",
         }
