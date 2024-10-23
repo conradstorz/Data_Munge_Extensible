@@ -113,20 +113,17 @@ def apply_excel_formatting_to_dataframe_and_save_spreadsheet(filename, frame):
     # clean up any old output file that exists
     logger.debug(f"Cleanup any old file left over from previous runs.")
     delete_file_and_verify(filename) 
-    try:
-        # Create a pandas ExcelWriter object
-        logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
-        with pd.ExcelWriter(filename, engine="xlsxwriter") as writer:
-            # Write the DataFrame to the Excel file
-            logger.debug(f"Writing DataFrame to Excel file")
-            frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
-            logger.debug(f"Applying custom column formatting")
-            set_custom_excel_formatting(frame, writer, column_details)
-            logger.debug("All work done. Saving worksheet...")
-            # File creation ends here and is saved automatically.
+    # Create a pandas ExcelWriter object
+    logger.debug(f"Creating Excel object {filename} with {len(frame)} lines")
+    with pd.ExcelWriter(filename, engine="xlsxwriter") as writer:
+        # Write the DataFrame to the Excel file
+        logger.debug(f"Writing DataFrame to Excel file")
+        frame.to_excel(writer, startrow=1, sheet_name="Sheet1", index=False)
+        logger.debug(f"Applying custom column formatting")
+        set_custom_excel_formatting(frame, writer, column_details)
+        logger.debug("All work done. Saving worksheet...")
+        # File creation ends here and is saved automatically.
 
-    except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
     return filename
 
 @logger.catch()
