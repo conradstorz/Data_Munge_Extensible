@@ -127,15 +127,12 @@ class FileProcessor:
             move_file_with_check(file_path, new_file_path)
             return False
         else:
-            try:
-                if process_func(file_path):
-                    logger.info(f"Successfully processed file: {file_path}")
-                else:
-                    logger.error(f"Error processing {file_path}")
-                    return False
-            except Exception as e:
-                logger.error(f"Error processing file {file_path}: {e}")
+            if process_func(file_path):
+                logger.info(f"Successfully processed file: {file_path}")
+            else:
+                logger.error(f"Error processing {file_path}")
                 return False
+
         return True
 
 # Example usage:
