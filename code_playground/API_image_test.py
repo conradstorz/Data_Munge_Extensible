@@ -18,36 +18,47 @@ def jpeg_to_base64(image_path):
 
 from pathlib import Path
 
-file_path = Path('car.jpg')
-file_size = file_path.stat().st_size / 1024 / 1024
+base_path = Path.cwd()
 
-# Usage
-print(f'Size of original image file is {file_size:.2f}M bytes')
-base64_string = jpeg_to_base64("car.jpg")
-print(f'Encoded image length is {len(base64_string) / 1024 / 1024:.2f}M characters.')
+# Gather all .jpg files
+jpg_files = list(base_path.rglob("*.jpg"))
 
-prompt = 'what is this'
+print(f"Found {len(jpg_files)} .jpg files.")
 
-response = client.chat.completions.create(
-    model="gpt-4o-mini",
-    messages=[
-        {
-            "role": "system",
-            "content": "You are a skilled photo analyst that only answers in iambic pentameter."
-        },
-        {
-            "role": "user",
-            "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/jpeg;base64,{base64_string}"},
-                },
-            ],
-        }
-    ],
-)
+for jpg_file in jpg_files:
+    print(f"Processing: {jpg_file}")
 
-# now extract the Haiku from the response
-answer = response.choices[0].message.content
-print(answer)
+    file_size = jpg_file.stat().st_size / 1024 / 1024
+
+    # Usage
+    print(f'Size of original image file is {file_size:.2f}M bytes')
+    base64_string = jpeg_to_base64(jpg_file)
+    print(f'Encoded image length is {len(base64_string) / 1024 / 1024:.2f}M characters.')
+
+
+    prompt = 'focus only on the vehicle centermost in the photo and answer these questions; Is there a vehicle in the photo? what color? what make? what model? is there a registration plate visible? what are the registration details?'
+
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "system",
+                "content": "You are a skilled photo analyst that only answers in JSON object notation."
+            },
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {"url": f"data:image/jpeg;base64,{base64_string}"},
+                    },
+                ],
+            }
+        ],
+    )
+
+    # now extract the Haiku from the response
+    answer = response.choices[0].message.content
+    print(answer)
+    print()
