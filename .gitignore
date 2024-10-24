@@ -2,6 +2,7 @@
 *.pkl
 *.xlsx
 *.pdf
+*.jpg
 *.json
 *.history
 
