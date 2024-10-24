@@ -4,6 +4,7 @@
 *.pdf
 *.jpg
 *.json
+*.zip
 *.history
 
 # Byte-compiled / optimized / DLL files
