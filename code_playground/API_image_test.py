@@ -4,7 +4,7 @@ from dotenv import dotenv_values
 SECRETS = dotenv_values('ChatGPT_and_Twilio.env')  # load secrets from '.env' file
 openai_api_key = SECRETS["openai.api_key"]
 
-client = OpenAI(
+OpenAI_client = OpenAI(
     # This is the default and can be omitted
     api_key=openai_api_key,
 )
@@ -38,7 +38,7 @@ for jpg_file in jpg_files:
 
     prompt = 'focus only on the vehicle centermost in the photo and answer these questions; Is there a vehicle in the photo? what color? what make? what model? is there a registration plate visible? what are the registration details?'
 
-    response = client.chat.completions.create(
+    response = OpenAI_client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
             {
@@ -62,3 +62,33 @@ for jpg_file in jpg_files:
     answer = response.choices[0].message.content
     print(answer)
     print()
+
+
+"""
+Here's an example of async useage
+import os
+import asyncio
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI(
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
+)
+
+
+async def main() -> None:
+    chat_completion = await client.chat.completions.create(
+        messages=[
+            {
+                "role": "user",
+                "content": "Say this is a test",
+            }
+        ],
+        model="gpt-3.5-turbo",
+    )
+
+
+asyncio.run(main())
+
+could this be used to submit all photos at once and get results as they become available?
+"""
