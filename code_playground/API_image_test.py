@@ -32,6 +32,10 @@ response = client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[
         {
+            "role": "system",
+            "content": "You are a skilled photo analyst that only answers in iambic pentameter."
+        },
+        {
             "role": "user",
             "content": [
                 {"type": "text", "text": prompt},
