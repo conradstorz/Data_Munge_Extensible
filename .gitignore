@@ -1,3 +1,4 @@
+*.env
 *.pkl
 *.xlsx
 *.pdf
