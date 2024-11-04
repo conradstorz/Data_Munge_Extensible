@@ -1,3 +1,9 @@
+"""Defines functions for common dataframe situations.
+    I frequently add notes to a dataframe prior to printing the dataframe.
+    The first function simply inserts a given string at the top left of the dataframe.
+    Optionally it will allow the string be placed into a given column name.
+    Optionally it will allow the string be added after the last row of the given dataframe."""
+
 import pandas as pd
 import numpy as np
 
@@ -76,12 +82,12 @@ def insert_string(df: pd.DataFrame, input_string: str, column_name: str = None, 
 if __name__ == "__main__":
     from io import StringIO
 
-    # CSV formatted data as a string
+    # CSV formatted data as a string with the first line representing the column names.
     csv_data = """
     A,B,C
-    hello,5,8
-    world,6,9
-    friends,4,7
+    hello,5.1,world
+    world,6.1,wide
+    friends,4.1,nations
     """
 
     # Use StringIO to simulate reading from a file
@@ -104,6 +110,22 @@ if __name__ == "__main__":
     # Insert the string at the bottom
     try:
         df = insert_string(df, string_to_insert, position='bottom')
+    except (KeyError, TypeError, ValueError) as e:
+        print(e)
+
+    print(df)
+
+    # Insert the string at the top in column 'C'
+    try:
+        df = insert_string(df, string_to_insert, column_name='C', position='top')
+    except (KeyError, TypeError, ValueError) as e:
+        print(e)
+
+    print(df)
+
+    # Insert the string at the bottom in column 'C'
+    try:
+        df = insert_string(df, string_to_insert, column_name='C', position='bottom')
     except (KeyError, TypeError, ValueError) as e:
         print(e)
 
