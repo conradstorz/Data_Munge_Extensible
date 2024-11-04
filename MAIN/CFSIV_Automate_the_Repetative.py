@@ -45,19 +45,15 @@ DIRECTORY_FOR_EMAILS = DIRECTORY_TO_WATCH
 SECRETS_DIRECTORY = SCRIPTS_DIRECTORY / Path(".env")
 SECRETS = dotenv_values(SECRETS_DIRECTORY)  # load secrets from '.env' file 
 IMAP_SERVER = "imap.gmail.com"
-
 # initiate the email watcher class  (has optional flag 'mark_as_read' that defaults to False)
-try:
-    email_fetcher_instance = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_FOR_EMAILS)
-except KeyError as e:
-    logger.error(f'Could not initialize email fetcher. KeyError: {str(e)}')
-
-
-#fetch_emails_last_24_hours(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], DIRECTORY_FOR_EMAILS, "./Emails_seen.history")
-
+# email_fetcher_instance = EmailFetcher(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], interval=180, dld=DIRECTORY_FOR_EMAILS)
+# alternately activate an email fetecher functionally
+# fetch_emails_last_24_hours(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], DIRECTORY_FOR_EMAILS, "./Emails_seen.history")
 # start fetcher
-email_fetcher_instance.start_fetching()
+# email_fetcher_instance.start_fetching()
 # fetcher will download each email and it's attachments as it arrives
+
+# new approach is to allow the main loop fetch one (1) unseen email at a time.   TODO implement this
 
 # begin monitoring directory where data gets downloaded
 # This function will run until Keyboard Interrupt is detected
@@ -65,7 +61,7 @@ monitor_download_directory(DIRECTORY_TO_WATCH, file_processor_instance, delay=2)
 
 # begin shutdown
 logger.info("directory watcher ended")
-email_fetcher_instance.stop_fetching()
+# email_fetcher_instance.stop_fetching()
 logger.info("email watcher stopped")
 # shutdown complete
 sys.exit(0)
