@@ -8,7 +8,7 @@ OpenAI_client = OpenAI(
     # This is the default and can be omitted
     api_key=openai_api_key,
 )
-
+ 
 import base64
 
 def jpeg_to_base64(image_path):
@@ -16,24 +16,31 @@ def jpeg_to_base64(image_path):
         encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
     return encoded_string
 
+# setup logging
+import load_loguru_logging_defaults  # file will process automatically on import
+from loguru import logger
+logger.info(f'Program start...')
+
+
 from pathlib import Path
 
 base_path = Path.cwd()
+logger.debug(f'Current working directory {base_path}')
+
 
 # Gather all .jpg files
 jpg_files = list(base_path.rglob("*.jpg"))
-
-print(f"Found {len(jpg_files)} .jpg files.")
+logger.info(f'{len(jpg_files)} photo files found.')
 
 for jpg_file in jpg_files:
-    print(f"Processing: {jpg_file}")
+    logger.info(f"Processing: {jpg_file}")
 
     file_size = jpg_file.stat().st_size / 1024 / 1024
 
     # Usage
-    print(f'Size of original image file is {file_size:.2f}M bytes')
+    logger.info(f'Size of original image file is {file_size:.2f}M bytes')
     base64_string = jpeg_to_base64(jpg_file)
-    print(f'Encoded image length is {len(base64_string) / 1024 / 1024:.2f}M characters.')
+    logger.info(f'Encoded image length is {len(base64_string) / 1024 / 1024:.2f}M characters.')
 
 
     prompt = 'focus only on the vehicle centermost in the photo and answer these questions; Is there a vehicle in the photo? what color? what make? what model? is there a registration plate visible? what are the registration details?'
@@ -58,10 +65,10 @@ for jpg_file in jpg_files:
         ],
     )
 
-    # now extract the Haiku from the response
+    # now extract the analysis from the response
     answer = response.choices[0].message.content
-    print(answer)
-    print()
+    logger.info(answer)
+
 
 
 """
