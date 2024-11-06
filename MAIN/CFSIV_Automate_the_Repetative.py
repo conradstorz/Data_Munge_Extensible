@@ -56,7 +56,7 @@ except KeyError as e:
 #fetch_emails_last_24_hours(IMAP_SERVER, SECRETS["EMAIL_USER"], SECRETS["EMAIL_PASSWORD"], DIRECTORY_FOR_EMAILS, "./Emails_seen.history")
 
 # start fetcher
-email_fetcher_instance.start_fetching()
+# email_fetcher_instance.start_fetching()
 # fetcher will download each email and it's attachments as it arrives
 
 # begin monitoring directory where data gets downloaded
