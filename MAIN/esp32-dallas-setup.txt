@@ -1,0 +1,124 @@
+# These devices were found when first attached to the Kooler Ice Machine 
+# after adding the wiring pigtail that corrected the old 
+# RaspberryPi wiring scheme and updated it to the new ESP8266 standard
+
+# [16:35:29][C][gpio.one_wire:082]:     0x2101193a736ed428 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0x88011936bb1b3c28 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0x7a01193a6a8d8928 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0xc701193a5dafc528 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0x5a01193a6cdedd28 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0x7801193a5bc41b28 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0x4f01193a7487a728 (DS18B20)
+# [16:35:29][C][gpio.one_wire:082]:     0x3d0119363d47d728 (DS18B20)
+
+esphome:
+  name: koolerice
+  friendly_name: KoolerIce Monitor
+
+esp8266:
+  board: esp01_1m
+
+# Enable logging
+logger:
+  level: DEBUG
+  logs:
+    sensor: INFO  # Set these items to supress DEBUG level messages
+    light: INFO  # Only INFO, WARN and ERROR
+    dallas.temp.sensor: INFO
+
+# Enable Home Assistant API
+api:
+  encryption:
+    key: "tqBbkC2xmS5rLkZThPcc6mcL8gX9C//bmSd/b897p50="
+
+ota:
+  - platform: esphome
+    password: "ae27aadc06265e579ffd44f7f5fef99d"
+
+wifi:
+  ssid: "Storz"
+  password: "freewifi"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Koolerice Fallback Hotspot"
+    password: "freewifi"
+
+captive_portal:
+
+# This is a heartbeat function to verify running code
+output:
+  - platform: gpio
+    pin:
+      number: GPIO02
+      inverted: true  # Inverted because NodeMCU's onboard LED is active low
+    id: onboard_led
+# setup the on-board led
+light:
+  - platform: binary
+    output: onboard_led
+    id: blinking_light
+    internal: true
+# blink the led once per second
+interval:
+  - interval: 2s
+    then:
+      - light.toggle: blinking_light
+
+# setup for monitoring of dallas one-wire temerature sensors
+one_wire:
+  - platform: gpio
+    pin: GPIO04  # Replace GPIOXX with the actual GPIO pin number you are using
+
+sensor:
+  # Primary function of this device is to monitor temperatures in multiple locations
+  - platform: dallas_temp
+    address: 0x88011936bb1b3c28  # These are the actual factory installed serial numbers of the sensors
+    name: "Inside Main Body - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0x2101193a736ed428  # These are the actual factory installed serial numbers of the sensors
+    name: "Evap Plate2 - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0x7a01193a6a8d8928  # These are the actual factory installed serial numbers of the sensors
+    name: "Water Bath - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0xc701193a5dafc528  # These are the actual factory installed serial numbers of the sensors
+    name: "Condenser Air Out - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0x5a01193a6cdedd28  # These are the actual factory installed serial numbers of the sensors
+    name: "Evap Plate1 - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0x7801193a5bc41b28  # These are the actual factory installed serial numbers of the sensors
+    name: "Purge Valve Output - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0x4f01193a7487a728  # These are the actual factory installed serial numbers of the sensors
+    name: "Ice Maker6 - Temp"
+    update_interval: 2s
+  - platform: dallas_temp
+    address: 0x3d0119363d47d728  # These are the actual factory installed serial numbers of the sensors
+    name: "Ice Maker7 - Temp"
+    update_interval: 2s
+
+
+# These sensors were suggested by ChatGPT
+  - platform: wifi_signal
+    name: "WiFi Signal Strength"
+
+  - platform: uptime
+    name: "Device Uptime"
+
+# DHT Temperature and Humidity Sensor setup by me
+  - platform: dht
+    pin: GPIO13  # Replace with the actual GPIO pin used for the DHT sensor
+    model: DHT22  # Replace with your DHT model (DHT11, DHT22, etc.)
+    temperature:
+      name: "DHT Temperature"
+    humidity:
+      name: "DHT Humidity"
+    update_interval: 60s
